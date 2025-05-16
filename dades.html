@@ -91,6 +91,8 @@
                 <h1 class="card-title">Configurar Ronda i Faristol</h1>
             </div>
             <div class="card-body">
+                 <button id="toggleFormButton" class="btn btn-secondary">Activar Formulari de Respostes</button>
+               
                 <form id="configForm">
                     <div class="mb-3">
                         <label for="roundNumber" class="form-label">Número de Ronda:</label>
@@ -124,12 +126,41 @@
         const database = firebase.database();
         const gameInfoRef = database.ref('gameInfo');
         const responsesRef = database.ref('rounds'); // Referència a les respostes per ronda
+         const formEnabledRef = database.ref('formEnabled'); // Nova referència per l'estat del formulari
+
 
         const configForm = document.getElementById('configForm');
         const roundNumberInput = document.getElementById('roundNumber');
         const currentRackInput = document.getElementById('currentRack');
         const messageDiv = document.getElementById('message');
         const responsesAccordion = document.getElementById('responsesAccordion');
+         const toggleFormButton = document.getElementById('toggleFormButton');
+
+
+        // Funció per actualitzar l'estat del botó
+        function updateToggleButton(isEnabled) {
+            if (isEnabled) {
+                toggleFormButton.textContent = 'Desactivar Formulari de Respostes';
+                toggleFormButton.classList.remove('btn-danger');
+                toggleFormButton.classList.add('btn-success');
+            } else {
+                toggleFormButton.textContent = 'Activar Formulari de Respostes';
+                toggleFormButton.classList.remove('btn-success');
+                toggleFormButton.classList.add('btn-danger');
+            }
+        }
+
+        // Escolta els canvis en l'estat del formulari
+        formEnabledRef.on('value', (snapshot) => {
+            const isEnabled = snapshot.val();
+            updateToggleButton(isEnabled);
+        });
+
+        // Event per canviar l'estat del formulari
+        toggleFormButton.addEventListener('click', () => {
+            const currentState = toggleFormButton.textContent.includes('Activar');
+            formEnabledRef.set(currentState); // Inverteix l'estat
+        });
 
         configForm.addEventListener('submit', (event) => {
             event.preventDefault();
