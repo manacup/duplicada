@@ -225,5 +225,3 @@ responseForm.addEventListener('submit', (event) => {
         messageDiv.classList.add('alert', 'alert-danger');
     });
 });
-
-});
