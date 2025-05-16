@@ -167,13 +167,7 @@ responseForm.addEventListener('submit', (event) => {
         messageDiv.textContent = 'Si us plau, selecciona la direcció.';
         messageDiv.classList.add('alert', 'alert-danger');
         return;
-    }
-
-    if (!isValidCoordinatesInput(coordinates, direction)) {
-        messageDiv.textContent = 'Si us plau, introdueix coordenades vàlides (ex: A1 per horitzontal, 1A per vertical). Màxim 2 caràcters.';
-        messageDiv.classList.add('alert', 'alert-danger');
-        return;
-    }
+    } 
 
     // Formateja la paraula amb els escarrassos en minúscula
     let formattedWord = '';
