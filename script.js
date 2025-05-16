@@ -169,6 +169,12 @@ responseForm.addEventListener('submit', (event) => {
         return;
     }
 
+    if (!isValidCoordinatesInput(coordinates, direction)) {
+        messageDiv.textContent = 'Si us plau, introdueix coordenades vàlides (ex: A1 per horitzontal, 1A per vertical). Màxim 2 caràcters.';
+        messageDiv.classList.add('alert', 'alert-danger');
+        return;
+    }
+
     // Formateja la paraula amb els escarrassos en minúscula
     let formattedWord = '';
     for (let i = 0; i < word.length; i++) {
@@ -179,46 +185,45 @@ responseForm.addEventListener('submit', (event) => {
         }
     }
 
-    // Obté el número de ronda actual
-    gameInfoRef.once('value', (snapshot) => {
-        const gameData = snapshot.val();
-        const currentRound = gameData && gameData.currentRound ? gameData.currentRound : 'desconeguda';
-        const currentRack = gameData && gameData.currentRack ? gameData.currentRack : 'desconegut';
+    // Obté el número de ronda actual i el faristol de la interfície
+    const currentRoundDisplayed = roundNumberDisplay.textContent;
+    const currentRackDisplayed = currentRackDisplay.textContent;
 
-        const responseData = {
-            coordinates: coordinates,
-            direction: direction,
-            word: formattedWord,
-            scraps: scraps,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
+    // Desa la resposta a la base de dades sota la ronda actual i el nom del jugador
+    database.ref(`rounds/${currentRoundDisplayed}/${playerName}`).set({ // Utilitza la ronda mostrada
+        coordinates: coordinates,
+        direction: direction,
+        word: formattedWord,
+        scraps: scraps,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        round: currentRoundDisplayed, // Desa la ronda
+        rack: currentRackDisplayed // Desa el faristol
+    })
+    .then(() => {
+        messageDiv.textContent = 'Resposta enviada correctament!';
+        messageDiv.classList.remove('alert', 'alert-danger');
+        messageDiv.classList.add('alert', 'alert-success');
+        responseForm.reset();
+        tileButtonsDiv.innerHTML = ''; // Neteja els botons de les fitxes
+        directionInput.value = '';
+        horizontalBtn.classList.remove('active');
+        verticalBtn.classList.remove('active');
 
-        // Desa la resposta a la base de dades sota la ronda actual i el nom del jugador
-        database.ref(`rounds/${currentRound}/${playerName}`).set(responseData)
-            .then(() => {
-                messageDiv.textContent = 'Resposta enviada correctament!';
-                messageDiv.classList.remove('alert', 'alert-danger');
-                messageDiv.classList.add('alert', 'alert-success');
-                responseForm.reset();
-                tileButtonsDiv.innerHTML = ''; // Neteja els botons de les fitxes
-                directionInput.value = '';
-                horizontalBtn.classList.remove('active');
-                verticalBtn.classList.remove('active');
+        // Restaura el nom del jugador des de localStorage
+        const savedName = localStorage.getItem('playerName');
+        if (savedName) {
+            playerNameInput.value = savedName;
+        }
 
-                // Restaura el nom del jugador des de localStorage
-                const savedName = localStorage.getItem('playerName');
-                if (savedName) {
-                    playerNameInput.value = savedName;
-                }
-
-                // Guarda el nom del jugador al localStorage (per si no hi era prèviament o s'ha modificat)
-                localStorage.setItem('playerName', playerName);
-            })
-            .catch((error) => {
-                console.error("Error en enviar la resposta:", error);
-                messageDiv.textContent = 'Error en enviar la resposta. Si us plau, intenta-ho de nou.';
-                messageDiv.classList.remove('alert', 'alert-success');
-                messageDiv.classList.add('alert', 'alert-danger');
-            });
+        // Guarda el nom del jugador al localStorage (per si no hi era prèviament o s'ha modificat)
+        localStorage.setItem('playerName', playerName);
+    })
+    .catch((error) => {
+        console.error("Error en enviar la resposta:", error);
+        messageDiv.textContent = 'Error en enviar la resposta. Si us plau, intenta-ho de nou.';
+        messageDiv.classList.remove('alert', 'alert-success');
+        messageDiv.classList.add('alert', 'alert-danger');
     });
+});
+
 });
