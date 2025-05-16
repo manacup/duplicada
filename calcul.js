@@ -30,7 +30,7 @@ function calculateScore(board, newWordsInfo, letterValues, multiplierBoard = nul
         if (multiplierBoard &&  multiplierBoard[row][col]) {
           multiplierType = multiplierBoard[row][col].substring(1); // "L" o "W"
           multiplierValue = parseInt(multiplierBoard[row][col].substring(0,1));
-          multiplierValue==D?multiplierValue=2:multiplierValue=3;// D o T
+          multiplierValue=='D'?multiplierValue=2:multiplierValue=3;// D o T
           console.log(multiplierType, multiplierValue)
         }
   
