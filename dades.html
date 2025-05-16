@@ -203,7 +203,7 @@
                 });
         });
 
-        // Funció per obtenir i mostrar les respostes de totes les rondes
+        /* // Funció per obtenir i mostrar les respostes de totes les rondes
         function updateAllRoundResponses() {
             responsesRef.on('value', (snapshot) => {
                 const allRoundData = snapshot.val();
@@ -243,6 +243,65 @@
                         if (roundData) {
                             Object.entries(roundData).forEach(([playerName, playerData]) => {
                                 roundBody.innerHTML += `<p><strong>${playerName}:</strong> Coordenades: ${playerData.coordinates}, Paraula: ${playerData.word}</p>`;
+                            });
+                        } else {
+                            roundBody.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
+                        }
+
+                        roundCollapse.appendChild(roundBody);
+                        roundCard.appendChild(roundCollapse);
+                        responsesAccordion.appendChild(roundCard);
+                    });
+                } else {
+                    responsesAccordion.innerHTML += '<p>Encara no hi ha respostes registrades.</p>';
+                }
+            });
+        } */
+        // Funció per obtenir i mostrar les respostes de totes les rondes
+        function updateAllRoundResponses() {
+            responsesRef.on('value', (snapshot) => {
+                const allRoundData = snapshot.val();
+                console.log("Dades de totes les rondes:", allRoundData); // <--- Nova consola
+
+                responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2>'; // Reinicialitza l'acordió
+
+                if (allRoundData) {
+                    Object.entries(allRoundData).forEach(([roundNumber, roundData]) => {
+                        console.log("Ronda:", roundNumber, "Dades de la ronda:", roundData); // <--- Nova consola
+                        const roundCard = document.createElement('div');
+                        roundCard.className = 'card';
+
+                        const roundHeader = document.createElement('div');
+                        roundHeader.className = 'card-header';
+                        roundHeader.id = `headingRound${roundNumber}`;
+
+                        const roundButton = document.createElement('button');
+                        roundButton.className = 'btn btn-link btn-block text-left';
+                        roundButton.type = 'button';
+                        roundButton.setAttribute('data-toggle', 'collapse');
+                        roundButton.setAttribute('data-target', `#collapseRound${roundNumber}`);
+                        roundButton.setAttribute('aria-expanded', 'false'); // Canviat a false per defecte
+                        roundButton.setAttribute('aria-controls', `collapseRound${roundNumber}`);
+                        roundButton.textContent = `Ronda ${roundNumber}`;  // Títol de la ronda
+
+                        roundHeader.appendChild(roundButton);
+                        roundCard.appendChild(roundHeader);
+
+                        const roundCollapse = document.createElement('div');
+                        roundCollapse.id = `collapseRound${roundNumber}`;
+                        roundCollapse.className = 'collapse';
+                        roundCollapse.setAttribute('aria-labelledby', `headingRound${roundNumber}`);
+                        roundCollapse.setAttribute('data-parent', '#responsesAccordion');
+
+                        const roundBody = document.createElement('div');
+                        roundBody.className = 'card-body';
+
+                        // Iterar sobre les respostes dels jugadors dins de cada ronda
+                        if (roundData) {
+                            Object.entries(roundData).forEach(([playerName, playerData]) => {
+                                console.log("Jugador:", playerName, "Dades del jugador:", playerData); // <--- Nova consola
+                                const coordinatesDisplay = playerData.coordinates;
+                                roundBody.innerHTML += `<p><strong>${playerName}:</strong> Coordenades: ${coordinatesDisplay}, Paraula: ${playerData.word}</p>`;
                             });
                         } else {
                             roundBody.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
