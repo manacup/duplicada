@@ -247,7 +247,7 @@
                         if (roundData) {
                             Object.entries(roundData).forEach(([playerName, playerData]) => {
                                 const coordinatesDisplay = playerData.coordinates;
-                                body.innerHTML += `<strong>${playerName}:</strong> Coordenades: ${coordinatesDisplay}, Paraula: ${playerData.word}<br>`;
+                                body.innerHTML += `<strong>${playerName}:</strong> ${coordinatesDisplay}, ${playerData.word}<br>`;
                             });
                         } else {
                             body.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
