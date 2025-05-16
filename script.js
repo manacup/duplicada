@@ -33,7 +33,7 @@ function setFormEnabled(isEnabled) {
     }
 
     // Opcionalment, pots deshabilitar altres elements del formulari si cal
-    playerNameInput.disabled = !isEnabled;
+    //playerNameInput.disabled = !isEnabled;
     coordinatesInput.disabled = !isEnabled;
     horizontalBtn.disabled = !isEnabled;
     verticalBtn.disabled = !isEnabled;
