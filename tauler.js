@@ -1,5 +1,5 @@
-// Importar la funció saveWordsToBoard si calcul.js és un mòdul
-// import { saveWordsToBoard } from './calcul.js';
+// Importar les funcions saveWordsToBoard i calculateScore si calcul.js és un mòdul
+// import { saveWordsToBoard, calculateScore } from './calcul.js';
 
 // Definir letterValues i multiplierBoard (o importar-los)
 const letterValues = {
@@ -106,21 +106,16 @@ wordForm.addEventListener('submit', (event) => {
 
     // Convertir coordenades (ex: A1 -> [0, 0], B2 -> [1, 1])
     // Això és una simplificació, caldrà una lògica més robusta
-    const colLetter = coordinates.match(/[A-Za-z]/)?.[0];
-    const rowNumber = parseInt(coordinates.match(/[0-9]+/)?.[0]) - 1;
-    const startCol = colLetter ? colLetter.charCodeAt(0) - 65 : -1;
-    const startRow = rowNumber;
-
+    const rowLetter = coordinates.match(/[A-Za-z]/)?.[0];
+    const colNumber = parseInt(coordinates.match(/[0-9]+/)?.[0]) - 1;
+    const startCol = rowLetter ? rowLetter.charCodeAt(0) - 65 : -1;
+    const startRow = colNumber;
 
     if (startRow < 0 || startCol < 0 || startRow >= currentBoard.length || startCol >= currentBoard.length) {
         alert('Coordenades invàlides.');
         return;
     }
 
-
-    // Aquí cridaríem a la funció per guardar la paraula a la base de dades
-    // i actualitzar el tauler 'currentBoard' amb la nova paraula abans de renderitzar-lo de nou.
-    // Per ara, només actualitzem el tauler localment per a la visualització:
     const newWordInfo = { word: word, startRow: startRow, startCol: startCol, direction: direction };
     saveWordsToBoard(currentBoard, [newWordInfo]); // Utilitzem la funció de calcul.js
 
@@ -144,17 +139,25 @@ wordForm.addEventListener('submit', (event) => {
     wordForm.reset();
 });
 
-// Cal afegir un input 'direction' al formulari a tauler.html (pot ser un select o botons com a index.html)
+// Gestionar la selecció de la direcció
+const horizontalBtn = document.getElementById('horizontalBtn');
+const verticalBtn = document.getElementById('verticalBtn');
+const directionInput = document.getElementById('direction');
+
+horizontalBtn.addEventListener('click', () => {
+    directionInput.value = 'horizontal';
+    horizontalBtn.classList.add('active');
+    verticalBtn.classList.remove('active');
+});
+
+verticalBtn.addEventListener('click', () => {
+    directionInput.value = 'vertical';
+    verticalBtn.classList.add('active');
+    horizontalBtn.classList.remove('active');
+});
 
 // Assegura't que la funció saveWordsToBoard estigui disponible (importada o definida abans)
 // Si saveWordsToBoard és a calcul.js i aquest fitxer és un mòdul, hauràs d'importar-la:
 // import { saveWordsToBoard } from './calcul.js';
 
 // Si calcul.js no és un mòdul, assegura't que es carrega abans de tauler.js a tauler.html
-const newWordsInfo = [
-    { word: 'HELLO', startRow: 7, startCol: 7, direction: 'horizontal' },
-    { word: 'WORLD', startRow: 8, startCol: 8, direction: 'vertical' }
-];
-
-const totalScore = calculateScore(currentBoard, newWordsInfo, letterValues, multiplierBoard);
-console.log('Puntuació total:', totalScore);
