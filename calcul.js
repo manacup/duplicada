@@ -28,8 +28,9 @@ function calculateScore(board, newWordsInfo, letterValues, multiplierBoard = nul
   
         // Comprovar si la casella té un multiplicador
         if (multiplierBoard &&  multiplierBoard[row][col]) {
-          multiplierType = multiplierBoard[row][col].substring(0,1); // "L" o "W"
-          multiplierValue = parseInt(multiplierBoard[row][col].substring(1)); // 2 o 3
+          multiplierType = multiplierBoard[row][col].substring(1); // "L" o "W"
+          multiplierValue = parseInt(multiplierBoard[row][col].substring(0,1));
+          multiplierValue==D?multiplierValue=2:multiplierValue=3;// D o T
           console.log(multiplierType, multiplierValue)
         }
   
@@ -224,7 +225,7 @@ function calculateScore(board, newWordsInfo, letterValues, multiplierBoard = nul
     ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW']
   ]; */
   
-  //const board = createEmptyBoard(15); // Necessites una funció per crear un tauler buit
+  const board = createEmptyBoard(15); // Necessites una funció per crear un tauler buit
   
   const newWordsInfo = [
     { word: 'HELLO', startRow: 7, startCol: 7, direction: 'horizontal' },
