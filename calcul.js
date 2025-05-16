@@ -1,186 +1,236 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1049140213.
-
-const scrabbleBoard = {
-  board: [
-    ['3W', '.', '.', '2L', '.', '.', '.', '3W', '.', '.', '.', '2L', '.', '.', '3W'],
-    ['.', '2W', '.', '.', '.', '3L', '.', '.', '.', '3L', '.', '.', '.', '2W', '.'],
-    ['.', '.', '2W', '.', '.', '.', '2L', '.', '2L', '.', '.', '.', '2W', '.', '.'],
-    ['2L', '.', '.', '2W', '.', '.', '.', '2L', '.', '.', '.', '2W', '.', '.', '2L'],
-    ['.', '.', '.', '.', '2W', '.', '.', '.', '.', '.', '2W', '.', '.', '.', '.'],
-    ['.', '3L', '.', '.', '.', '3L', '.', '.', '.', '3L', '.', '.', '.', '3L', '.'],
-    ['.', '.', '2L', '.', '.', '.', '2L', '.', '2L', '.', '.', '.', '2L', '.', '.'],
-    ['3W', '.', '.', '2L', '.', '.', '.', 'STAR', '.', '.', '.', '2L', '.', '.', '3W'],
-    ['.', '.', '2L', '.', '.', '.', '2L', '.', '2L', '.', '.', '.', '2L', '.', '.'],
-    ['.', '3L', '.', '.', '.', '3L', '.', '.', '.', '3L', '.', '.', '.', '3L', '.'],
-    ['.', '.', '.', '.', '2W', '.', '.', '.', '.', '.', '2W', '.', '.', '.', '.'],
-    ['2L', '.', '.', '2W', '.', '.', '.', '2L', '.', '.', '.', '2W', '.', '.', '2L'],
-    ['.', '.', '2W', '.', '.', '.', '2L', '.', '2L', '.', '.', '.', '2W', '.', '.'],
-    ['.', '2W', '.', '.', '.', '3L', '.', '.', '.', '3L', '.', '.', '.', '2W', '.'],
-    ['3W', '.', '.', '2L', '.', '.', '.', '3W', '.', '.', '.', '2L', '.', '.', '3W']
-  ],
-
-  getSquareType: function(row, col) {
-    if (row < 0 || row >= this.board.length || col < 0 || col >= this.board[0].length) {
-      return null; // Out of bounds
-    }
-    return this.board[row][col];
-  },
-
-  getLetterMultiplier: function(row, col) {
-    const type = this.getSquareType(row, col);
-    if (type === '2L') return 2;
-    if (type === '3L') return 3;
-    return 1;
-  },
-
-  getWordMultiplier: function(row, col) {
-    const type = this.getSquareType(row, col);
-    if (type === '2W') return 2;
-    if (type === '3W') return 3;
-    if (type === 'STAR') return 2; // Star square is a double word score
-    return 1;
-  }
-};
-
-const catalanLetterValues = {
-  'A': 1, 'B': 3, 'C': 3, 'D': 2, 'E': 1, 'F': 4, 'G': 2, 'H': 4, 'I': 1, 'J': 8,
-  'L': 1, 'M': 3, 'N': 1, 'O': 1, 'P': 3, 'Q': 8, 'R': 1, 'S': 1, 'T': 1, 'U': 1,
-  'V': 4, 'X': 8, 'Y': 10, 'Z': 10, 'K': 8, 'W': 10
-};
-
-function calculateWordScoreCatalan(word, startRow, startCol, direction) {
-  let score = 0;
-  let wordMultiplier = 1;
-  const letters = word.toUpperCase().split('');
-
-  for (let i = 0; i < letters.length; i++) {
-    let currentRow, currentCol;
-    if (direction === 'horizontal') {
-      currentRow = startRow;
-      currentCol = startCol + i;
-    } else if (direction === 'vertical') {
-      currentRow = startRow + i;
-      currentCol = startCol;
-    } else {
-      return 0; // Invalid direction
-    }
-
-    const letter = letters[i];
-    const letterValue = catalanLetterValues[letter] || 0; // 0 if letter not in map
-    const letterMultiplier = scrabbleBoard.getLetterMultiplier(currentRow, currentCol);
-    const squareWordMultiplier = scrabbleBoard.getWordMultiplier(currentRow, currentCol);
-
-    score += letterValue * letterMultiplier;
-    wordMultiplier *= squareWordMultiplier;
-  }
-console.log(score,wordMultiplier)
-  return score * wordMultiplier;
-}
-
-function findNewWords(playedWord, startRow, startCol, direction, existingLetters) {
-  const newWords = [];
-  const playedLetters = playedWord.toUpperCase().split('');
-
-  for (let i = 0; i < playedLetters.length; i++) {
-    let row, col;
-    if (direction === 'horizontal') {
-      row = startRow;
-      col = startCol + i;
-    } else { // vertical
-      row = startRow + i;
-      col = startCol;
-    }
-
-    // Check for forming new words perpendicular to the played word
-    if (direction === 'horizontal') {
-      // Check vertical contacts
-      if (existingLetters.has(`${row - 1},${col}`) || existingLetters.has(`${row + 1},${col}`)) {
-        let newWord = '';
-        let startOfNewWordRow = row;
-        while (existingLetters.has(`${startOfNewWordRow - 1},${col}`)) {
-          startOfNewWordRow--;
+/**
+ * Calcula la puntuació d'una paraula col·locada al tauler.
+ *
+ * @param {Array<Array<string>>} board - El tauler de joc (matriu 2D).
+ * @param {Array<{word: string, startRow: number, startCol: number, direction: string}>} newWordsInfo - Array d'objectes amb info de les paraules noves.
+ * @param {object} letterValues - Objecte amb el valor de cada lletra (ex: { A: 1, B: 3, ... }).
+ * @param {Array<Array<string>>} multiplierBoard - Tauler amb els multiplicadors de cada casella (ex: [['TW', '', 'DL', ...], ...]).  Pot ser null si no hi ha multiplicadors
+ * @returns {number} - La puntuació total de la jugada.
+ */
+function calculateScore(board, newWordsInfo, letterValues, multiplierBoard = null) {
+    let totalScore = 0;
+  
+    newWordsInfo.forEach(wordInfo => {
+      let { word, startRow, startCol, direction } = wordInfo;
+      word = word.toUpperCase();
+      let wordScore = 0;
+      let wordMultiplier = 1; // Per als multiplicadors de paraula
+      let newLettersPlaced = 0; // Comptador de lletres noves col·locades
+  
+      for (let i = 0; i < word.length; i++) {
+        const row = startRow + (direction === 'vertical' ? i : 0);
+        const col = startCol + (direction === 'horizontal' ? i : 0);
+        const letter = word[i];
+  
+        let letterScore;
+        let multiplierType = null;
+        let multiplierValue = 1;
+  
+        // Comprovar si la casella té un multiplicador
+        if (multiplierBoard && multiplierBoard[row] && multiplierBoard[row][col]) {
+          multiplierType = multiplierBoard[row][col].substring(0,1); // "L" o "W"
+          multiplierValue = parseInt(multiplierBoard[row][col].substring(1)); // 2 o 3
         }
-        let currentRow = startOfNewWordRow;
-        while (existingLetters.has(`${currentRow},${col}`) || (currentRow === row && col >= startCol && col < startCol + playedLetters.length)) {
-          if (currentRow === row) {
-             newWord += playedLetters[col - startCol];
-          } else {
-            // Need a way to get the actual letter from the existingLetters map
-            // This example assumes existingLetters stores the letter value as well
-            // e.g., existingLetters.set(`${row},${col}`, 'A')
-            // If existingLetters only stores existence, you'd need access to the full board state
-             const existingLetterEntry = Array.from(existingLetters.entries()).find(([key, value]) => key === `${currentRow},${col}`);
-             if (existingLetterEntry) {
-                newWord += existingLetterEntry[1]; // Assumes existingLetters stores the letter as value
-             }
-          }
-          currentRow++;
-        }
-        if (newWord.length > 1) {
-          newWords.push({ word: newWord, startRow: startOfNewWordRow, startCol: col, direction: 'vertical' });
-        }
-      }
-    } else { // vertical
-      // Check horizontal contacts
-       if (existingLetters.has(`${row},${col - 1}`) || existingLetters.has(`${row},${col + 1}`)) {
-        let newWord = '';
-        let startOfNewWordCol = col;
-        while (existingLetters.has(`${row},${startOfNewWordCol - 1}`)) {
-          startOfNewWordCol--;
-        }
-        let currentCol = startOfNewWordCol;
-         while (existingLetters.has(`${row},${currentCol}`) || (currentCol === col && row >= startRow && row < startRow + playedLetters.length)) {
-            if (currentCol === col) {
-                 newWord += playedLetters[row - startRow];
-            } else {
-               const existingLetterEntry = Array.from(existingLetters.entries()).find(([key, value]) => key === `${row},${currentCol}`);
-                if (existingLetterEntry) {
-                    newWord += existingLetterEntry[1]; // Assumes existingLetters stores the letter as value
-                }
+  
+        if (board[row][col] === '') {
+          // Casella buida: nova lletra col·locada
+          letterScore = letterValues[letter];
+          newLettersPlaced++;
+  
+          if(multiplierBoard){
+            if (multiplierType === 'L') {
+              letterScore *= multiplierValue;
+            } else if (multiplierType === 'W') {
+              wordMultiplier *= multiplierValue;
             }
-            currentCol++;
+          }
+        } else {
+          // Casella ocupada: lletra existent
+          letterScore = letterValues[letter]; // Agafem el valor de la lletra (ja no apliquem multiplicadors)
         }
-        if (newWord.length > 1) {
-          newWords.push({ word: newWord, startRow: row, startCol: startOfNewWordCol, direction: 'horizontal' });
-        }
+        wordScore += letterScore;
       }
-    }
+      wordScore *= wordMultiplier; // Apliquem el multiplicador de la paraula si n'hi ha
+  
+      // Bonificació per usar totes les lletres (opcional)
+      if (newLettersPlaced === 7) {
+        wordScore += 50; // O la bonificació que vulguis
+      }
+  
+      totalScore += wordScore;
+    });
+  
+    // Calcular les paraules addicionals que s'han format
+      let additionalWordsScore = calculateAdditionalWordsScore(board, newWordsInfo, letterValues, multiplierBoard);
+      totalScore += additionalWordsScore;
+  
+    return totalScore;
   }
-
-  // Add the played word itself to the list of new words
-  newWords.push({ word: playedWord, startRow, startCol, direction });
-
-  return newWords;
-}
-
-async function saveWordsToBoard(board, newWords, currentRound) {
-  // Create a mutable copy of the board
-  const newBoard = board.map(row => [...row]);
-
-  newWords.forEach(wordInfo => {
-    const { word, startRow, startCol, direction } = wordInfo;
-    const letters = word.toUpperCase().split('');
-
-    let currentRow = startRow;
-    let currentCol = startCol;
-
-    for (let i = 0; i < letters.length; i++) {
-      let row = startRow;
-      let col = startCol;
+  
+  
+  /**
+   * Calcula la puntuació de les paraules addicionals formades per la nova jugada.
+   *
+   * @param {Array<Array<string>>} board - El tauler de joc.
+   * @param {Array<{word: string, startRow: number, startCol: number, direction: string}>} newWordsInfo - Informació de les paraules noves col·locades.
+   * @param {object} letterValues - Valors de les lletres.
+   * @param {Array<Array<string>>} multiplierBoard - Tauler de multiplicadors.
+   * @returns {number} - Puntuació total de les paraules addicionals.
+   */
+  function calculateAdditionalWordsScore(board, newWordsInfo, letterValues, multiplierBoard) {
+      let totalAdditionalScore = 0;
+  
+      newWordsInfo.forEach(wordInfo => {
+          const { word, startRow, startCol, direction } = wordInfo;
+          const letters = word.toUpperCase().split('');
+  
+          for (let i = 0; i < letters.length; i++) {
+              const row = startRow + (direction === 'vertical' ? i : 0);
+              const col = startCol + (direction === 'horizontal' ? i : 0);
+  
+              // Comprovem si la lletra actual forma part d'alguna altra paraula
+              // Hem de buscar tant horitzontalment com verticalment des d'aquesta lletra
+              const horizontalWord = findWordFromLetter(board, row, col, 'horizontal');
+              const verticalWord = findWordFromLetter(board, row, col, 'vertical');
+  
+              if (horizontalWord && horizontalWord.word.length > 1) {
+                  totalAdditionalScore += calculateWordScore(horizontalWord.word, horizontalWord.startRow, horizontalWord.startCol, 'horizontal', board, letterValues, multiplierBoard);
+              }
+              if (verticalWord && verticalWord.word.length > 1) {
+                  totalAdditionalScore += calculateWordScore(verticalWord.word, verticalWord.startRow, verticalWord.startCol, 'vertical', board, letterValues, multiplierBoard);
+              }
+          }
+      });
+  
+      return totalAdditionalScore;
+  }
+  
+  /**
+   * Troba una paraula a partir d'una lletra donada en una direcció específica.
+   *
+   * @param {Array<Array<string>>} board - El tauler de joc.
+   * @param {number} row - La fila de la lletra.
+   * @param {number} col - La columna de la lletra.
+   * @param {string} direction - La direcció a buscar ('horizontal' o 'vertical').
+   * @returns {{word: string, startRow: number, startCol: number} | null} - La paraula trobada i la seva posició, o null si no es troba cap paraula.
+   */
+  function findWordFromLetter(board, row, col, direction) {
+      let word = '';
+      let startRow = row;
+      let startCol = col;
+  
       if (direction === 'horizontal') {
-        col += i;
-      } else { // vertical
-        row += i;
+          // Anar cap a l'esquerra fins al principi de la paraula
+          while (col > 0 && board[row][col - 1] !== '') {
+              startCol--;
+          }
+  
+          // Construir la paraula cap a la dreta
+          let currentCol = startCol;
+          while (currentCol < board[row].length && board[row][currentCol] !== '') {
+              word += board[row][currentCol];
+              currentCol++;
+          }
+      } else if (direction === 'vertical') {
+          // Anar cap amunt fins al principi de la paraula
+          while (row > 0 && board[row - 1][col] !== '') {
+              startRow--;
+          }
+  
+          // Construir la paraula cap avall
+          let currentRow = startRow;
+          while (currentRow < board.length && board[currentRow][col] !== '') {
+              word += board[currentRow][col];
+              currentRow++;
+          }
       }
-      newBoard[row][col] = letters[i]; // Place the letter on the new board
-    }
-  });
-
-  // Save the new board state to the database
-  try {
-    await db.ref(`rounds/${currentRound}/boardState`).set(newBoard);
-    console.log(`Board state for round ${currentRound} saved successfully.`);
-  } catch (error) {
-    console.error("Error saving board state:", error);
+  
+      if (word.length > 0) {
+          return { word: word, startRow: startRow, startCol: startCol };
+      }
+  
+      return null;
   }
-}
+  
+  
+  /**
+   * Calcula la puntuació d'una sola paraula.
+   *
+   * @param {string} word - La paraula a puntuar.
+   * @param {number} startRow - La fila on comença la paraula.
+   * @param {number} startCol - La columna on comença la paraula.
+   * @param {string} direction - La direcció de la paraula ('horizontal' o 'vertical').
+   * @param {Array<Array<string>>} board - El tauler de joc.
+   * @param {object} letterValues - Els valors de les lletres.
+   * @param {Array<Array<string>>} multiplierBoard - El tauler de multiplicadors.
+   * @returns {number} - La puntuació de la paraula.
+   */
+  function calculateWordScore(word, startRow, startCol, direction, board, letterValues, multiplierBoard) {
+      let wordScore = 0;
+      let wordMultiplier = 1;
+  
+      for (let i = 0; i < word.length; i++) {
+          const row = startRow + (direction === 'vertical' ? i : 0);
+          const col = startCol + (direction === 'horizontal' ? i : 0);
+          const letter = word[i];
+          let letterScore = letterValues[letter];
+  
+          if (multiplierBoard && multiplierBoard[row] && multiplierBoard[row][col]) {
+              const multiplierType = multiplierBoard[row][col][0];
+              const multiplierValue = parseInt(multiplierBoard[row][col].slice(1));
+  
+              if (multiplierType === 'L') {
+                  letterScore *= multiplierValue;
+              } else if (multiplierType === 'W') {
+                  wordMultiplier *= multiplierValue;
+              }
+          }
+          wordScore += letterScore;
+      }
+      wordScore *= wordMultiplier;
+      return wordScore;
+  }
+  
+  
+  // Exemple d'ús (necessitaràs definir les variables board, newWordsInfo, letterValues i multiplierBoard)
+ 
+  const letterValues = {
+    A: 1, E: 1, I: 1, O: 1, U: 1,
+    L: 1, N: 1, S: 1, R: 1, T: 1,
+    D: 2, G: 2,
+    B: 3, C: 3, M: 3, P: 3,
+    F: 4, H: 8, V: 4, W: 8, Y: 10,
+    K: 10,
+    J: 8, X: 10,
+    Q: 8, Z: 8
+  };
+  
+  const multiplierBoard = [
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['TW', '', '', 'DL', '', '', '', 'DW', '', '', '', 'DL', '', '', 'TW'],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW']
+  ];
+  
+  const board = createEmptyBoard(15); // Necessites una funció per crear un tauler buit
+  
+  const newWordsInfo = [
+    { word: 'HELLO', startRow: 7, startCol: 7, direction: 'horizontal' },
+    { word: 'WORLD', startRow: 8, startCol: 8, direction: 'vertical' }
+  ];
+  
+  const totalScore = calculateScore(board, newWordsInfo, letterValues, multiplierBoard);
+  console.log('Puntuació total:', totalScore);
+ 
+  
