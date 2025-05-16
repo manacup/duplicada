@@ -158,15 +158,17 @@ function updateAllRoundResponses() {
                     collapse.setAttribute('aria-labelledby', headingId);
                     collapse.setAttribute('data-bs-parent', '#roundResponsesAccordion');
 
-                    const body = document.createElement('div');
-                    body.className = 'accordion-body';
+                    const body = document.createElement('table');
+                    body.className = 'accordion-body table table-striped';
+                    body.innerHTML = '<thead><tr><th>Nom del Jugador</th><th>Coordenades</th><th>Paraula</th><th>Ronda</th></tr></thead>';
 
                     if (roundData) {
                         Object.entries(roundData).forEach(([playerName, playerData]) => {
                             const coordinatesDisplay = playerData.coordinates;
                             const roundDisplay = playerData.round ? `(Ronda: ${playerData.round})` : ''; // Obté la ronda desada
                             const rackDisplay = playerData.rack ? `(Faristol: ${playerData.rack})` : ''; // Obté el faristol desat
-                            body.innerHTML += `<strong>${playerName} ${roundDisplay} ${rackDisplay}:</strong> Coordenades: ${coordinatesDisplay}, Paraula: ${playerData.word}<br>`;
+                            body.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${playerData.word}</td><td>${roundDisplay} ${rackDisplay}</td></tr>`;
+                            //body.innerHTML += `<strong>${playerName}:</strong> ${coordinatesDisplay}, ${playerData.word}<br>`;
                         });
                     } else {
                         body.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';

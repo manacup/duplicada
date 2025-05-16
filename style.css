@@ -111,3 +111,47 @@ h1, h2, h3 {
     background-color: #007bff;
     color: white;
 }
+
+/* Estils específics per a dades.html */
+
+/* Ajustar espaiat al formulari d'administració */
+#configForm .mb-3 {
+    margin-bottom: 1.5rem !important; /* Augmentar l'espai sota els grups del formulari */
+}
+
+/* Espaiat sota el botó d'activar/desactivar formulari */
+#toggleFormButton {
+    margin-bottom: 20px; /* Més espai sota el botó toggle */
+}
+
+/* Millores visuals per a l'acordió de respostes */
+#responsesAccordion {
+    margin-top: 30px; /* Més espai a la part superior de l'acordió */
+}
+
+#responsesAccordion .accordion-item {
+    border: 1px solid rgba(0, 0, 0, .125);
+    margin-bottom: 10px;
+    border-radius: .25rem;
+}
+
+#responsesAccordion .accordion-header {
+    background-color: #e9ecef; /* Fons lleuger per a les capçaleres de l'acordió */
+    border-bottom: 1px solid rgba(0, 0, 0, .125);
+}
+
+#responsesAccordion .accordion-button {
+    background-color: transparent; /* Fer el fons del botó transparent per veure el fons de la capçalera */
+    color: #333;
+    font-weight: bold;
+}
+
+#responsesAccordion .accordion-button:not(.collapsed) {
+    color: #0056b3; /* Canviar color del text quan està obert */
+    background-color: #e9ecef;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .125);
+}
+
+#responsesAccordion .accordion-body strong {
+    color: #007bff; /* Color per al nom del jugador a les respostes */
+}
