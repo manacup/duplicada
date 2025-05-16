@@ -9,7 +9,7 @@ function createEmptyBoard(size) {
 
 // Funció per renderitzar el tauler a l'HTML
 function renderBoard(board) {
-    const boardContainer = document.getElementById('board');
+    const boardContainer = document.getElementById('board-container');
     boardContainer.innerHTML = ''; // Neteja el contingut actual del tauler
 
     const table = document.createElement('table');
