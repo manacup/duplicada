@@ -27,9 +27,10 @@ function calculateScore(board, newWordsInfo, letterValues, multiplierBoard = nul
         let multiplierValue = 1;
   
         // Comprovar si la casella té un multiplicador
-        if (multiplierBoard && multiplierBoard[row] && multiplierBoard[row][col]) {
+        if (multiplierBoard &&  multiplierBoard[row][col]) {
           multiplierType = multiplierBoard[row][col].substring(0,1); // "L" o "W"
           multiplierValue = parseInt(multiplierBoard[row][col].substring(1)); // 2 o 3
+          console.log(multiplierType, multiplierValue)
         }
   
         if (board[row][col] === '') {
