@@ -1,3 +1,36 @@
+// Importar la funció saveWordsToBoard si calcul.js és un mòdul
+// import { saveWordsToBoard } from './calcul.js';
+
+// Definir letterValues i multiplierBoard (o importar-los)
+const letterValues = {
+    A: 1, E: 1, I: 1, O: 1, U: 1,
+    L: 1, N: 1, S: 1, R: 1, T: 1,
+    D: 2, G: 2,
+    B: 3, C: 3, M: 3, P: 3,
+    F: 4, H: 4, V: 4, W: 4, Y: 4,
+    K: 5,
+    J: 8, X: 8,
+    Q: 10, Z: 10
+};
+
+const multiplierBoard = [
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['TW', '', '', 'DL', '', '', '', 'DW', '', '', '', 'DL', '', '', 'TW'],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW']
+];
+
 // Funció per crear un tauler buit
 function createEmptyBoard(size) {
     const board = [];
@@ -90,6 +123,19 @@ wordForm.addEventListener('submit', (event) => {
     // Per ara, només actualitzem el tauler localment per a la visualització:
     const newWordInfo = { word: word, startRow: startRow, startCol: startCol, direction: direction };
     saveWordsToBoard(currentBoard, [newWordInfo]); // Utilitzem la funció de calcul.js
+
+    // Calcular la puntuació
+    // Assegura't que la funció calculateScore estigui disponible. Si està a calcul.js i és un mòdul, has d'importar-la.
+    // import { calculateScore } from './calcul.js';
+    const score = calculateScore(currentBoard, [newWordInfo], letterValues, multiplierBoard);
+
+    // Mostrar la puntuació a l'usuari (per exemple, en un element amb id="score")
+    const scoreElement = document.getElementById('score');
+    if (scoreElement) {
+        scoreElement.textContent = `Puntuació: ${score}`;
+    } else {
+        alert(`Puntuació: ${score}`); // Si no trobem l'element, mostrem un alert
+    }
 
     // Renderitzar el tauler actualitzat
     renderBoard(currentBoard);
