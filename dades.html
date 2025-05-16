@@ -103,6 +103,10 @@
                     <button type="submit" class="btn btn-primary">Actualitzar</button>
                     <div id="message"></div>
                 </form>
+                <div id="responsesAccordion" class="mt-4">
+                    <h2>Respostes per Ronda</h2>
+                    <p>Les respostes es mostraran aquí un cop s'hagin enviat rondes.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -119,11 +123,13 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const gameInfoRef = database.ref('gameInfo');
+        const responsesRef = database.ref('rounds'); // Referència a les respostes per ronda
 
         const configForm = document.getElementById('configForm');
         const roundNumberInput = document.getElementById('roundNumber');
         const currentRackInput = document.getElementById('currentRack');
         const messageDiv = document.getElementById('message');
+        const responsesAccordion = document.getElementById('responsesAccordion');
 
         configForm.addEventListener('submit', (event) => {
             event.preventDefault();
@@ -152,6 +158,7 @@
                     messageDiv.textContent = 'Ronda i faristol actualitzats correctament!';
                     messageDiv.className = 'alert alert-success';
                     configForm.reset();
+                    updateRoundResponses(roundNumber); // Actualitza les respostes al canviar de ronda
                 })
                 .catch((error) => {
                     console.error("Error en actualitzar la ronda i el faristol:", error);
@@ -163,6 +170,61 @@
                     submitButton.disabled = false;
                     submitButton.textContent = 'Actualitzar';
                 });
+        });
+
+        // Funció per obtenir i mostrar les respostes d'una ronda
+        function updateRoundResponses(roundNumber) {
+            responsesRef.child(roundNumber).on('value', (snapshot) => {
+                const roundData = snapshot.val();
+                responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2>'; // Reinicialitza l'acordió
+
+                if (roundData) {
+                    Object.entries(roundData).forEach(([player, response]) => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+
+                        const header = document.createElement('div');
+                        header.className = 'card-header';
+                        header.id = `heading${player}`;
+
+                        const button = document.createElement('button');
+                        button.className = 'btn btn-link btn-block text-left';
+                        button.type = 'button';
+                        button.setAttribute('data-toggle', 'collapse');
+                        button.setAttribute('data-target', `#collapse${player}`);
+                        button.setAttribute('aria-expanded', 'true');
+                        button.setAttribute('aria-controls', `collapse${player}`);
+                        button.textContent = player;  // Utilitza el nom del jugador com a títol
+
+                        header.appendChild(button);
+                        card.appendChild(header);
+
+                        const collapse = document.createElement('div');
+                        collapse.id = `collapse${player}`;
+                        collapse.className = 'collapse';
+                        collapse.setAttribute('aria-labelledby', `heading${player}`);
+                        collapse.setAttribute('data-parent', '#responsesAccordion');
+
+                        const body = document.createElement('div');
+                        body.className = 'card-body';
+                        body.innerHTML = `<p><strong>Coordenades:</strong> ${response.coordinates}</p><p><strong>Paraula:</strong> ${response.word}</p>`;
+
+                        collapse.appendChild(body);
+                        card.appendChild(collapse);
+                        responsesAccordion.appendChild(card);
+                    });
+                } else {
+                    responsesAccordion.innerHTML += '<p>Encara no hi ha respostes per a aquesta ronda.</p>';
+                }
+            });
+        }
+
+        // Al carregar la pàgina, si hi ha una ronda, mostra les respostes
+        gameInfoRef.once('value', (snapshot) => {
+            const gameData = snapshot.val();
+            if (gameData && gameData.currentRound) {
+                updateRoundResponses(gameData.currentRound);
+            }
         });
     </script>
 </body>
