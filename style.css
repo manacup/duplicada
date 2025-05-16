@@ -1,17 +1,113 @@
-/* Estils addicionals si vols personalitzar l'aparença */
+/* Estils generals */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #e9ecef; /* Un fons gris clar */
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    color: #0056b3; /* Un blau fosc per als títols */
+}
+
+.card {
+    margin-bottom: 20px;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.card-header {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.form-label {
+    font-weight: bold;
+    margin-bottom: .5rem;
+}
+
+/* Estils per als botons de les fitxes a index.html */
+#tileButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px; /* Espai entre botons */
+    margin-top: 10px;
+}
+
 .tile-button {
-    margin-right: 5px;
-    margin-bottom: 5px;
-    padding: 8px 12px;
+    padding: 10px 15px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f0f0f0;
+    background-color: #f8f9fa;
     cursor: pointer;
-    font-size: 1em;
-   width: 2.5em;
+    border-radius: 4px;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.tile-button:hover {
+    background-color: #e2e6ea;
 }
 
 .tile-button.scrap {
-    background-color: #cfefbd;;
-    color: #777;
+    background-color: #ffc107; /* Groc per als escarrassos */
+    border-color: #d39e00;
+    color: #212529;
+    font-weight: bold;
+}
+
+/* Estils per als missatges d'estat */
+#message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #85640a;
+}
+
+/* Estils per a l'acordió de respostes a dades.html */
+#responsesAccordion .accordion-button {
+    font-weight: bold;
+}
+
+#responsesAccordion .accordion-body {
+    background-color: #f8f9fa; /* Fons clar per al cos de l'acordió */
+    border-top: 1px solid rgba(0, 0, 0, .125);
+}
+
+/* Estils per a la direcció (index.html) */
+#horizontalBtn i, #verticalBtn i {
+    margin-left: 5px;
+}
+
+.btn-outline-primary.active {
+    background-color: #007bff;
+    color: white;
 }
