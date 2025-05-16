@@ -1,7 +1,6 @@
 // Importar les funcions saveWordsToBoard i calculateScore si calcul.js és un mòdul
 // import { saveWordsToBoard, calculateScore } from './calcul.js';
 
-
 // Definir letterValues i multiplierBoard (o importar-los)
 const letterValues = {
     A: 1, E: 1, I: 1, O: 1, U: 1,
@@ -49,7 +48,7 @@ function renderBoard(board) {
     const table = document.createElement('table');
     table.classList.add('board-table'); // Afegeix una classe per estil
 
-    // Capçalera de columnes (lletres)
+    // Capçalera de files (números)
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headerRow.appendChild(document.createElement('th')); // Cella buida per a la cantonada superior esquerra
@@ -67,7 +66,7 @@ function renderBoard(board) {
         const row = document.createElement('tr');
         const th = document.createElement('th');
         th.textContent = String.fromCharCode(65 + i); // 'A', 'B', 'C', ...
-        row.appendChild(th); // Capçalera de fila (números)
+        row.appendChild(th); // Capçalera de columna (lletres)
 
         for (let j = 0; j < board[i].length; j++) {
             const cell = document.createElement('td');
@@ -85,6 +84,23 @@ function renderBoard(board) {
 // Inicialitzar el tauler (per exemple, 15x15)
 let currentBoard = createEmptyBoard(15);
 renderBoard(currentBoard);
+
+// Gestionar la selecció de la direcció
+const horizontalBtn = document.getElementById('horizontalBtn');
+const verticalBtn = document.getElementById('verticalBtn');
+const directionInput = document.getElementById('direction');
+
+horizontalBtn.addEventListener('click', () => {
+    directionInput.value = 'horizontal';
+    horizontalBtn.classList.add('active');
+    verticalBtn.classList.remove('active');
+});
+
+verticalBtn.addEventListener('click', () => {
+    directionInput.value = 'vertical';
+    verticalBtn.classList.add('active');
+    horizontalBtn.classList.remove('active');
+});
 
 // Gestionar l'enviament del formulari
 const wordForm = document.getElementById('wordForm');
@@ -106,19 +122,31 @@ wordForm.addEventListener('submit', (event) => {
     }
 
     // Convertir coordenades (ex: A1 -> [0, 0], B2 -> [1, 1])
-    // Això és una simplificació, caldrà una lògica més robusta
-    const rowLetter = coordinates.match(/[A-Za-z]/)?.[0];
-    const colNumber = parseInt(coordinates.match(/[0-9]+/)?.[0]) - 1;
-    const startCol = rowLetter ? rowLetter.charCodeAt(0) - 65 : -1;
-    const startRow = colNumber;
+    const colLetter = coordinates.match(/[A-Za-z]/)?.[0];
+    const rowNumber = parseInt(coordinates.match(/[0-9]+/)?.[0]) - 1;
+    const startCol = colLetter ? colLetter.charCodeAt(0) - 65 : -1;
+    const startRow = rowNumber;
 
     if (startRow < 0 || startCol < 0 || startRow >= currentBoard.length || startCol >= currentBoard.length) {
         alert('Coordenades invàlides.');
         return;
     }
 
+    // Comprovar si la paraula encaixa amb les lletres existents
+    for (let i = 0; i < word.length; i++) {
+        const row = startRow + (direction === 'vertical' ? i : 0);
+        const col = startCol + (direction === 'horizontal' ? i : 0);
+
+        if (currentBoard[row][col] !== '' && currentBoard[row][col] !== word[i]) {
+            alert(`La lletra "${word[i]}" no coincideix amb la lletra "${currentBoard[row][col]}" a la posició ${String.fromCharCode(col + 65)}${row + 1}.`);
+            return; // La jugada no és vàlida
+        }
+    }
+
     const newWordInfo = { word: word, startRow: startRow, startCol: startCol, direction: direction };
-    //saveWordsToBoard(currentBoard, [newWordInfo]); // Utilitzem la funció de calcul.js
+
+    // Afegim la paraula al tauler
+    saveWordsToBoard(currentBoard, [newWordInfo]);
 
     // Calcular la puntuació
     // Assegura't que la funció calculateScore estigui disponible. Si està a calcul.js i és un mòdul, has d'importar-la.
@@ -139,26 +167,3 @@ wordForm.addEventListener('submit', (event) => {
     // Netejar el formulari
     wordForm.reset();
 });
-
-// Gestionar la selecció de la direcció
-const horizontalBtn = document.getElementById('horizontalBtn');
-const verticalBtn = document.getElementById('verticalBtn');
-const directionInput = document.getElementById('direction');
-
-horizontalBtn.addEventListener('click', () => {
-    directionInput.value = 'horizontal';
-    horizontalBtn.classList.add('active');
-    verticalBtn.classList.remove('active');
-});
-
-verticalBtn.addEventListener('click', () => {
-    directionInput.value = 'vertical';
-    verticalBtn.classList.add('active');
-    horizontalBtn.classList.remove('active');
-});
-
-// Assegura't que la funció saveWordsToBoard estigui disponible (importada o definida abans)
-// Si saveWordsToBoard és a calcul.js i aquest fitxer és un mòdul, hauràs d'importar-la:
-// import { saveWordsToBoard } from './calcul.js';
-
-// Si calcul.js no és un mòdul, assegura't que es carrega abans de tauler.js a tauler.html
