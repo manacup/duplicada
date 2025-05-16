@@ -54,7 +54,7 @@ function renderBoard(board) {
     headerRow.appendChild(document.createElement('th')); // Cella buida per a la cantonada superior esquerra
     for (let i = 0; i < board.length; i++) {
         const th = document.createElement('th');
-        th.textContent = String.fromCharCode(65 + i); // 'A', 'B', 'C', ...
+        th.textContent = i + 1; // 1, 2, 3, ...
         headerRow.appendChild(th);
     }
     thead.appendChild(headerRow);
@@ -65,7 +65,7 @@ function renderBoard(board) {
     for (let i = 0; i < board.length; i++) {
         const row = document.createElement('tr');
         const th = document.createElement('th');
-        th.textContent = i + 1; // 1, 2, 3, ...
+        th.textContent = String.fromCharCode(65 + i); // 'A', 'B', 'C', ...
         row.appendChild(th); // Capçalera de fila (números)
 
         for (let j = 0; j < board[i].length; j++) {
@@ -151,3 +151,10 @@ wordForm.addEventListener('submit', (event) => {
 // import { saveWordsToBoard } from './calcul.js';
 
 // Si calcul.js no és un mòdul, assegura't que es carrega abans de tauler.js a tauler.html
+const newWordsInfo = [
+    { word: 'HELLO', startRow: 7, startCol: 7, direction: 'horizontal' },
+    { word: 'WORLD', startRow: 8, startCol: 8, direction: 'vertical' }
+];
+
+const totalScore = calculateScore(currentBoard, newWordsInfo, letterValues, multiplierBoard);
+console.log('Puntuació total:', totalScore);
