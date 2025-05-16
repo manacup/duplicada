@@ -159,7 +159,7 @@ function updateAllRoundResponses() {
                     collapse.setAttribute('data-bs-parent', '#roundResponsesAccordion');
 
                     const body = document.createElement('table');
-                    body.className = 'accordion-body table table-striped';
+                    body.className = 'accordion-body table';
                     body.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
 
                     if (roundData) {
