@@ -98,7 +98,7 @@ responseForm.addEventListener('submit', (event) => {
         direction: direction,
         word: word,
         scraps: scraps,
-        timestamp: firebase.database.serverValue.TIMESTAMP
+        timestamp: firebase.database().ref('.info/serverTimestamp').toString()
     };
 
     // Envia les dades a Firebase
