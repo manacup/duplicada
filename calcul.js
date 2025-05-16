@@ -73,7 +73,7 @@ function calculateWordScoreCatalan(word, startRow, startCol, direction) {
     score += letterValue * letterMultiplier;
     wordMultiplier *= squareWordMultiplier;
   }
-
+console.log(score,wordMultiplier)
   return score * wordMultiplier;
 }
 
