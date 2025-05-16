@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ca">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +10,17 @@
         body {
             background-color: #f8f9fa;
         }
+
         .container {
             max-width: 600px;
             margin-top: 50px;
         }
+
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
+
         .card-header {
             background-color: #007bff;
             color: white;
@@ -26,28 +30,34 @@
             border-top-right-radius: 10px;
             padding: 15px;
         }
+
         .card-body {
             padding: 20px;
         }
+
         form {
             margin-bottom: 0;
         }
+
         .form-label {
             font-weight: 500;
             color: #343a40;
             margin-bottom: 5px;
         }
+
         .form-control {
             border-radius: 5px;
             border: 1px solid #ced4da;
             padding: 10px;
             transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
+
         .form-control:focus {
             border-color: #007bff;
             box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
             outline: 0;
         }
+
         .btn-primary {
             border-radius: 5px;
             padding: 10px 20px;
@@ -57,14 +67,17 @@
             transition: background-color 0.15s ease-in-out;
             width: 100%;
         }
+
         .btn-primary:hover {
             background-color: #0056b3;
         }
+
         .btn-primary:disabled {
             background-color: #007bff;
             opacity: 0.65;
             cursor: not-allowed;
         }
+
         #message {
             margin-top: 20px;
             border-radius: 5px;
@@ -72,11 +85,13 @@
             text-align: center;
             font-weight: 500;
         }
+
         .alert-success {
             background-color: #d4edda;
             border-color: #c3e6cb;
             color: #155724;
         }
+
         .alert-danger {
             background-color: #f8d7da;
             border-color: #f5c6cb;
@@ -84,6 +99,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="card">
@@ -91,8 +107,8 @@
                 <h1 class="card-title">Configurar Ronda i Faristol</h1>
             </div>
             <div class="card-body">
-                 <button id="toggleFormButton" class="btn btn-secondary">Activar Formulari de Respostes</button>
-               
+                <button id="toggleFormButton" class="btn btn-secondary">Activar Formulari de Respostes</button>
+
                 <form id="configForm">
                     <div class="mb-3">
                         <label for="roundNumber" class="form-label">Número de Ronda:</label>
@@ -126,7 +142,9 @@
         const database = firebase.database();
         const gameInfoRef = database.ref('gameInfo');
         const responsesRef = database.ref('rounds'); // Referència a les respostes per ronda
-         const formEnabledRef = database.ref('formEnabled'); // Nova referència per l'estat del formulari
+        const formEnabledRef = database.ref('formEnabled'); // Nova referència per l'estat del formulari
+        const historyRef = database.ref('gameInfo/history'); // Referència a l'historial
+
 
 
         const configForm = document.getElementById('configForm');
@@ -134,7 +152,7 @@
         const currentRackInput = document.getElementById('currentRack');
         const messageDiv = document.getElementById('message');
         const responsesAccordion = document.getElementById('responsesAccordion');
-         const toggleFormButton = document.getElementById('toggleFormButton');
+        const toggleFormButton = document.getElementById('toggleFormButton');
 
 
         // Funció per actualitzar l'estat del botó
@@ -162,6 +180,23 @@
             formEnabledRef.set(currentState); // Inverteix l'estat
         });
 
+        // Quan el DOM estigui completament carregat
+        document.addEventListener('DOMContentLoaded', () => {
+            // Llegeix la ronda i el faristol actuals de gameInfo
+            gameInfoRef.once('value', (snapshot) => {
+                const currentGameInfo = snapshot.val();
+                if (currentGameInfo && currentGameInfo.currentRound) {
+                    roundNumberInput.value = currentGameInfo.currentRound;
+                }
+                if (currentGameInfo && currentGameInfo.currentRack) {
+                    currentRackInput.value = currentGameInfo.currentRack;
+                }
+            });
+
+            // Inicialitza la visualització de les respostes
+            updateAllRoundResponses();
+        });
+
         configForm.addEventListener('submit', (event) => {
             event.preventDefault();
 
@@ -184,87 +219,115 @@
                 currentRack: currentRack
             };
 
-            gameInfoRef.update(gameData)
-                .then(() => {
-                    messageDiv.textContent = 'Ronda i faristol actualitzats correctament!';
-                    messageDiv.className = 'alert alert-success';
-                    //configForm.reset(); // Elimina això
-                    updateAllRoundResponses(); // Actualitza les respostes al canviar de ronda
-                })
-                .catch((error) => {
-                    console.error("Error en actualitzar la ronda i el faristol:", error);
-                    messageDiv.textContent = 'Error en actualitzar la ronda i el faristol. Si us plau, intenta-ho de nou.';
-                    messageDiv.className = 'alert alert-danger';
-                })
-                .finally(() => {
-                    // Re-activa el botó
+            gameInfoRef.once('value', (snapshot) => {
+                const currentGameInfo = snapshot.val();
+                const currentRound = currentGameInfo && currentGameInfo.currentRound;
+
+                if (newRoundNumber !== currentRound && currentGameInfo && currentGameInfo.currentRound) {
+                    // Desa la informació de la ronda anterior a l'historial
+                    historyRef.child(currentGameInfo.currentRound).set(currentGameInfo.currentRack);
+                } else if (newRoundNumber === currentRound && currentGameInfo && currentGameInfo.currentRack !== newRack) {
+                    // Adverteix sobre el canvi de faristol sense canviar la ronda
+                    messageDiv.textContent = 'Atenció: Estàs canviant el faristol sense canviar el número de ronda.';
+                    messageDiv.className = 'alert alert-warning';
                     submitButton.disabled = false;
                     submitButton.textContent = 'Actualitzar';
-                });
-        });
+                    return;
+                }
 
-       // Funció per obtenir i mostrar les respostes de totes les rondes
+                // Actualitza la informació actual de la ronda i el faristol
+                gameInfoRef.update({ currentRound: newRoundNumber, currentRack: newRack })
+                    .then(() => {
+                        messageDiv.textContent = 'Ronda i faristol actualitzats correctament!';
+                        messageDiv.className = 'alert alert-success';
+                        updateAllRoundResponses(); // Actualitza les respostes al canviar de ronda
+                    })
+                    .catch((error) => {
+                        console.error("Error en actualitzar la ronda i el faristol:", error);
+                        messageDiv.textContent = 'Error en actualitzar la ronda i el faristol. Si us plau, intenta-ho de nou.';
+                        messageDiv.className = 'alert alert-danger';
+                    })
+                    .finally(() => {
+                        // Re-activa el botó
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Actualitzar';
+                    });
+            });
+        });
+        // Funció per obtenir i mostrar les respostes de totes les rondes
         function updateAllRoundResponses() {
             responsesRef.on('value', (snapshot) => {
                 const allRoundData = snapshot.val();
                 responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2><div class="accordion" id="roundResponsesAccordion">'; // Inicialitza l'acordió de Bootstrap
                 const accordionElement = document.getElementById('roundResponsesAccordion');
 
-                if (allRoundData) {
-                    Object.entries(allRoundData).forEach(([roundNumber, roundData]) => {
-                        const accordionItem = document.createElement('div');
-                        accordionItem.className = 'accordion-item';
+                // Recupera l'historial de faristols per ronda
+                historyRef.once('value', (historySnapshot) => {
+                    const historyData = historySnapshot.val();
 
-                        const headingId = `headingRound${roundNumber}`;
-                        const collapseId = `collapseRound${roundNumber}`;
-                        const isFirstRound = accordionElement.children.length === 0; // Per mostrar la primera ronda oberta
+                    if (allRoundData) {
+                        Object.entries(allRoundData).forEach(([roundNumber, roundData]) => {
+                            const accordionItem = document.createElement('div');
+                            accordionItem.className = 'accordion-item';
 
-                        const header = document.createElement('h2');
-                        header.className = 'accordion-header';
-                        header.id = headingId;
+                            const headingId = `headingRound${roundNumber}`;
+                            const collapseId = `collapseRound${roundNumber}`;
+                            const isFirstRound = accordionElement.children.length === 0; // Per mostrar la primera ronda oberta
 
-                        const button = document.createElement('button');
-                        button.className = `accordion-button ${!isFirstRound ? 'collapsed' : ''}`;
-                        button.type = 'button';
-                        button.setAttribute('data-bs-toggle', 'collapse');
-                        button.setAttribute('data-bs-target', `#${collapseId}`);
-                        button.setAttribute('aria-expanded', isFirstRound ? 'true' : 'false');
-                        button.setAttribute('aria-controls', collapseId);
-                        button.textContent = `Ronda ${roundNumber}`;
+                            const header = document.createElement('h2');
+                            header.className = 'accordion-header';
+                            header.id = headingId;
 
-                        header.appendChild(button);
-                        accordionItem.appendChild(header);
+                            const button = document.createElement('button');
+                            button.className = `accordion-button ${!isFirstRound ? 'collapsed' : ''}`;
+                            button.type = 'button';
+                            button.setAttribute('data-bs-toggle', 'collapse');
+                            button.setAttribute('data-bs-target', `#${collapseId}`);
+                            button.setAttribute('aria-expanded', isFirstRound ? 'true' : 'false');
+                            button.setAttribute('aria-controls', collapseId);
 
-                        const collapse = document.createElement('div');
-                        collapse.id = collapseId;
-                        collapse.className = `accordion-collapse collapse ${isFirstRound ? 'show' : ''}`;
-                        collapse.setAttribute('aria-labelledby', headingId);
-                        collapse.setAttribute('data-bs-parent', '#roundResponsesAccordion');
+                            let roundTitle = `Ronda ${roundNumber}`;
+                            if (historyData && historyData[roundNumber]) {
+                                roundTitle += ` (Faristol: ${historyData[roundNumber]})`;
+                            }
+                            button.textContent = roundTitle; // Títol de la ronda amb el faristol
 
-                        const body = document.createElement('div');
-                        body.className = 'accordion-body';
+                            header.appendChild(button);
+                            accordionItem.appendChild(header);
 
-                        if (roundData) {
-                            Object.entries(roundData).forEach(([playerName, playerData]) => {
-                                const coordinatesDisplay = playerData.coordinates;
-                                body.innerHTML += `<strong>${playerName}:</strong> ${coordinatesDisplay}, ${playerData.word}<br>`;
-                            });
-                        } else {
-                            body.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
-                        }
+                            const collapse = document.createElement('div');
+                            collapse.id = collapseId;
+                            collapse.className = `accordion-collapse collapse ${isFirstRound ? 'show' : ''}`;
+                            collapse.setAttribute('aria-labelledby', headingId);
+                            collapse.setAttribute('data-bs-parent', '#roundResponsesAccordion');
 
-                        collapse.appendChild(body);
-                        accordionItem.appendChild(collapse);
-                        accordionElement.appendChild(accordionItem);
-                    });
-                } else {
-                    responsesAccordion.innerHTML += '<p>Encara no hi ha respostes registrades.</p>';
-                }
-                responsesAccordion.appendChild(accordionElement); // Afegim l'acordió complet al contenidor principal
+                            const body = document.createElement('div');
+                            body.className = 'accordion-body';
+
+                            if (roundData) {
+                                Object.entries(roundData).forEach(([playerName, playerData]) => {
+                                    const coordinatesDisplay = playerData.coordinates;
+                                    const roundDisplay = playerData.round ? `(Ronda: ${playerData.round})` : ''; // Obté la ronda desada
+                                    const rackDisplay = playerData.rack ? `(Faristol: ${playerData.rack})` : ''; // Obté el faristol desat
+                                    body.innerHTML += `<strong>${playerName} ${roundDisplay} ${rackDisplay}:</strong> Coordenades: ${coordinatesDisplay}, Paraula: ${playerData.word}<br>`;
+                                });
+                            } else {
+                                body.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
+                            }
+
+                            collapse.appendChild(body);
+                            accordionItem.appendChild(collapse);
+                            accordionElement.appendChild(accordionItem);
+                        });
+                    } else {
+                        responsesAccordion.innerHTML += '<p>Encara no hi ha respostes registrades.</p>';
+                    }
+                    responsesAccordion.appendChild(accordionElement); // Afegim l'acordió complet al contenidor principal
+                });
             });
         }
-        // Al carregar la pàgina, mostra les respostes de totes les rondes
-        updateAllRoundResponses();
+
     </script>
 </body>
+
 </html>
