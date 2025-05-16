@@ -1,20 +1,20 @@
 // Configuració de Firebase (substitueix amb la teva pròpia configuració)
 const firebaseConfig = {
-    apiKey: "AIzaSyDn0v_QEsAdWAMN0cLe8teNkDiHe6hIXwc",
-        authDomain: "manacup-b195e.firebaseapp.com",
-        databaseURL: "https://manacup-b195e-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "manacup-b195e",
-        storageBucket: "manacup-b195e.appspot.com",
-        messagingSenderId: "548487419691",
-        appId: "1:548487419691:web:fba0488c532503b132176e"
+    apiKey: "AIzaSyAwsV6cBafAt6OQRNUEFXCoRT-D5Fzvqbk",
+    authDomain: "duplicadascrabble.firebaseapp.com",
+    projectId: "duplicadascrabble",
+    storageBucket: "duplicadascrabble.firebasestorage.app",
+    messagingSenderId: "115691804214",
+    appId: "1:115691804214:web:dd923cf73c46146c0b2a97"
 };
 
 // Inicialitza Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-const responsesRef = database.ref('responses');
+const gameInfoRef = database.ref('gameInfo'); // Referència per la info del joc (ronda, faristol)
 
 const responseForm = document.getElementById('responseForm');
+const playerNameInput = document.getElementById('playerName');
 const coordinatesInput = document.getElementById('coordinates');
 const horizontalBtn = document.getElementById('horizontalBtn');
 const verticalBtn = document.getElementById('verticalBtn');
@@ -23,8 +23,30 @@ const wordInput = document.getElementById('word');
 const tileButtonsDiv = document.getElementById('tileButtons');
 const scrapsInput = document.getElementById('scraps');
 const messageDiv = document.getElementById('message');
+const roundNumberDisplay = document.getElementById('roundNumber');
+const currentRackDisplay = document.getElementById('currentRack');
 
 let currentWordTiles = [];
+
+// Carrega el nom del jugador des de localStorage al carregar la pàgina
+document.addEventListener('DOMContentLoaded', () => {
+    const savedName = localStorage.getItem('playerName');
+    if (savedName) {
+        playerNameInput.value = savedName;
+    }
+
+    // Escolta els canvis en la informació del joc (ronda i faristol)
+    gameInfoRef.on('value', (snapshot) => {
+        const gameData = snapshot.val();
+        if (gameData && gameData.currentRound && gameData.currentRack) {
+            roundNumberDisplay.textContent = gameData.currentRound;
+            currentRackDisplay.textContent = gameData.currentRack;
+        } else {
+            roundNumberDisplay.textContent = 'No disponible';
+            currentRackDisplay.textContent = 'No disponible';
+        }
+    });
+});
 
 // Funció per generar els botons de les fitxes
 function generateTileButtons(word) {
@@ -82,10 +104,17 @@ verticalBtn.addEventListener('click', () => {
 responseForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
+    const playerName = playerNameInput.value.trim();
     const coordinates = coordinatesInput.value.trim().toUpperCase();
     const direction = directionInput.value;
-    const word = wordInput.value.trim().toUpperCase();
-    const scraps = scrapsInput.value; // Contindrà un array d'índexs dels escarràs
+    let word = wordInput.value.trim().toUpperCase();
+    const scraps = JSON.parse(scrapsInput.value || '[]');
+
+    if (!playerName) {
+        messageDiv.textContent = 'Si us plau, introdueix el teu nom o número de taula.';
+        messageDiv.classList.add('alert', 'alert-danger');
+        return;
+    }
 
     if (!direction) {
         messageDiv.textContent = 'Si us plau, selecciona la direcció.';
@@ -93,30 +122,50 @@ responseForm.addEventListener('submit', (event) => {
         return;
     }
 
-    const responseData = {
-        coordinates: coordinates,
-        direction: direction,
-        word: word,
-        scraps: scraps,
-        timestamp: firebase.database().ref('.info/serverTimestamp').toString()
-    };
+    // Formateja la paraula amb els escarrassos en minúscula
+    let formattedWord = '';
+    for (let i = 0; i < word.length; i++) {
+        if (scraps.includes(i)) {
+            formattedWord += word[i].toLowerCase();
+        } else {
+            formattedWord += word[i];
+        }
+    }
 
-    // Envia les dades a Firebase
-    responsesRef.push(responseData)
-        .then(() => {
-            messageDiv.textContent = 'Resposta enviada correctament!';
-            messageDiv.classList.remove('alert', 'alert-danger');
-            messageDiv.classList.add('alert', 'alert-success');
-            responseForm.reset();
-            tileButtonsDiv.innerHTML = ''; // Neteja els botons de les fitxes
-            directionInput.value = '';
-            horizontalBtn.classList.remove('active');
-            verticalBtn.classList.remove('active');
-        })
-        .catch((error) => {
-            console.error("Error en enviar la resposta:", error);
-            messageDiv.textContent = 'Error en enviar la resposta. Si us plau, intenta-ho de nou.';
-            messageDiv.classList.remove('alert', 'alert-success');
-            messageDiv.classList.add('alert', 'alert-danger');
-        });
+    // Obté el número de ronda actual
+    gameInfoRef.once('value', (snapshot) => {
+        const gameData = snapshot.val();
+        const currentRound = gameData && gameData.currentRound ? gameData.currentRound : 'desconeguda';
+        const currentRack = gameData && gameData.currentRack ? gameData.currentRack : 'desconegut';
+
+        const responseData = {
+            coordinates: coordinates,
+            direction: direction,
+            word: formattedWord,
+            scraps: scraps,
+            timestamp: firebase.database().ref('.info/serverTimestamp').toString()
+        };
+
+        // Desa la resposta a la base de dades sota la ronda actual i el nom del jugador
+        database.ref(`rounds/${currentRound}/${playerName}`).set(responseData)
+            .then(() => {
+                messageDiv.textContent = 'Resposta enviada correctament!';
+                messageDiv.classList.remove('alert', 'alert-danger');
+                messageDiv.classList.add('alert', 'alert-success');
+                responseForm.reset();
+                tileButtonsDiv.innerHTML = ''; // Neteja els botons de les fitxes
+                directionInput.value = '';
+                horizontalBtn.classList.remove('active');
+                verticalBtn.classList.remove('active');
+
+                // Guarda el nom del jugador al localStorage
+                localStorage.setItem('playerName', playerName);
+            })
+            .catch((error) => {
+                console.error("Error en enviar la resposta:", error);
+                messageDiv.textContent = 'Error en enviar la resposta. Si us plau, intenta-ho de nou.';
+                messageDiv.classList.remove('alert', 'alert-success');
+                messageDiv.classList.add('alert', 'alert-danger');
+            });
+    });
 });
