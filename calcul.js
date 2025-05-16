@@ -193,5 +193,30 @@ function calculateWordScore(word, startRow, startCol, direction, board, letterVa
     return wordScore;
 }
 
-
+/**
+ * Guarda les paraules noves al tauler.
+ *
+ * @param {Array<Array<string>>} board - El tauler de joc (matriu 2D).
+ * @param {Array<{word: string, startRow: number, startCol: number, direction: string}>} newWords - Array d'objectes amb info de les paraules noves a afegir.
+ */
+function saveWordsToBoard(board, newWords) {
+    newWords.forEach(wordInfo => {
+      const { word, startRow, startCol, direction } = wordInfo;
+      const letters = word.toUpperCase().split('');
+  
+      for (let i = 0; i < letters.length; i++) {
+        let row = startRow;
+        let col = startCol;
+        if (direction === 'horizontal') {
+          col += i;
+        } else { // vertical
+          row += i;
+        }
+        // Assegurem-nos que la posició és dins dels límits del tauler abans de guardar
+        if (row >= 0 && row < board.length && col >= 0 && col < board[row].length) {
+            board[row][col] = letters[i]; // Assuming board is mutable
+        }
+      }
+    });
+  }
 
