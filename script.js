@@ -151,7 +151,13 @@ responseForm.addEventListener('submit', (event) => {
                 horizontalBtn.classList.remove('active');
                 verticalBtn.classList.remove('active');
 
-                // Guarda el nom del jugador al localStorage
+                // Restaura el nom del jugador des de localStorage
+                const savedName = localStorage.getItem('playerName');
+                if (savedName) {
+                    playerNameInput.value = savedName;
+                }
+
+                // Guarda el nom del jugador al localStorage (per si no hi era prèviament o s'ha modificat)
                 localStorage.setItem('playerName', playerName);
             })
             .catch((error) => {
