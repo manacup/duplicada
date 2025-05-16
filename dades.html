@@ -203,120 +203,66 @@
                 });
         });
 
-        /* // Funció per obtenir i mostrar les respostes de totes les rondes
+       // Funció per obtenir i mostrar les respostes de totes les rondes
         function updateAllRoundResponses() {
             responsesRef.on('value', (snapshot) => {
                 const allRoundData = snapshot.val();
-                responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2>'; // Reinicialitza l'acordió
+                responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2><div class="accordion" id="roundResponsesAccordion">'; // Inicialitza l'acordió de Bootstrap
+                const accordionElement = document.getElementById('roundResponsesAccordion');
 
                 if (allRoundData) {
                     Object.entries(allRoundData).forEach(([roundNumber, roundData]) => {
-                        const roundCard = document.createElement('div');
-                        roundCard.className = 'card';
+                        const accordionItem = document.createElement('div');
+                        accordionItem.className = 'accordion-item';
 
-                        const roundHeader = document.createElement('div');
-                        roundHeader.className = 'card-header';
-                        roundHeader.id = `headingRound${roundNumber}`;
+                        const headingId = `headingRound${roundNumber}`;
+                        const collapseId = `collapseRound${roundNumber}`;
+                        const isFirstRound = accordionElement.children.length === 0; // Per mostrar la primera ronda oberta
 
-                        const roundButton = document.createElement('button');
-                        roundButton.className = 'btn btn-link btn-block text-left';
-                        roundButton.type = 'button';
-                        roundButton.setAttribute('data-toggle', 'collapse');
-                        roundButton.setAttribute('data-target', `#collapseRound${roundNumber}`);
-                        roundButton.setAttribute('aria-expanded', 'true');
-                        roundButton.setAttribute('aria-controls', `collapseRound${roundNumber}`);
-                        roundButton.textContent = `Ronda ${roundNumber}`;  // Títol de la ronda
+                        const header = document.createElement('h2');
+                        header.className = 'accordion-header';
+                        header.id = headingId;
 
-                        roundHeader.appendChild(roundButton);
-                        roundCard.appendChild(roundHeader);
+                        const button = document.createElement('button');
+                        button.className = `accordion-button ${!isFirstRound ? 'collapsed' : ''}`;
+                        button.type = 'button';
+                        button.setAttribute('data-bs-toggle', 'collapse');
+                        button.setAttribute('data-bs-target', `#${collapseId}`);
+                        button.setAttribute('aria-expanded', isFirstRound ? 'true' : 'false');
+                        button.setAttribute('aria-controls', collapseId);
+                        button.textContent = `Ronda ${roundNumber}`;
 
-                        const roundCollapse = document.createElement('div');
-                        roundCollapse.id = `collapseRound${roundNumber}`;
-                        roundCollapse.className = 'collapse';
-                        roundCollapse.setAttribute('aria-labelledby', `headingRound${roundNumber}`);
-                        roundCollapse.setAttribute('data-parent', '#responsesAccordion');
+                        header.appendChild(button);
+                        accordionItem.appendChild(header);
 
-                        const roundBody = document.createElement('div');
-                        roundBody.className = 'card-body';
+                        const collapse = document.createElement('div');
+                        collapse.id = collapseId;
+                        collapse.className = `accordion-collapse collapse ${isFirstRound ? 'show' : ''}`;
+                        collapse.setAttribute('aria-labelledby', headingId);
+                        collapse.setAttribute('data-bs-parent', '#roundResponsesAccordion');
 
-                        // Iterar sobre les respostes dels jugadors dins de cada ronda
+                        const body = document.createElement('div');
+                        body.className = 'accordion-body';
+
                         if (roundData) {
                             Object.entries(roundData).forEach(([playerName, playerData]) => {
-                                roundBody.innerHTML += `<p><strong>${playerName}:</strong> Coordenades: ${playerData.coordinates}, Paraula: ${playerData.word}</p>`;
-                            });
-                        } else {
-                            roundBody.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
-                        }
-
-                        roundCollapse.appendChild(roundBody);
-                        roundCard.appendChild(roundCollapse);
-                        responsesAccordion.appendChild(roundCard);
-                    });
-                } else {
-                    responsesAccordion.innerHTML += '<p>Encara no hi ha respostes registrades.</p>';
-                }
-            });
-        } */
-        // Funció per obtenir i mostrar les respostes de totes les rondes
-        function updateAllRoundResponses() {
-            responsesRef.on('value', (snapshot) => {
-                const allRoundData = snapshot.val();
-                console.log("Dades de totes les rondes:", allRoundData); // <--- Nova consola
-
-                responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2>'; // Reinicialitza l'acordió
-
-                if (allRoundData) {
-                    Object.entries(allRoundData).forEach(([roundNumber, roundData]) => {
-                        console.log("Ronda:", roundNumber, "Dades de la ronda:", roundData); // <--- Nova consola
-                        const roundCard = document.createElement('div');
-                        roundCard.className = 'card';
-
-                        const roundHeader = document.createElement('div');
-                        roundHeader.className = 'card-header';
-                        roundHeader.id = `headingRound${roundNumber}`;
-
-                        const roundButton = document.createElement('button');
-                        roundButton.className = 'btn btn-link btn-block text-left';
-                        roundButton.type = 'button';
-                        roundButton.setAttribute('data-toggle', 'collapse');
-                        roundButton.setAttribute('data-target', `#collapseRound${roundNumber}`);
-                        roundButton.setAttribute('aria-expanded', 'false'); // Canviat a false per defecte
-                        roundButton.setAttribute('aria-controls', `collapseRound${roundNumber}`);
-                        roundButton.textContent = `Ronda ${roundNumber}`;  // Títol de la ronda
-
-                        roundHeader.appendChild(roundButton);
-                        roundCard.appendChild(roundHeader);
-
-                        const roundCollapse = document.createElement('div');
-                        roundCollapse.id = `collapseRound${roundNumber}`;
-                        roundCollapse.className = 'collapse';
-                        roundCollapse.setAttribute('aria-labelledby', `headingRound${roundNumber}`);
-                        roundCollapse.setAttribute('data-parent', '#responsesAccordion');
-
-                        const roundBody = document.createElement('div');
-                        roundBody.className = 'card-body';
-
-                        // Iterar sobre les respostes dels jugadors dins de cada ronda
-                        if (roundData) {
-                            Object.entries(roundData).forEach(([playerName, playerData]) => {
-                                console.log("Jugador:", playerName, "Dades del jugador:", playerData); // <--- Nova consola
                                 const coordinatesDisplay = playerData.coordinates;
-                                roundBody.innerHTML += `<p><strong>${playerName}:</strong> Coordenades: ${coordinatesDisplay}, Paraula: ${playerData.word}</p>`;
+                                body.innerHTML += `<strong>${playerName}:</strong> Coordenades: ${coordinatesDisplay}, Paraula: ${playerData.word}<br>`;
                             });
                         } else {
-                            roundBody.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
+                            body.innerHTML = '<p>No hi ha respostes per a aquesta ronda.</p>';
                         }
 
-                        roundCollapse.appendChild(roundBody);
-                        roundCard.appendChild(roundCollapse);
-                        responsesAccordion.appendChild(roundCard);
+                        collapse.appendChild(body);
+                        accordionItem.appendChild(collapse);
+                        accordionElement.appendChild(accordionItem);
                     });
                 } else {
                     responsesAccordion.innerHTML += '<p>Encara no hi ha respostes registrades.</p>';
                 }
+                responsesAccordion.appendChild(accordionElement); // Afegim l'acordió complet al contenidor principal
             });
         }
-
         // Al carregar la pàgina, mostra les respostes de totes les rondes
         updateAllRoundResponses();
     </script>
