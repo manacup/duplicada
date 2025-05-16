@@ -1,13 +1,4 @@
-// Configuració de Firebase (substitueix amb la teva pròpia configuració)
-const firebaseConfig = {
-    apiKey: "AIzaSyAwsV6cBafAt6OQRNUEFXCoRT-D5Fzvqbk",
-    authDomain: "duplicadascrabble.firebaseapp.com",
-    databaseURL: "https://duplicadascrabble-default-rtdb.europe-west1.firebasedatabase.app", // Corrected URL            
-    projectId: "duplicadascrabble",
-    storageBucket: "duplicadascrabble.firebasestorage.app",
-    messagingSenderId: "115691804214",
-    appId: "1:115691804214:web:dd923cf73c46146c0b2a97"
-};
+
 
 // Inicialitza Firebase
 firebase.initializeApp(firebaseConfig);
@@ -59,7 +50,7 @@ function generateTileButtons(word) {
         button.classList.add('tile-button');
         button.textContent = letter;
         button.dataset.index = i;
-        button.addEventListener('click', toggleScrap);
+        button.addEventListener('click', toggleScrap); // Important: No ha de fer submit
         tileButtonsDiv.appendChild(button);
         currentWordTiles.push({ letter: letter, isScrap: false });
     }
@@ -68,6 +59,7 @@ function generateTileButtons(word) {
 
 // Funció per marcar/desmarcar una lletra com a escarràs
 function toggleScrap(event) {
+    event.preventDefault(); // Prevent the default button behavior (potential form submission)
     const button = event.target;
     const index = parseInt(button.dataset.index);
     currentWordTiles[index].isScrap = !currentWordTiles[index].isScrap;
@@ -144,7 +136,7 @@ responseForm.addEventListener('submit', (event) => {
             direction: direction,
             word: formattedWord,
             scraps: scraps,
-            timestamp: firebase.database().ref('.info/serverTimestamp').toString()
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         };
 
         // Desa la resposta a la base de dades sota la ronda actual i el nom del jugador
