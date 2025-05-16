@@ -160,14 +160,14 @@ function updateAllRoundResponses() {
 
                     const body = document.createElement('table');
                     body.className = 'accordion-body table table-striped';
-                    body.innerHTML = '<thead><tr><th>Nom del Jugador</th><th>Coordenades</th><th>Paraula</th><th>Ronda</th></tr></thead>';
+                    body.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
 
                     if (roundData) {
                         Object.entries(roundData).forEach(([playerName, playerData]) => {
                             const coordinatesDisplay = playerData.coordinates;
                             const roundDisplay = playerData.round ? `(Ronda: ${playerData.round})` : ''; // Obté la ronda desada
                             const rackDisplay = playerData.rack ? `(Faristol: ${playerData.rack})` : ''; // Obté el faristol desat
-                            body.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${playerData.word}</td><td>${roundDisplay} ${rackDisplay}</td></tr>`;
+                            body.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${playerData.word}</td></tr>`;
                             //body.innerHTML += `<strong>${playerName}:</strong> ${coordinatesDisplay}, ${playerData.word}<br>`;
                         });
                     } else {
