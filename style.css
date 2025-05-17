@@ -161,18 +161,17 @@ h1, h2, h3 {
     border-collapse: collapse;
     margin: 0 auto;
     table-layout: fixed;
-    width: 600px; /* Ajusta segons el teu gust */
-    max-width: 100%;
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Manté el tauler quadrat */
 }
 
 .board-table th,
 .board-table td {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 40px;
-    max-height: 40px;
+    aspect-ratio: 1 / 1; /* Manté les cel·les quadrades */
+    width: calc(100% / 16);   /* 15 columnes + 1 capçalera */
+    height: auto;
+    min-width: 0;
+    min-height: 0;
     text-align: center;
     vertical-align: middle;
     border: 1px solid #bbb;
@@ -180,18 +179,35 @@ h1, h2, h3 {
     padding: 0;
     position: relative;
     user-select: none;
+    box-sizing: border-box;
+}
+
+@media (max-width: 575px) {
+    .container {
+        padding: 5px !important;
+    }
+    .board-table {
+        width: 95vw;
+        max-width: 95vw;
+        aspect-ratio: 1 / 1;
+    }
+    .board-table th,
+    .board-table td {
+        width: calc(95vw / 16);
+        font-size: 0.9em;
+    }
 }
 
 /* Colors per a multiplicadors */
-.board-cell.tw { background-color: #e74c3c !important; color: #fff; font-weight: bold; }   /* Vermell fort */
-.board-cell.dw { background-color: #f8bbd0 !important; color: #b71c1c; font-weight: bold; } /* Rosa clar */
-.board-cell.tl { background-color: #1976d2 !important; color: #fff; font-weight: bold; }   /* Blau fort */
-.board-cell.dl { background-color: #b3e5fc !important; color: #01579b; font-weight: bold; } /* Blau cel */
+.board-cell.tw { background-color: #e74c3c !important; color: #fff; font-weight: bold; }
+.board-cell.dw { background-color: #f8bbd0 !important; color: #b71c1c; font-weight: bold; }
+.board-cell.tl { background-color: #1976d2 !important; color: #fff; font-weight: bold; }
+.board-cell.dl { background-color: #b3e5fc !important; color: #01579b; font-weight: bold; }
 
-/* Cel·les buides sense multiplicador */
 .board-cell {
     background-color: #f5f5f5;
     transition: background 0.2s;
+    font-weight: bold;
 }
 
 /* Escarrassos */

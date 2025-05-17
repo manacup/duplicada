@@ -14,16 +14,18 @@
             <!-- The board will be generated here by JavaScript -->
         </div>
         <form id="wordForm">
-            <div class="mb-3">
-                <label for="coordinates" class="form-label">Coordenades (ex: A1):</label>
-                <input type="text" class="form-control" id="coordinates" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Direcció:</label>
-                <div>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="horizontalBtn">Horitzontal</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="verticalBtn">Vertical</button>
-                    <input type="hidden" id="direction" required>
+            <div class="row justify-content-between align-items-center">
+                <div class="col mb-3">
+                    <label for="coordinates" class="form-label">Coordenades (ex: A1):</label>
+                    <input type="text" class="form-control  form-control-lg" id="coordinates" required>
+                </div>
+                <div class="col mb-3">
+                    <label class="form-label">Direcció:</label>
+                    <div class=" d-grid gap-2 d-md-block">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="horizontalBtn">Horitzontal<i class="bi bi-arrow-right"></i></button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="verticalBtn">Vertical<i class="bi bi-arrow-down"></i></button>
+                        <input type="hidden" id="direction" required>
+                    </div>
                 </div>
             </div>
             <div class="mb-3">
