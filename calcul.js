@@ -101,17 +101,19 @@ function calculateAdditionalWordsScore(board, newWordsInfo, letterValues, multip
             const row = startRow + (direction === 'vertical' ? i : 0);
             const col = startCol + (direction === 'horizontal' ? i : 0);
 
-            // Només busca paraula perpendicular
-            const perpDir = direction === 'horizontal' ? 'vertical' : 'horizontal';
-            const perpWord = findWordFromLetter(board, row, col, perpDir);
+            // NOMÉS si la casella estava buida abans de la jugada
+            if (board[row][col] === '') {
+                const perpDir = direction === 'horizontal' ? 'vertical' : 'horizontal';
+                const perpWord = findWordFromLetter(board, row, col, perpDir);
 
-            if (perpWord && perpWord.word.length > 1) {
-                const key = `${perpDir}:${perpWord.startRow},${perpWord.startCol},${perpWord.word}`;
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    const score = calculateWordScore(perpWord.word, perpWord.startRow, perpWord.startCol, perpDir, board, letterValues, multiplierBoard);
-                    totalAdditionalScore += score;
-                    console.log(`[calculateAdditionalWordsScore] Paraula perpendicular "${perpWord.word}" (${perpDir}) puntuació:`, score);
+                if (perpWord && perpWord.word.length > 1) {
+                    const key = `${perpDir}:${perpWord.startRow},${perpWord.startCol},${perpWord.word}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        const score = calculateWordScore(perpWord.word, perpWord.startRow, perpWord.startCol, perpDir, board, letterValues, multiplierBoard);
+                        totalAdditionalScore += score;
+                        console.log(`[calculateAdditionalWordsScore] Paraula perpendicular "${perpWord.word}" (${perpDir}) puntuació:`, score);
+                    }
                 }
             }
         }
@@ -252,4 +254,218 @@ function countNewLetters(board, wordInfo) {
     }
     return count;
 }
+
+/**
+ * Troba totes les paraules noves formades per una jugada.
+ * @param {Array<Array<string>>} board - El tauler abans de la jugada.
+ * @param {object} wordInfo - {word, startRow, startCol, direction}
+ * @returns {Array<{word, startRow, startCol, direction, newTiles: Array<{row, col, letter}>}>}
+ */
+function findAllNewWords(board, wordInfo) {
+    console.log('[findAllNewWords] IN:', { board, wordInfo });
+    const { word, startRow, startCol, direction } = wordInfo;
+    const newWords = [];
+    const mainTiles = [];
+
+    // Marca les posicions de les fitxes noves
+    for (let i = 0; i < word.length; i++) {
+        const row = startRow + (direction === 'vertical' ? i : 0);
+        const col = startCol + (direction === 'horizontal' ? i : 0);
+        if (board[row][col] === '') {
+            mainTiles.push({ row, col, letter: word[i] });
+        }
+    }
+
+    // Si no hi ha cap fitxa nova, no és una jugada vàlida
+    if (mainTiles.length === 0) {
+        console.log('[findAllNewWords] OUT: No new tiles placed');
+        return [];
+    }
+
+    // Troba la paraula principal (pot ser més llarga si connecta amb fitxes existents)
+    let mainStart = { row: startRow, col: startCol };
+    let mainWord = '';
+    let r = startRow, c = startCol;
+    while (true) {
+        const prevR = r - (direction === 'vertical' ? 1 : 0);
+        const prevC = c - (direction === 'horizontal' ? 1 : 0);
+        if (prevR < 0 || prevC < 0 || board[prevR]?.[prevC] === '' || board[prevR]?.[prevC] == null) break;
+        r = prevR; c = prevC;
+    }
+    mainStart = { row: r, col: c };
+
+    // Construeix la paraula principal
+    let tempR = r, tempC = c;
+    for (let i = 0; i < 100; i++) { // límit de seguretat
+        let boardLetter = board[tempR][tempC];
+        let placedLetter = null;
+        // Comprova si aquesta posició forma part de la jugada
+        for (let j = 0; j < word.length; j++) {
+            const jugadaR = startRow + (direction === 'vertical' ? j : 0);
+            const jugadaC = startCol + (direction === 'horizontal' ? j : 0);
+            if (jugadaR === tempR && jugadaC === tempC) {
+                placedLetter = word[j];
+                break;
+            }
+        }
+        mainWord += placedLetter || boardLetter;
+        tempR += (direction === 'vertical' ? 1 : 0);
+        tempC += (direction === 'horizontal' ? 1 : 0);
+        if ((board[tempR]?.[tempC] === '' || board[tempR]?.[tempC] == null) &&
+            !mainTiles.some(t => t.row === tempR && t.col === tempC)) break;
+        if (tempR >= board.length || tempC >= board.length) break;
+    }
+    if (mainWord.length > 1) {
+        // Marca quines fitxes són noves dins la paraula principal
+        const mainNewTiles = [];
+        for (let i = 0; i < mainWord.length; i++) {
+            const row = mainStart.row + (direction === 'vertical' ? i : 0);
+            const col = mainStart.col + (direction === 'horizontal' ? i : 0);
+            if (board[row][col] === '') {
+                mainNewTiles.push({ row, col, letter: mainWord[i] });
+            }
+        }
+        newWords.push({
+            word: mainWord,
+            startRow: mainStart.row,
+            startCol: mainStart.col,
+            direction,
+            newTiles: mainNewTiles
+        });
+    }
+
+    // Troba paraules perpendiculars formades per cada fitxa nova
+    const perpDir = direction === 'horizontal' ? 'vertical' : 'horizontal';
+    for (const tile of mainTiles) {
+        let word = '';
+        let r = tile.row, c = tile.col;
+        // Busca l'inici de la paraula perpendicular
+        while (true) {
+            const prevR = r - (perpDir === 'vertical' ? 1 : 0);
+            const prevC = c - (perpDir === 'horizontal' ? 1 : 0);
+            if (prevR < 0 || prevC < 0 || board[prevR]?.[prevC] === '' || board[prevR]?.[prevC] == null) break;
+            r = prevR; c = prevC;
+        }
+        // Construeix la paraula perpendicular
+        let tempR = r, tempC = c;
+        let found = false;
+        let newTiles = [];
+        for (let i = 0; i < 100; i++) {
+            let letter;
+            if (tempR === tile.row && tempC === tile.col) {
+                letter = tile.letter;
+                found = true;
+                newTiles.push({ row: tempR, col: tempC, letter });
+            } else {
+                letter = board[tempR][tempC];
+            }
+            word += letter;
+            tempR += (perpDir === 'vertical' ? 1 : 0);
+            tempC += (perpDir === 'horizontal' ? 1 : 0);
+            if ((board[tempR]?.[tempC] === '' || board[tempR]?.[tempC] == null) &&
+                !(tempR === tile.row && tempC === tile.col)) break;
+            if (tempR >= board.length || tempC >= board.length) break;
+        }
+        if (word.length > 1 && found) {
+            newWords.push({
+                word,
+                startRow: r,
+                startCol: c,
+                direction: perpDir,
+                newTiles
+            });
+        }
+    }
+
+    // Mostra per consola totes les paraules noves trobades (>2 fitxes)
+    newWords.filter(w => w.word.length > 1).forEach(w =>
+        console.log(`[findAllNewWords] Nova paraula: "${w.word}" a (${w.startRow},${w.startCol}) ${w.direction}`)
+    );
+    console.log('[findAllNewWords] OUT:', newWords);
+    return newWords;
+}
+
+/**
+ * Calcula la puntuació d'una paraula, aplicant multiplicadors només a les fitxes noves.
+ * @param {string} word
+ * @param {number} startRow
+ * @param {number} startCol
+ * @param {string} direction
+ * @param {Array<Array<string>>} board - Tauler abans de la jugada
+ * @param {object} letterValues
+ * @param {Array<Array<string>>} multiplierBoard
+ * @param {Array<{row, col, letter}>} newTiles - Posicions de les fitxes noves
+ * @returns {number}
+ */
+function calculateWordScoreWithNewTiles(word, startRow, startCol, direction, board, letterValues, multiplierBoard, newTiles) {
+    console.log('[calculateWordScoreWithNewTiles] IN:', { word, startRow, startCol, direction, newTiles });
+    let wordScore = 0;
+    let wordMultiplier = 1;
+
+    for (let i = 0; i < word.length; i++) {
+        const row = startRow + (direction === 'vertical' ? i : 0);
+        const col = startCol + (direction === 'horizontal' ? i : 0);
+        const letter = word[i];
+        let letterScore;
+
+        // Si la lletra és minúscula, és un escarràs (valor 0)
+        if (letter === letter.toLowerCase()) {
+            letterScore = 0;
+        } else {
+            letterScore = letterValues[letter] || 0;
+        }
+
+        // Només aplica multiplicadors si aquesta posició és una fitxa nova
+        const isNew = newTiles.some(t => t.row === row && t.col === col);
+        if (isNew && multiplierBoard && multiplierBoard[row] && multiplierBoard[row][col]) {
+            const mult = multiplierBoard[row][col];
+            let multiplierType = null;
+            let multiplierValue = 1;
+            if (mult === 'DL') { multiplierType = 'L'; multiplierValue = 2; }
+            else if (mult === 'TL') { multiplierType = 'L'; multiplierValue = 3; }
+            else if (mult === 'DW') { multiplierType = 'W'; multiplierValue = 2; }
+            else if (mult === 'TW') { multiplierType = 'W'; multiplierValue = 3; }
+
+            if (multiplierType === 'L') letterScore *= multiplierValue;
+            else if (multiplierType === 'W') wordMultiplier *= multiplierValue;
+        }
+        wordScore += letterScore;
+    }
+    wordScore *= wordMultiplier;
+    console.log('[calculateWordScoreWithNewTiles] OUT:', wordScore);
+    return wordScore;
+}
+
+/**
+ * Calcula la puntuació total d'una jugada, trobant totes les paraules noves i aplicant la puntuació correcta.
+ * @param {Array<Array<string>>} board - Tauler abans de la jugada
+ * @param {object} wordInfo - {word, startRow, startCol, direction}
+ * @param {object} letterValues
+ * @param {Array<Array<string>>} multiplierBoard
+ * @returns {number}
+ */
+function calculateFullPlayScore(board, wordInfo, letterValues, multiplierBoard) {
+    console.log('[calculateFullPlayScore] IN:', { board, wordInfo, letterValues, multiplierBoard });
+    const newWords = findAllNewWords(board, wordInfo);
+    let totalScore = 0;
+    let mainWordNewTiles = [];
+    newWords.forEach((w, idx) => {
+        const score = calculateWordScoreWithNewTiles(w.word, w.startRow, w.startCol, w.direction, board, letterValues, multiplierBoard, w.newTiles);
+        totalScore += score;
+        if (idx === 0) mainWordNewTiles = w.newTiles;
+        console.log(`[calculateFullPlayScore] Paraula "${w.word}" (${w.direction}) puntuació:`, score);
+    });
+
+    // Bonus de 50 punts si la paraula principal col·loca 7 fitxes noves
+    if (mainWordNewTiles.length >= 7) {
+        totalScore += 50;
+        console.log('[calculateFullPlayScore] BONUS 50 punts per 7 o més fitxes noves!');
+    }
+
+    console.log('[calculateFullPlayScore] OUT: totalScore =', totalScore);
+    return totalScore;
+}
+
+// Exporta les funcions si cal (per a mòduls)
+// export { findAllNewWords, calculateWordScoreWithNewTiles, calculateFullPlayScore };
 

@@ -214,7 +214,7 @@ wordForm.addEventListener('submit', (event) => {
     // Calcular la puntuació
     // Assegura't que la funció calculateScore estigui disponible. Si està a calcul.js i és un mòdul, has d'importar-la.
     // import { calculateScore } from './calcul.js';
-    const score = calculateScore(currentBoard, [newWordInfo], letterValues, multiplierBoard);
+    const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard);
 
     // Mostrar la puntuació a l'usuari (per exemple, en un element amb id="score")
     const scoreElement = document.getElementById('score');
