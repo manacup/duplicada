@@ -230,7 +230,7 @@ responseForm.addEventListener('submit', (event) => {
         messageDiv.classList.add('alert', 'alert-danger');
         return;
     }
-
+ 
     // Construeix la paraula real segons l'estat dels botons d'escarràs
     let formattedWord = '';
     for (let i = 0; i < currentWordTiles.length; i++) {

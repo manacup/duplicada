@@ -1,3 +1,47 @@
+// Firebase refs
+const gameInfoRef = database.ref('gameInfo');
+const historyRef = database.ref('gameInfo/history');
+const masterPlaysRef = database.ref('gameInfo/masterPlays');
+const responsesRef = database.ref('rounds');
+
+// DOM refs
+const gestioForm = document.getElementById('gestioForm');
+const roundNumberInput = document.getElementById('roundNumber');
+const currentRackInput = document.getElementById('currentRack');
+const gestioMessage = document.getElementById('gestio-message');
+const finalitzaRondaBtn = document.getElementById('closeRoundBtn');
+const finalitzaMessage = document.getElementById('finalitza-message');
+const boardContainer = document.getElementById('board-container');
+const rondaActualSpan = document.getElementById('ronda-actual');
+const faristolActualSpan = document.getElementById('faristol-actual');
+const responsesAccordion = document.getElementById('responsesAccordion');
+
+// Estat local
+//let currentBoard = createEmptyBoard(15); // Aquesta funció ve de tauler.js
+let masterPlay = null;
+
+// Carrega l'estat inicial de la partida
+function loadGameState() {
+    gameInfoRef.once('value', (snapshot) => {
+        const info = snapshot.val();
+        if (info) {
+            if (info.currentRound) {
+                roundNumberInput.value = info.currentRound;
+                rondaActualSpan.textContent = `Ronda: ${info.currentRound}`;
+            }
+            if (info.currentRack) {
+                currentRackInput.value = info.currentRack;
+                faristolActualSpan.textContent = `Faristol: ${info.currentRack}`;
+            }
+            if (info.currentBoard) {
+                currentBoard = info.currentBoard;
+            } else {
+                currentBoard = createEmptyBoard(15);
+            }
+            renderBoard(currentBoard); // Aquesta funció ve de tauler.js
+        }
+    });
+}
 // Importar les funcions saveWordsToBoard i calculateScore si calcul.js és un mòdul
 // import { saveWordsToBoard, calculateScore } from './calcul.js';
 
@@ -443,4 +487,340 @@ if (coordValue) {
             selectedCol = number - 1;
         }
     }
+}
+
+// Actualitza ronda i faristol
+gestioForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const round = parseInt(roundNumberInput.value);
+    const rack = currentRackInput.value.trim().toUpperCase();
+    if (!round || !rack) {
+        gestioMessage.textContent = 'Introdueix ronda i faristol vàlids.';
+        gestioMessage.className = 'alert alert-danger';
+        return;
+    }
+    gameInfoRef.update({ currentRound: round, currentRack: rack })
+        .then(() => {
+            gestioMessage.textContent = 'Ronda i faristol actualitzats!';
+            gestioMessage.className = 'alert alert-success';
+            rondaActualSpan.textContent = `Ronda: ${round}`;
+            faristolActualSpan.textContent = `Faristol: ${rack}`;
+        })
+        .catch(() => {
+            gestioMessage.textContent = 'Error en actualitzar.';
+            gestioMessage.className = 'alert alert-danger';
+        });
+});
+
+// Desa la jugada mestra temporalment (no a l'historial encara)
+wordForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const coords = coordinatesInput.value.trim().toUpperCase();
+    const word = wordInput.value.trim().toUpperCase();
+    const direction = directionInput.value;
+    const scraps = JSON.parse(scrapsInput.value || '[]');
+    if (!coords || !word || !direction) {
+        alert('Introdueix coordenades, paraula i direcció.');
+        return;
+    }
+    // Calcula la posició inicial
+    const rowLetter = coords.match(/[A-Za-z]/)?.[0];
+    const colNumber = parseInt(coords.match(/[0-9]+/)?.[0]) - 1;
+    const startRow = rowLetter ? rowLetter.toUpperCase().charCodeAt(0) - 65 : -1;
+    const startCol = colNumber;
+    if (startRow < 0 || startCol < 0 || startRow >= currentBoard.length || startCol >= currentBoard.length) {
+        alert('Coordenades invàlides.');
+        return;
+    }
+    // Normalitza la paraula (dígrafs a caràcter fictici)
+    const tiles = splitWordToTiles(word); // Aquesta funció ve de tauler.js
+    let formattedWord = '';
+    for (let i = 0; i < tiles.length; i++) {
+        formattedWord += scraps.includes(i)
+            ? tiles[i].toLowerCase()
+            : tiles[i].toUpperCase();
+    }
+    // Validació i càlcul de puntuació
+    const newWordInfo = { word: formattedWord, startRow, startCol, direction };
+    const allWords = findAllNewWords(currentBoard, newWordInfo); // tauler.js
+    if (!window.validateAllWords(allWords)) {
+        alert('Alguna de les paraules formades no és vàlida!');
+        return;
+    }
+    const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard); // tauler.js
+    document.getElementById('score-master').textContent = `Puntuació: ${score}`;
+    // Desa la jugada mestra temporalment
+    masterPlay = {
+        coords,
+        word: formattedWord,
+        direction,
+        scraps,
+        startRow,
+        startCol,
+        score
+    };
+});
+
+// Finalitza ronda i desa a l'historial
+finalitzaRondaBtn.addEventListener('click', async () => {
+    finalitzaMessage.textContent = '';
+    const round = parseInt(roundNumberInput.value);
+    const rack = currentRackInput.value.trim().toUpperCase();
+    if (!round || !rack || !masterPlay) {
+        finalitzaMessage.textContent = 'Cal definir ronda, faristol i jugada mestra!';
+        finalitzaMessage.className = 'alert alert-danger';
+        return;
+    }
+    try {
+        // Desa la jugada mestra
+        await masterPlaysRef.child(round).set({
+            coords: masterPlay.coords,
+            word: masterPlay.word,
+            direction: masterPlay.direction,
+            scraps: masterPlay.scraps,
+            rack: rack,
+            score: masterPlay.score
+        });
+        // Desa el tauler actualitzat (aplica la jugada mestra)
+        saveWordsToBoard(currentBoard, [{
+            word: masterPlay.word,
+            startRow: masterPlay.startRow,
+            startCol: masterPlay.startCol,
+            direction: masterPlay.direction
+        }]); // tauler.js
+        await gameInfoRef.update({ currentBoard: currentBoard });
+        // Desa a l'historial
+        await historyRef.child(round).set({
+            board: currentBoard,
+            rack: rack,
+            masterPlay: masterPlay
+        });
+        finalitzaMessage.textContent = 'Ronda desada a l\'historial!';
+        finalitzaMessage.className = 'alert alert-success';
+        masterPlay = null;
+        document.getElementById('score-master').textContent = '';
+        renderBoard(currentBoard);
+    } catch (e) {
+        finalitzaMessage.textContent = 'Error en desar a l\'historial.';
+        finalitzaMessage.className = 'alert alert-danger';
+    }
+});
+
+function updateAllRoundResponses() {
+    responsesRef.on('value', (snapshot) => {
+        const allRoundData = snapshot.val();
+        responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2><div class="accordion" id="roundResponsesAccordion">';
+        const accordionElement = document.getElementById('roundResponsesAccordion');
+
+        if (allRoundData) {
+            Object.entries(allRoundData).forEach(([roundNumber, roundData], idx) => {
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'accordion-item';
+
+                const headingId = `headingRound${roundNumber}`;
+                const collapseId = `collapseRound${roundNumber}`;
+                const isFirstRound = idx === 0;
+
+                const header = document.createElement('h2');
+                header.className = 'accordion-header';
+                header.id = headingId;
+
+                const button = document.createElement('button');
+                button.className = `accordion-button ${!isFirstRound ? 'collapsed' : ''}`;
+                button.type = 'button';
+                button.setAttribute('data-bs-toggle', 'collapse');
+                button.setAttribute('data-bs-target', `#${collapseId}`);
+                button.setAttribute('aria-expanded', isFirstRound ? 'true' : 'false');
+                button.setAttribute('aria-controls', collapseId);
+
+                button.textContent = `Ronda ${roundNumber}`;
+                header.appendChild(button);
+                accordionItem.appendChild(header);
+
+                const collapse = document.createElement('div');
+                collapse.id = collapseId;
+                collapse.className = `accordion-collapse collapse ${isFirstRound ? 'show' : ''}`;
+                collapse.setAttribute('aria-labelledby', headingId);
+                collapse.setAttribute('data-bs-parent', '#roundResponsesAccordion');
+
+                const body = document.createElement('table');
+                body.className = 'accordion-body table';
+                body.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
+
+                if (roundData) {
+                    Object.entries(roundData).forEach(([playerName, playerData]) => {
+                        const coordinatesDisplay = playerData.coordinates || '';
+                        const wordDisplay = playerData.word || '';
+                        body.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td></tr>`;
+                    });
+                } else {
+                    body.innerHTML += '<tr><td colspan="3">No hi ha respostes per a aquesta ronda.</td></tr>';
+                }
+
+                collapse.appendChild(body);
+                accordionItem.appendChild(collapse);
+                accordionElement.appendChild(accordionItem);
+            });
+        } else {
+            responsesAccordion.innerHTML += '<p>Encara no hi ha respostes registrades.</p>';
+        }
+        responsesAccordion.appendChild(accordionElement);
+    });
+}
+
+function updateCurrentRoundResponses() {
+    // Primer obtenim la ronda actual
+    gameInfoRef.child('currentRound').once('value', (snap) => {
+        const currentRound = snap.val();
+        if (!currentRound) {
+            responsesAccordion.innerHTML = '<p>No hi ha ronda actual definida.</p>';
+            return;
+        }
+
+        responsesRef.child(currentRound).once('value', (snapshot) => {
+            const roundData = snapshot.val();
+            responsesAccordion.innerHTML = `<h2>Respostes ronda ${currentRound}</h2>`;
+            const table = document.createElement('table');
+            table.className = 'table';
+            table.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
+            if (roundData) {
+                Object.entries(roundData).forEach(([playerName, playerData]) => {
+                    const coordinatesDisplay = playerData.coordinates || '';
+                    const wordDisplay = playerData.word || '';
+                    table.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td></tr>`;
+                });
+            } else {
+                table.innerHTML += '<tr><td colspan="3">No hi ha respostes per a aquesta ronda.</td></tr>';
+            }
+            responsesAccordion.appendChild(table);
+        });
+    });
+}
+
+// Crida la funció al carregar la pàgina
+document.addEventListener('DOMContentLoaded', loadRoundsHistory);
+
+let currentRoundIndex = 0;
+let roundsList = []; // Array d'ids de ronda (ordenats)
+let roundsData = {}; // Dades de cada ronda (historial)
+
+function loadRoundsHistory() {
+    historyRef.once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        roundsList = Object.keys(data).sort((a, b) => Number(a) - Number(b));
+        roundsData = data;
+        if (roundsList.length === 0) {
+            // Si no hi ha rondes, crea la primera
+            addNewRound();
+        } else {
+            currentRoundIndex = roundsList.length - 1;
+            showRound(currentRoundIndex);
+        }
+    });
+}
+
+function showRound(idx) {
+    if (idx < 0 || idx >= roundsList.length) return;
+    currentRoundIndex = idx;
+    const roundId = roundsList[idx];
+    const round = roundsData[roundId];
+
+    const roundDisplay = document.getElementById('roundDisplay');
+    if (roundDisplay) roundDisplay.textContent = `Ronda ${roundId}`;
+    if (currentRackInput) currentRackInput.value = round.rack || '';
+    renderBoard(round.board || createEmptyBoard(15));
+    updateCurrentRoundResponses(roundId);
+    if (currentRackInput) currentRackInput.disabled = !!round.closed;
+    const closeBtn = document.getElementById('closeRoundBtn');
+    if (closeBtn) closeBtn.disabled = !!round.closed;
+}
+
+let lastResponsesRef = null;
+function updateCurrentRoundResponses(roundId) {
+    if (lastResponsesRef) lastResponsesRef.off();
+    const ref = responsesRef.child(roundId);
+    lastResponsesRef = ref;
+    ref.on('value', (snapshot) => {
+        const roundData = snapshot.val();
+        responsesAccordion.innerHTML = `<h2>Respostes ronda ${roundId}</h2>`;
+        const table = document.createElement('table');
+        table.className = 'table';
+        table.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
+        if (roundData) {
+            Object.entries(roundData).forEach(([playerName, playerData]) => {
+                const coordinatesDisplay = playerData.coordinates || '';
+                const wordDisplay = playerData.word || '';
+                table.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td></tr>`;
+            });
+        } else {
+            table.innerHTML += '<tr><td colspan="3">No hi ha respostes per a aquesta ronda.</td></tr>';
+        }
+        responsesAccordion.appendChild(table);
+    });
+}
+
+document.getElementById('prevRoundBtn').addEventListener('click', () => {
+    if (currentRoundIndex > 0) showRound(currentRoundIndex - 1);
+});
+document.getElementById('nextRoundBtn').addEventListener('click', () => {
+    if (currentRoundIndex < roundsList.length - 1) showRound(currentRoundIndex + 1);
+});
+
+function addNewRound() {
+    const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
+    const newRound = {
+        rack: '',
+        board: createEmptyBoard(15),
+        masterPlay: null,
+        closed: false
+    };
+    historyRef.child(newRoundId).set(newRound).then(() => {
+        roundsList.push(newRoundId);
+        roundsData[newRoundId] = newRound;
+        showRound(roundsList.length - 1);
+    });
+}
+
+document.getElementById('addRoundBtn').addEventListener('click', async () => {
+    const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
+    const newRound = {
+        rack: '',
+        board: createEmptyBoard(15),
+        masterPlay: null,
+        closed: false
+    };
+    await historyRef.child(newRoundId).set(newRound);
+    roundsList.push(newRoundId);
+    roundsData[newRoundId] = newRound;
+    showRound(roundsList.length - 1);
+});
+
+gestioForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const roundId = roundsList[currentRoundIndex];
+    const rack = currentRackInput.value.trim().toUpperCase();
+    await historyRef.child(roundId).update({ rack });
+    roundsData[roundId].rack = rack;
+    document.getElementById('gestio-message').textContent = 'Faristol actualitzat!';
+});
+
+document.getElementById('closeRoundBtn').addEventListener('click', async () => {
+    const roundId = roundsList[currentRoundIndex];
+    await historyRef.child(roundId).update({ closed: true });
+    roundsData[roundId].closed = true;
+    showRound(currentRoundIndex);
+});
+
+const updateRackBtn = document.getElementById('updateRackBtn');
+if (updateRackBtn) {
+    updateRackBtn.addEventListener('click', async () => {
+        const roundId = roundsList[currentRoundIndex];
+        const rack = currentRackInput.value.trim().toUpperCase();
+        // Actualitza l'historial
+        await historyRef.child(roundId).update({ rack });
+        roundsData[roundId].rack = rack;
+        // Actualitza els valors actuals a gameInfo
+        await gameInfoRef.update({ currentRack: rack, currentRound: roundId });
+        gestioMessage.textContent = 'Faristol actualitzat!';
+    });
 }

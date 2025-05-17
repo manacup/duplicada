@@ -13,4 +13,4 @@
 firebase.initializeApp(firebaseConfig);
 
 // Exporta l'objecte de la base de dades
-export const database = firebase.database();
+const database = firebase.database();

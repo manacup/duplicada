@@ -1,4 +1,4 @@
-// Admin side logic
+ // Admin side logic
 
 import { database } from './config.js';
 
