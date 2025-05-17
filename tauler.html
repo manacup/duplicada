@@ -18,7 +18,7 @@
                 <label for="coordinates" class="form-label">Coordenades (ex: A1):</label>
                 <input type="text" class="form-control" id="coordinates" required>
             </div>
-             <div class="mb-3">
+            <div class="mb-3">
                 <label class="form-label">Direcció:</label>
                 <div>
                     <button type="button" class="btn btn-outline-primary btn-sm" id="horizontalBtn">Horitzontal</button>
@@ -30,7 +30,12 @@
                 <label for="word" class="form-label">Paraula:</label>
                 <input type="text" class="form-control" id="word" required>
             </div>
-            <button type="submit">Place Word</button>
+            <div class="mb-3">
+                <label class="form-label">Marca els escarrassos, si n'has usat algun:</label>
+                <div id="tileButtons"></div>
+                <input type="hidden" id="scraps">
+            </div>
+            <button type="submit">Col·loca paraula</button>
         </form>
         <div id="score"></div>
     </div> 

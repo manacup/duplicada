@@ -23,6 +23,61 @@ const submitButton = responseForm.querySelector('button[type="submit"]'); // Obt
 
 let currentWordTiles = [];
 
+// Diccionari de dígrafs i caràcters ficticis
+const DIGRAPH_MAP = {
+    'QU': 'Ú',
+    'L·L': 'Ł', 'L.L': 'Ł', 'L-L': 'Ł', 'ĿL': 'Ł', 'W': 'Ł',
+    'NY': 'Ý'
+};
+const REVERSE_DIGRAPH_MAP = {
+    'Ú': 'QU',
+    'Ł': 'L·L',
+    'Ý': 'NY'
+};
+
+// Funció per normalitzar la paraula d'entrada (substitueix dígrafs per caràcter fictici)
+function normalizeWordInput(word) {
+    return word
+        .replace(/L·L|L\.L|L-L|ĿL|W/gi, match => match[0] === match[0].toLowerCase() ? 'ł' : 'Ł')
+        .replace(/NY/gi, match => match[0] === match[0].toLowerCase() ? 'ý' : 'Ý')
+        .replace(/QU/gi, match => match[0] === match[0].toLowerCase() ? 'ú' : 'Ú');
+}
+
+// Funció per desnormalitzar (mostrar) caràcters ficticis com a dígrafs
+function displayLetter(letter) {
+    const upper = letter.toUpperCase();
+    if (REVERSE_DIGRAPH_MAP[upper]) {
+        return letter === letter.toLowerCase()
+            ? REVERSE_DIGRAPH_MAP[upper].toLowerCase()
+            : REVERSE_DIGRAPH_MAP[upper];
+    }
+    return letter;
+}
+
+// Separa la paraula en fitxes (lletres o dígrafs)
+function splitWordToTiles(word) {
+    const tiles = [];
+    let i = 0;
+    while (i < word.length) {
+        let found = false;
+        for (const d of ['L·L', 'L.L', 'L-L', 'ĿL', 'W', 'NY', 'QU']) {
+            const regex = new RegExp('^' + d, 'i');
+            if (regex.test(word.slice(i))) {
+                const norm = normalizeWordInput(word.slice(i, i + d.length));
+                tiles.push(norm);
+                i += d.length;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            tiles.push(word[i]);
+            i++;
+        }
+    }
+    return tiles;
+}
+
 // Funció per habilitar/deshabilitar el formulari
 function setFormEnabled(isEnabled) {
     if (submitButton) {
@@ -79,39 +134,44 @@ document.addEventListener('DOMContentLoaded', () => {
 function generateTileButtons(word) {
     tileButtonsDiv.innerHTML = '';
     currentWordTiles = [];
-    for (let i = 0; i < word.length; i++) {
-        const letter = word[i].toUpperCase();
+    const tiles = splitWordToTiles(word);
+    for (let i = 0; i < tiles.length; i++) {
         const button = document.createElement('button');
         button.classList.add('tile-button');
-        button.textContent = letter;
+        button.textContent = displayLetter(tiles[i]);
         button.dataset.index = i;
-        button.addEventListener('click', toggleScrap); // Important: No ha de fer submit
+        button.type = 'button';
+        button.addEventListener('click', toggleScrap);
         tileButtonsDiv.appendChild(button);
-        currentWordTiles.push({ letter: letter, isScrap: false });
+        currentWordTiles.push({ letter: tiles[i], isScrap: false });
     }
-    scrapsInput.value = ''; // Reinicia els escarràs quan canvia la paraula
+    scrapsInput.value = '';
 }
 
-// Funció per marcar/desmarcar una lletra com a escarràs
+// Marca/desmarca una lletra com a escarràs
 function toggleScrap(event) {
-    event.preventDefault(); // Prevent the default button behavior (potential form submission)
+    event.preventDefault();
     const button = event.target;
     const index = parseInt(button.dataset.index);
     currentWordTiles[index].isScrap = !currentWordTiles[index].isScrap;
     button.classList.toggle('scrap');
-    button.textContent = currentWordTiles[index].isScrap ? currentWordTiles[index].letter.toLowerCase() : currentWordTiles[index].letter.toUpperCase();
+    button.textContent = currentWordTiles[index].isScrap
+        ? displayLetter(currentWordTiles[index].letter.toLowerCase())
+        : displayLetter(currentWordTiles[index].letter.toUpperCase());
     updateScrapsInputValue();
 }
 
-// Funció per actualitzar el valor del camp ocult amb els escarràs
+// Actualitza el camp ocult amb els índexs dels escarrassos
 function updateScrapsInputValue() {
-    const scrapIndices = currentWordTiles.filter(tile => tile.isScrap).map(tile => currentWordTiles.indexOf(tile));
+    const scrapIndices = currentWordTiles
+        .map((tile, idx) => tile.isScrap ? idx : null)
+        .filter(idx => idx !== null);
     scrapsInput.value = JSON.stringify(scrapIndices);
 }
 
 // Event per generar els botons quan s'introdueix una paraula
 wordInput.addEventListener('input', () => {
-    const word = wordInput.value;
+    const word = wordInput.value.toUpperCase();
     generateTileButtons(word);
 });
 
@@ -156,8 +216,8 @@ responseForm.addEventListener('submit', (event) => {
     const playerName = playerNameInput.value.trim();
     const coordinates = coordinatesInput.value.trim().toUpperCase();
     const direction = directionInput.value;
-    let word = wordInput.value.trim().toUpperCase();
-    const scraps = JSON.parse(scrapsInput.value || '[]');
+    // const word = wordInput.value.trim().toUpperCase(); // Ja no cal
+    // const scraps = JSON.parse(scrapsInput.value || '[]'); // Ja no cal
 
     if (!playerName) {
         messageDiv.textContent = 'Si us plau, introdueix el teu nom o número de taula.';
@@ -171,14 +231,12 @@ responseForm.addEventListener('submit', (event) => {
         return;
     }
 
-    // Formateja la paraula amb els escarrassos en minúscula
+    // Construeix la paraula real segons l'estat dels botons d'escarràs
     let formattedWord = '';
-    for (let i = 0; i < word.length; i++) {
-        if (scraps.includes(i)) {
-            formattedWord += word[i].toLowerCase();
-        } else {
-            formattedWord += word[i];
-        }
+    for (let i = 0; i < currentWordTiles.length; i++) {
+        formattedWord += currentWordTiles[i].isScrap
+            ? currentWordTiles[i].letter.toLowerCase()
+            : currentWordTiles[i].letter.toUpperCase();
     }
 
     // Obté el número de ronda actual i el faristol de la interfície
@@ -186,21 +244,23 @@ responseForm.addEventListener('submit', (event) => {
     const currentRackDisplayed = currentRackDisplay.textContent;
 
     // Desa la resposta a la base de dades sota la ronda actual i el nom del jugador
-    database.ref(`rounds/${currentRoundDisplayed}/${playerName}`).set({ // Utilitza la ronda mostrada
+    database.ref(`rounds/${currentRoundDisplayed}/${playerName}`).set({
         coordinates: coordinates,
         direction: direction,
         word: formattedWord,
-        scraps: scraps,
+        scraps: currentWordTiles
+            .map((tile, idx) => tile.isScrap ? idx : null)
+            .filter(idx => idx !== null),
         timestamp: firebase.database.ServerValue.TIMESTAMP,
-        round: currentRoundDisplayed, // Desa la ronda
-        rack: currentRackDisplayed // Desa el faristol
+        round: currentRoundDisplayed,
+        rack: currentRackDisplayed
     })
     .then(() => {
         messageDiv.textContent = 'Resposta enviada correctament!';
         messageDiv.classList.remove('alert', 'alert-danger');
         messageDiv.classList.add('alert', 'alert-success');
         responseForm.reset();
-        tileButtonsDiv.innerHTML = ''; // Neteja els botons de les fitxes
+        tileButtonsDiv.innerHTML = '';
         directionInput.value = '';
         horizontalBtn.classList.remove('active');
         verticalBtn.classList.remove('active');
@@ -211,7 +271,7 @@ responseForm.addEventListener('submit', (event) => {
             playerNameInput.value = savedName;
         }
 
-        // Guarda el nom del jugador al localStorage (per si no hi era prèviament o s'ha modificat)
+        // Guarda el nom del jugador al localStorage
         localStorage.setItem('playerName', playerName);
     })
     .catch((error) => {

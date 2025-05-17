@@ -155,3 +155,48 @@ h1, h2, h3 {
 #responsesAccordion .accordion-body strong {
     color: #007bff; /* Color per al nom del jugador a les respostes */
 }
+
+/* Tauler: cel·les quadrades i colors per multiplicadors */
+.board-table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    table-layout: fixed;
+    width: 600px; /* Ajusta segons el teu gust */
+    max-width: 100%;
+}
+
+.board-table th,
+.board-table td {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #bbb;
+    font-size: 1.2em;
+    padding: 0;
+    position: relative;
+    user-select: none;
+}
+
+/* Colors per a multiplicadors */
+.board-cell.tw { background-color: #e74c3c !important; color: #fff; font-weight: bold; }   /* Vermell fort */
+.board-cell.dw { background-color: #f8bbd0 !important; color: #b71c1c; font-weight: bold; } /* Rosa clar */
+.board-cell.tl { background-color: #1976d2 !important; color: #fff; font-weight: bold; }   /* Blau fort */
+.board-cell.dl { background-color: #b3e5fc !important; color: #01579b; font-weight: bold; } /* Blau cel */
+
+/* Cel·les buides sense multiplicador */
+.board-cell {
+    background-color: #f5f5f5;
+    transition: background 0.2s;
+}
+
+/* Escarrassos */
+.blank-tile {
+    background-color: #ffe4b5 !important;
+    color: #888 !important;
+    font-style: italic;
+}
