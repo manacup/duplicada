@@ -1,218 +1,284 @@
 /* Estils generals */
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #e9ecef; /* Un fons gris clar */
-    color: #333;
-    line-height: 1.6;
+  font-family: "Arial", sans-serif;
+  background-color: #e9ecef; /* Un fons gris clar */
+  color: #333;
+  line-height: 1.6;
 }
 
 .container {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2, h3 {
-    color: #0056b3; /* Un blau fosc per als títols */
+h1,
+h2,
+h3 {
+  color: #0056b3; /* Un blau fosc per als títols */
 }
 
 .card {
-    margin-bottom: 20px;
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  margin-bottom: 20px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
 }
 
 .form-label {
-    font-weight: bold;
-    margin-bottom: .5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
 }
 
 /* Estils per als botons de les fitxes a index.html */
 #tileButtons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px; /* Espai entre botons */
-    margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px; /* Espai entre botons */
+  margin-top: 10px;
 }
 
 .tile-button {
-    padding: 10px 15px;
-    border: 1px solid #ccc;
-    background-color: #f8f9fa;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 1.1em;
-    transition: background-color 0.2s ease-in-out;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1.1em;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .tile-button:hover {
-    background-color: #e2e6ea;
+  background-color: #e2e6ea;
 }
 
 .tile-button.scrap {
-    background-color: #ffc107; /* Groc per als escarrassos */
-    border-color: #d39e00;
-    color: #212529;
-    font-weight: bold;
+  background-color: #ffc107; /* Groc per als escarrassos */
+  border-color: #d39e00;
+  color: #212529;
+  font-weight: bold;
 }
 
 /* Estils per als missatges d'estat */
 #message {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: bold;
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
 }
 
 .alert-success {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
 }
 
 .alert-danger {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
 }
 
 .alert-warning {
-    background-color: #fff3cd;
-    border-color: #ffeeba;
-    color: #85640a;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #85640a;
 }
 
 /* Estils per a l'acordió de respostes a dades.html */
 #responsesAccordion .accordion-button {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 #responsesAccordion .accordion-body {
-    background-color: #f8f9fa; /* Fons clar per al cos de l'acordió */
-    border-top: 1px solid rgba(0, 0, 0, .125);
+  background-color: #f8f9fa; /* Fons clar per al cos de l'acordió */
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
 }
 
 /* Estils per a la direcció (index.html) */
-#horizontalBtn i, #verticalBtn i {
-    margin-left: 5px;
+#horizontalBtn i,
+#verticalBtn i {
+  margin-left: 5px;
 }
 
 .btn-outline-primary.active {
-    background-color: #007bff;
-    color: white;
+  background-color: #007bff;
+  color: white;
 }
 
 /* Estils específics per a dades.html */
 
 /* Ajustar espaiat al formulari d'administració */
 #configForm .mb-3 {
-    margin-bottom: 1.5rem !important; /* Augmentar l'espai sota els grups del formulari */
+  margin-bottom: 1.5rem !important; /* Augmentar l'espai sota els grups del formulari */
 }
 
 /* Espaiat sota el botó d'activar/desactivar formulari */
 #toggleFormButton {
-    margin-bottom: 20px; /* Més espai sota el botó toggle */
+  margin-bottom: 20px; /* Més espai sota el botó toggle */
 }
 
 /* Millores visuals per a l'acordió de respostes */
 #responsesAccordion {
-    margin-top: 30px; /* Més espai a la part superior de l'acordió */
+  margin-top: 30px; /* Més espai a la part superior de l'acordió */
 }
 
 #responsesAccordion .accordion-item {
-    border: 1px solid rgba(0, 0, 0, .125);
-    margin-bottom: 10px;
-    border-radius: .25rem;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  margin-bottom: 10px;
+  border-radius: 0.25rem;
 }
 
 #responsesAccordion .accordion-header {
-    background-color: #e9ecef; /* Fons lleuger per a les capçaleres de l'acordió */
-    border-bottom: 1px solid rgba(0, 0, 0, .125);
+  background-color: #e9ecef; /* Fons lleuger per a les capçaleres de l'acordió */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
 }
 
 #responsesAccordion .accordion-button {
-    background-color: transparent; /* Fer el fons del botó transparent per veure el fons de la capçalera */
-    color: #333;
-    font-weight: bold;
+  background-color: transparent; /* Fer el fons del botó transparent per veure el fons de la capçalera */
+  color: #333;
+  font-weight: bold;
 }
 
 #responsesAccordion .accordion-button:not(.collapsed) {
-    color: #0056b3; /* Canviar color del text quan està obert */
-    background-color: #e9ecef;
-    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .125);
+  color: #0056b3; /* Canviar color del text quan està obert */
+  background-color: #e9ecef;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.125);
 }
 
 #responsesAccordion .accordion-body strong {
-    color: #007bff; /* Color per al nom del jugador a les respostes */
+  color: #007bff; /* Color per al nom del jugador a les respostes */
 }
 
 /* Tauler: cel·les quadrades i colors per multiplicadors */
 .board-table {
-    border-collapse: collapse;
-    margin: 0 auto;
-    table-layout: fixed;
-    width: 100%;
-    aspect-ratio: 1 / 1; /* Manté el tauler quadrat */
+  border-collapse: collapse;
+  margin: 0 auto;
+  table-layout: fixed;
+  width: 100%;
+  max-width: 576px; /* Límit màxim a pantalles grans */
+  aspect-ratio: 1 / 1; /* Manté el tauler quadrat */
 }
 
 .board-table th,
 .board-table td {
-    aspect-ratio: 1 / 1; /* Manté les cel·les quadrades */
-    width: calc(100% / 16);   /* 15 columnes + 1 capçalera */
-    height: auto;
-    min-width: 0;
-    min-height: 0;
-    text-align: center;
-    vertical-align: middle;
-    border: 1px solid #bbb;
-    font-size: 1.2em;
-    padding: 0;
-    position: relative;
-    user-select: none;
-    box-sizing: border-box;
+  aspect-ratio: 1 / 1; /* Manté les cel·les quadrades */
+  width: calc(100% / 16); /* 15 columnes + 1 capçalera */
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #bbb;
+  font-size: 1.2em;
+  padding: 0;
+  position: relative;
+  user-select: none;
+  box-sizing: border-box;
 }
 
 @media (max-width: 575px) {
-    .container {
-        padding: 5px !important;
-    }
-    .board-table {
-        width: 95vw;
-        max-width: 95vw;
-        aspect-ratio: 1 / 1;
-    }
-    .board-table th,
-    .board-table td {
-        width: calc(95vw / 16);
-        font-size: 0.9em;
-    }
+  .container {
+    padding: 5px !important;
+  }
+  .board-table {
+    width: 95vw;
+    max-width: 95vw;
+    aspect-ratio: 1 / 1;
+  }
+  .board-table th,
+  .board-table td {
+    width: calc(95vw / 16);
+    font-size: 0.9em;
+  }
 }
 
 /* Colors per a multiplicadors */
-.board-cell.tw { background-color: #e74c3c !important; color: #fff; font-weight: bold; }
-.board-cell.dw { background-color: #f8bbd0 !important; color: #b71c1c; font-weight: bold; }
-.board-cell.tl { background-color: #1976d2 !important; color: #fff; font-weight: bold; }
-.board-cell.dl { background-color: #b3e5fc !important; color: #01579b; font-weight: bold; }
+.board-cell.tw {
+  background-color: #e74c3c !important;
+  
+  font-weight: bold;
+}
+.board-cell.dw {
+  background-color: #f8bbd0 !important;
+  
+  font-weight: bold;
+}
+.board-cell.tl {
+  background-color: #1976d2 !important;
+ 
+  font-weight: bold;
+}
+.board-cell.dl {
+  background-color: #b3e5fc !important;
+  
+  font-weight: bold;
+}
 
 .board-cell {
-    background-color: #f5f5f5;
-    transition: background 0.2s;
-    font-weight: bold;
+  /* background-color: #f5f5f5; */
+  transition: background 0.2s;
+  font-weight: bold;
 }
 
 /* Escarrassos */
 .blank-tile {
-    background-color: #ffe4b5 !important;
-    color: #888 !important;
-    font-style: italic;
+  background-color: #ffe4b5 !important;
+  color: #888 !important;
+  font-style: italic;
+}
+
+/* Fons crema per a cel·les ocupades */
+.board-cell.filled {
+  background-color: #fff6e0 !important; /* color crema suau */
+}
+
+/* Multiplicadors: només el contorn si la casella està ocupada */
+.board-cell.filled.tw {
+  border: 2px solid #e74c3c !important;
+}
+.board-cell.filled.dw {
+  border: 2px solid #f8bbd0 !important;
+}
+.board-cell.filled.tl {
+  border: 2px solid #1976d2 !important;
+}
+.board-cell.filled.dl {
+  border: 2px solid #b3e5fc !important;
+}
+
+/* Manté el color de fons original per a caselles multiplicadors buides */
+.board-cell.tw:not(.filled) {
+  background-color: #e74c3c !important;
+  color: #fff;
+  font-weight: bold;
+}
+.board-cell.dw:not(.filled) {
+  background-color: #f8bbd0 !important;
+  color: #b71c1c;
+  font-weight: bold;
+}
+.board-cell.tl:not(.filled) {
+  background-color: #1976d2 !important;
+  color: #fff;
+  font-weight: bold;
+}
+.board-cell.dl:not(.filled) {
+  background-color: #b3e5fc !important;
+  color: #01579b;
+  font-weight: bold;
+}
+
+.board-cell.selected-coord {
+  outline: 3px solid #ffb300 !important; /* contorn taronja */
+  z-index: 2;
 }

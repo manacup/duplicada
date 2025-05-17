@@ -3,12 +3,12 @@
 
 // Diccionari de dígrafs i caràcters ficticis
 const DIGRAPH_MAP = {
-    'QU': 'Ú',
+    'QU': 'Û',
     'L·L': 'Ł', 'L.L': 'Ł', 'L-L': 'Ł', 'ĿL': 'Ł', 'W': 'Ł',
     'NY': 'Ý'
 };
 const REVERSE_DIGRAPH_MAP = {
-    'Ú': 'QU',
+    'Û': 'QU',
     'Ł': 'L·L',
     'Ý': 'NY'
 };
@@ -20,10 +20,10 @@ const letterValues = {
     C: 2, D: 2, M: 2,
     B: 3, G: 3, P: 3,
     F: 4, V: 4,
-    H: 8, J: 8, Q: 8, Z: 8,
+    H: 8, J: 8, Û: 8, Z: 8,
     Ç: 10, X: 10,
-    Ú: 1, Ł: 10, Ý: 10, // dígrafs
-    ú: 0, ł: 0, ý: 0    // escarrassos dígraf
+    Ł: 10, Ý: 10, // dígrafs
+    û: 0, ł: 0, ý: 0    // escarrassos dígraf
 };
 
 // Funció per normalitzar la paraula d'entrada (substitueix dígrafs per caràcter fictici)
@@ -32,7 +32,7 @@ function normalizeWordInput(word) {
     return word
         .replace(/L·L|L\.L|L-L|ĿL|W/gi, match => match[0] === match[0].toLowerCase() ? 'ł' : 'Ł')
         .replace(/NY/gi, match => match[0] === match[0].toLowerCase() ? 'ý' : 'Ý')
-        .replace(/QU/gi, match => match[0] === match[0].toLowerCase() ? 'ú' : 'Ú');
+        .replace(/QU/gi, match => match[0] === match[0].toLowerCase() ? 'û' : 'Û');
 }
 
 // Funció per desnormalitzar (mostrar) caràcters ficticis com a dígrafs
@@ -114,9 +114,28 @@ function renderBoard(board) {
             else if (mult === 'TL') cell.classList.add('tl');
             else if (mult === 'DL') cell.classList.add('dl');
 
+            if (board[i][j] && board[i][j] !== '') {
+                cell.classList.add('filled');
+            }
+
             if (board[i][j] && board[i][j] === board[i][j].toLowerCase()) {
                 cell.classList.add('blank-tile');
             }
+
+            // --- NOVETAT: Click per escriure coordenada ---
+            cell.addEventListener('click', () => {
+                // Detecta direcció seleccionada
+                const dir = directionInput.value || 'horizontal';
+                if (dir === 'horizontal') {
+                    coordinatesInput.value = `${String.fromCharCode(65 + i)}${j + 1}`;
+                } else {
+                    coordinatesInput.value = `${j + 1}${String.fromCharCode(65 + i)}`;
+                }
+                // Llença l'event input per actualitzar la UI
+                coordinatesInput.dispatchEvent(new Event('input'));
+            });
+            // --- FI NOVETAT ---
+
             row.appendChild(cell);
         }
         tbody.appendChild(row);
@@ -134,17 +153,51 @@ renderBoard(currentBoard);
 const horizontalBtn = document.getElementById('horizontalBtn');
 const verticalBtn = document.getElementById('verticalBtn');
 const directionInput = document.getElementById('direction');
+const coordinatesInput = document.getElementById('coordinates');
+
+// Detecta automàticament la direcció segons el format de les coordenades
+coordinatesInput.addEventListener('input', () => {
+    const value = coordinatesInput.value.trim().toUpperCase();
+    // Ex: A1 (horitzontal), 1A (vertical)
+    if (/^[A-Z][0-9]+$/.test(value)) {
+        // Lletra primer: horitzontal
+        directionInput.value = 'horizontal';
+        horizontalBtn.classList.add('active');
+        verticalBtn.classList.remove('active');
+    } else if (/^[0-9]+[A-Z]$/.test(value)) {
+        // Nombre primer: vertical
+        directionInput.value = 'vertical';
+        verticalBtn.classList.add('active');
+        horizontalBtn.classList.remove('active');
+    }
+});
+
+// Quan es prem un botó de direcció, reformata les coordenades com a player.js
+function formatCoordinatesOnDirectionChange() {
+    const value = coordinatesInput.value.trim().toUpperCase();
+    const letter = value.match(/[A-Z]/);
+    const number = value.match(/[0-9]+/);
+    if (letter && number) {
+        if (directionInput.value === 'horizontal') {
+            coordinatesInput.value = `${letter[0]}${number[0]}`;
+        } else if (directionInput.value === 'vertical') {
+            coordinatesInput.value = `${number[0]}${letter[0]}`;
+        }
+    }
+}
 
 horizontalBtn.addEventListener('click', () => {
     directionInput.value = 'horizontal';
     horizontalBtn.classList.add('active');
     verticalBtn.classList.remove('active');
+    formatCoordinatesOnDirectionChange();
 });
 
 verticalBtn.addEventListener('click', () => {
     directionInput.value = 'vertical';
     verticalBtn.classList.add('active');
     horizontalBtn.classList.remove('active');
+    formatCoordinatesOnDirectionChange();
 });
 
 // Gestionar l'enviament del formulari
@@ -209,11 +262,71 @@ wordForm.addEventListener('submit', (event) => {
         }
     }
 
+    // Comprova si el tauler està buit
+    const isBoardEmpty = currentBoard.flat().every(cell => cell === '');
+
+    const boardSize = currentBoard.length;
+    const center = Math.floor(boardSize / 2);
+
+    if (isBoardEmpty) {
+        // Si el tauler està buit, la paraula ha de passar per la casella central
+        let passesThroughCenter = false;
+        for (let i = 0; i < formattedWord.length; i++) {
+            const row = startRow + (directionInput.value === 'vertical' ? i : 0);
+            const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
+            if (row === center && col === center) {
+                passesThroughCenter = true;
+                break;
+            }
+        }
+        if (!passesThroughCenter) {
+            alert('La primera paraula ha de passar per la casella central!');
+            return;
+        }
+    } else {
+        // Si el tauler NO està buit, la paraula ha de tocar almenys una fitxa existent
+        let touchesExisting = false;
+        for (let i = 0; i < formattedWord.length; i++) {
+            const row = startRow + (directionInput.value === 'vertical' ? i : 0);
+            const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
+
+            // Comprova les 4 caselles adjacents (amunt, avall, esquerra, dreta)
+            const adjacents = [
+                [row - 1, col],
+                [row + 1, col],
+                [row, col - 1],
+                [row, col + 1]
+            ];
+            for (const [adjRow, adjCol] of adjacents) {
+                if (
+                    adjRow >= 0 && adjRow < boardSize &&
+                    adjCol >= 0 && adjCol < boardSize &&
+                    currentBoard[adjRow][adjCol] !== ''
+                ) {
+                    touchesExisting = true;
+                    break;
+                }
+            }
+            // També considera si la casella ja té una lletra (sobreposa)
+            if (currentBoard[row][col] !== '') {
+                touchesExisting = true;
+            }
+            if (touchesExisting) break;
+        }
+        if (!touchesExisting) {
+            alert('La paraula ha de tocar almenys una fitxa existent al tauler!');
+            return;
+        }
+    }
+
     const newWordInfo = { word: formattedWord, startRow: startRow, startCol: startCol, direction: directionInput.value };
 
-    // Calcular la puntuació
-    // Assegura't que la funció calculateScore estigui disponible. Si està a calcul.js i és un mòdul, has d'importar-la.
-    // import { calculateScore } from './calcul.js';
+    // Just abans de calcular la puntuació i afegir la paraula al tauler:
+    const allWords = findAllNewWords(currentBoard, newWordInfo);
+    if (!window.validateAllWords(allWords)) {
+        alert('Alguna de les paraules formades no és vàlida!');
+        return; // No puntua ni afegeix la jugada
+    }
     const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard);
 
     // Mostrar la puntuació a l'usuari (per exemple, en un element amb id="score")
