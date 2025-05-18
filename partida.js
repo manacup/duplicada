@@ -19,6 +19,8 @@ const responsesAccordion = document.getElementById('responsesAccordion');
 // Estat local
 //let currentBoard = createEmptyBoard(15); // Aquesta funció ve de tauler.js
 let masterPlay = null;
+let masterPlayTemp = null;
+let boardBeforeMasterPlay = null;
 
 // Carrega l'estat inicial de la partida
 function loadGameState() {
@@ -120,7 +122,7 @@ function createEmptyBoard(size) {
 }
 
 // Funció per renderitzar el tauler a l'HTML
-function renderBoard(board) {
+function renderBoard(board, newTiles = []) {
     const boardContainer = document.getElementById('board-container');
     boardContainer.innerHTML = '';
 
@@ -158,6 +160,16 @@ function renderBoard(board) {
             else if (mult === 'TL') cell.classList.add('tl');
             else if (mult === 'DL') cell.classList.add('dl');
 
+            // Si la cel·la té lletra, afegeix el valor
+            if (board[i][j] && board[i][j] !== '') {
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'tile-value';
+                // Si és minúscula (escarràs), mostra 0
+                const isScrap = board[i][j] === board[i][j].toLowerCase();
+                valueSpan.textContent = isScrap ? '0' : (letterValues[board[i][j].toUpperCase()] ?? '');
+                cell.appendChild(valueSpan);
+            }
+
             if (board[i][j] && board[i][j] !== '') {
                 cell.classList.add('filled');
             }
@@ -166,19 +178,22 @@ function renderBoard(board) {
                 cell.classList.add('blank-tile');
             }
 
-            // --- NOVETAT: Click per escriure coordenada ---
+            // --- NOVETAT: Marca fitxes noves ---
+            if (newTiles.some(([rowIdx, colIdx]) => rowIdx === i && colIdx === j)) {
+                cell.classList.add('new');
+            }
+            // --- FI NOVETAT ---
+
+            // Click per escriure coordenada
             cell.addEventListener('click', () => {
-                // Detecta direcció seleccionada
                 const dir = directionInput.value || 'horizontal';
                 if (dir === 'horizontal') {
                     coordinatesInput.value = `${String.fromCharCode(65 + i)}${j + 1}`;
                 } else {
                     coordinatesInput.value = `${j + 1}${String.fromCharCode(65 + i)}`;
                 }
-                // Llença l'event input per actualitzar la UI
                 coordinatesInput.dispatchEvent(new Event('input'));
             });
-            // --- FI NOVETAT ---
 
             row.appendChild(cell);
         }
@@ -235,6 +250,7 @@ horizontalBtn.addEventListener('click', () => {
     horizontalBtn.classList.add('active');
     verticalBtn.classList.remove('active');
     formatCoordinatesOnDirectionChange();
+    previewMasterPlay(); // <-- AFEGEIX AIXÒ
 });
 
 verticalBtn.addEventListener('click', () => {
@@ -242,156 +258,12 @@ verticalBtn.addEventListener('click', () => {
     verticalBtn.classList.add('active');
     horizontalBtn.classList.remove('active');
     formatCoordinatesOnDirectionChange();
+    previewMasterPlay(); // <-- AFEGEIX AIXÒ
 });
 
 // Gestionar l'enviament del formulari
 const wordForm = document.getElementById('wordForm');
-wordForm.addEventListener('submit', (event) => {
-    event.preventDefault();
 
-    const coordinatesInput = document.getElementById('coordinates');
-    const wordInput = document.getElementById('word');
-    const directionInput = document.getElementById('direction');
-    const scraps = JSON.parse(scrapsInput.value || '[]');
-
-    const coordinates = coordinatesInput.value.trim().toUpperCase();
-    const wordRaw = wordInput.value.trim();
-
-    // Normalitza la paraula (dígrafs a caràcter fictici)
-    const tiles = splitWordToTiles(wordRaw);
-
-    // Formateja la paraula amb els escarrassos en minúscula
-    // let formattedWord = '';
-    // for (let i = 0; i < tiles.length; i++) {
-    //     if (scraps.includes(i)) {
-    //         formattedWord += tiles[i].toLowerCase();
-    //     } else {
-    //         formattedWord += tiles[i];
-    //     }
-    // }
-
-    // Construeix la paraula real segons l'estat dels botons d'escarràs
-    let formattedWord = '';
-    for (let i = 0; i < currentWordTiles.length; i++) {
-        formattedWord += currentWordTiles[i].isScrap
-            ? currentWordTiles[i].letter.toLowerCase()
-            : currentWordTiles[i].letter.toUpperCase();
-    }
-
-    // Validar les coordenades i la paraula (cal implementar-ho)
-    if (!coordinates || !formattedWord || !directionInput.value) {
-        alert('Si us plau, introdueix les coordenades, la paraula i la direcció.');
-        return;
-    }
-
-    // Convertir coordenades (ex: A1 -> [0, 0], B2 -> [1, 1])
-    const rowLetter = coordinates.match(/[A-Za-z]/)?.[0];
-    const colNumber = parseInt(coordinates.match(/[0-9]+/)?.[0]) - 1;
-    const startRow = rowLetter ? rowLetter.toUpperCase().charCodeAt(0) - 65 : -1;
-    const startCol = colNumber;
-
-    if (startRow < 0 || startCol < 0 || startRow >= currentBoard.length || startCol >= currentBoard.length) {
-        alert('Coordenades invàlides.');
-        return;
-    }
-
-    // Comprovar si la paraula encaixa amb les lletres existents
-    for (let i = 0; i < formattedWord.length; i++) {
-        const row = startRow + (directionInput.value === 'vertical' ? i : 0);
-        const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
-
-        if (currentBoard[row][col] !== '' && currentBoard[row][col] !== formattedWord[i]) {
-            alert(`La lletra "${displayLetter(formattedWord[i])}" no coincideix amb la lletra "${displayLetter(currentBoard[row][col])}" a la posició ${String.fromCharCode(col + 65)}${row + 1}.`);
-            return; // La jugada no és vàlida
-        }
-    }
-
-    // Comprova si el tauler està buit
-    const isBoardEmpty = currentBoard.flat().every(cell => cell === '');
-
-    const boardSize = currentBoard.length;
-    const center = Math.floor(boardSize / 2);
-
-    if (isBoardEmpty) {
-        // Si el tauler està buit, la paraula ha de passar per la casella central
-        let passesThroughCenter = false;
-        for (let i = 0; i < formattedWord.length; i++) {
-            const row = startRow + (directionInput.value === 'vertical' ? i : 0);
-            const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
-            if (row === center && col === center) {
-                passesThroughCenter = true;
-                break;
-            }
-        }
-        if (!passesThroughCenter) {
-            alert('La primera paraula ha de passar per la casella central!');
-            return;
-        }
-    } else {
-        // Si el tauler NO està buit, la paraula ha de tocar almenys una fitxa existent
-        let touchesExisting = false;
-        for (let i = 0; i < formattedWord.length; i++) {
-            const row = startRow + (directionInput.value === 'vertical' ? i : 0);
-            const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
-
-            // Comprova les 4 caselles adjacents (amunt, avall, esquerra, dreta)
-            const adjacents = [
-                [row - 1, col],
-                [row + 1, col],
-                [row, col - 1],
-                [row, col + 1]
-            ];
-            for (const [adjRow, adjCol] of adjacents) {
-                if (
-                    adjRow >= 0 && adjRow < boardSize &&
-                    adjCol >= 0 && adjCol < boardSize &&
-                    currentBoard[adjRow][adjCol] !== ''
-                ) {
-                    touchesExisting = true;
-                    break;
-                }
-            }
-            // També considera si la casella ja té una lletra (sobreposa)
-            if (currentBoard[row][col] !== '') {
-                touchesExisting = true;
-            }
-            if (touchesExisting) break;
-        }
-        if (!touchesExisting) {
-            alert('La paraula ha de tocar almenys una fitxa existent al tauler!');
-            return;
-        }
-    }
-
-    const newWordInfo = { word: formattedWord, startRow: startRow, startCol: startCol, direction: directionInput.value };
-
-    // Just abans de calcular la puntuació i afegir la paraula al tauler:
-    const allWords = findAllNewWords(currentBoard, newWordInfo);
-    if (!window.validateAllWords(allWords)) {
-        alert('Alguna de les paraules formades no és vàlida!');
-        return; // No puntua ni afegeix la jugada
-    }
-    const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard);
-
-    // Mostrar la puntuació a l'usuari (per exemple, en un element amb id="score")
-    const scoreElement = document.getElementById('score');
-    if (scoreElement) {
-        scoreElement.textContent = `Puntuació: ${score}`;
-    } else {
-        alert(`Puntuació: ${score}`); // Si no trobem l'element, mostrem un alert
-    }
-
-    // Afegim la paraula al tauler
-    saveWordsToBoard(currentBoard, [newWordInfo]);
-
-    // Renderitzar el tauler actualitzat
-    renderBoard(currentBoard);
-
-    // Netejar el formulari
-    wordForm.reset();
-    tileButtonsDiv.innerHTML = '';
-    scrapsInput.value = '';
-});
 
 const wordInput = document.getElementById('word');
 const tileButtonsDiv = document.getElementById('tileButtons');
@@ -437,6 +309,15 @@ function generateTileButtons(word) {
         button.dataset.index = i;
         button.type = 'button';
         button.addEventListener('click', toggleScrap);
+
+        // Afegeix la puntuació a la cantonada inferior dreta
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'tile-value';
+        // Si és minúscula (escarràs), mostra 0
+        const isScrap = tiles[i] === tiles[i].toLowerCase();
+        valueSpan.textContent = isScrap ? '0' : (letterValues[letter] ?? '');
+        button.appendChild(valueSpan);
+
         tileButtonsDiv.appendChild(button);
         currentWordTiles.push({ letter: tiles[i], isScrap: false });
     }
@@ -454,7 +335,23 @@ function toggleScrap(event) {
     button.textContent = currentWordTiles[index].isScrap
         ? displayLetter(currentWordTiles[index].letter.toLowerCase())
         : displayLetter(currentWordTiles[index].letter.toUpperCase());
+
+    // Actualitza el valor de la fitxa a la cantonada
+    let valueSpan = button.querySelector('.tile-value');
+    if (!valueSpan) {
+        valueSpan = document.createElement('span');
+        valueSpan.className = 'tile-value';
+        button.appendChild(valueSpan);
+    }
+    if (currentWordTiles[index].isScrap) {
+        valueSpan.textContent = '0';
+    } else {
+        const letter = currentWordTiles[index].letter.toUpperCase();
+        valueSpan.textContent = letterValues[letter] ?? '';
+    }
+
     updateScrapsInputValue();
+    previewMasterPlay();
 }
 
 // Actualitza el camp ocult amb els índexs dels escarrassos
@@ -513,8 +410,9 @@ gestioForm.addEventListener('submit', (event) => {
 });
 
 // Desa la jugada mestra temporalment (no a l'historial encara)
-wordForm.addEventListener('submit', (event) => {
+wordForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    
     const coords = coordinatesInput.value.trim().toUpperCase();
     const word = wordInput.value.trim().toUpperCase();
     const direction = directionInput.value;
@@ -533,67 +431,176 @@ wordForm.addEventListener('submit', (event) => {
         return;
     }
     // Normalitza la paraula (dígrafs a caràcter fictici)
-    const tiles = splitWordToTiles(word); // Aquesta funció ve de tauler.js
+    const tiles = splitWordToTiles(word);
     let formattedWord = '';
     for (let i = 0; i < tiles.length; i++) {
         formattedWord += scraps.includes(i)
             ? tiles[i].toLowerCase()
             : tiles[i].toUpperCase();
     }
+   
+
+// Comprovar si la paraula encaixa amb les lletres existents
+for (let i = 0; i < formattedWord.length; i++) {
+    const row = startRow + (directionInput.value === 'vertical' ? i : 0);
+    const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
+
+    if (currentBoard[row][col] !== '' && currentBoard[row][col] !== formattedWord[i]) {
+        alert(`La lletra "${displayLetter(formattedWord[i])}" no coincideix amb la lletra "${displayLetter(currentBoard[row][col])}" a la posició ${String.fromCharCode(col + 65)}${row + 1}.`);
+        return; // La jugada no és vàlida
+    }
+}
+
+// Comprova si el tauler està buit
+const isBoardEmpty = currentBoard.flat().every(cell => cell === '');
+
+const boardSize = currentBoard.length;
+const center = Math.floor(boardSize / 2);
+
+if (isBoardEmpty) {
+    // Si el tauler està buit, la paraula ha de passar per la casella central
+    let passesThroughCenter = false;
+    for (let i = 0; i < formattedWord.length; i++) {
+        const row = startRow + (directionInput.value === 'vertical' ? i : 0);
+        const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
+        if (row === center && col === center) {
+            passesThroughCenter = true;
+            break;
+        }
+    }
+    if (!passesThroughCenter) {
+        alert('La primera paraula ha de passar per la casella central!');
+        return;
+    }
+} else {
+    // Si el tauler NO està buit, la paraula ha de tocar almenys una fitxa existent
+    let touchesExisting = false;
+    for (let i = 0; i < formattedWord.length; i++) {
+        const row = startRow + (directionInput.value === 'vertical' ? i : 0);
+        const col = startCol + (directionInput.value === 'horizontal' ? i : 0);
+
+        // Comprova les 4 caselles adjacents (amunt, avall, esquerra, dreta)
+        const adjacents = [
+            [row - 1, col],
+            [row + 1, col],
+            [row, col - 1],
+            [row, col + 1]
+        ];
+        for (const [adjRow, adjCol] of adjacents) {
+            if (
+                adjRow >= 0 && adjRow < boardSize &&
+                adjCol >= 0 && adjCol < boardSize &&
+                currentBoard[adjRow][adjCol] !== ''
+            ) {
+                touchesExisting = true;
+                break;
+            }
+        }
+        // També considera si la casella ja té una lletra (sobreposa)
+        if (currentBoard[row][col] !== '') {
+            touchesExisting = true;
+        }
+        if (touchesExisting) break;
+    }
+    if (!touchesExisting) {
+        alert('La paraula ha de tocar almenys una fitxa existent al tauler!');
+        return;
+    }
+}
+// Comprova si les fitxes que es posen al tauler existeixen al faristol
+const rackTiles = splitWordToTiles(currentRackInput.value);
+const rackCounts = {};
+rackTiles.forEach(tile => {
+    if (tile !== '?') {
+        rackCounts[tile] = (rackCounts[tile] || 0) + 1;
+    }
+});
+const rackScraps = rackTiles.filter(tile => tile === '?').length;
+console.log('racktiles', rackTiles);
+console.log('rackCounts', rackCounts);
+console.log("tiles", tiles);
+
+let usedScraps = 0;
+let newTiles = [];
+for (let i = 0; i < tiles.length; i++) {
+    const row = startRow + (direction === 'vertical' ? i : 0);
+    const col = startCol + (direction === 'horizontal' ? i : 0);
+
+    // Comprova si la fitxa és nova (no estava al tauler abans)
+    if (boardBeforeMasterPlay[row][col] === '') {
+        newTiles.push(tiles[i]);
+        const letter = tiles[i];
+        if (letterValues[letter] > 0) {
+            if (rackCounts[letter]) {
+                rackCounts[letter]--;
+            } else if (scraps.includes(i)) {
+                usedScraps++;
+            } else {
+                alert(`La fitxa "${displayLetter(letter)}" no està disponible al faristol.`);
+                return; // La jugada no és vàlida
+            }
+        }
+    }
+}
+console.log("newTiles", newTiles);
     // Validació i càlcul de puntuació
     const newWordInfo = { word: formattedWord, startRow, startCol, direction };
-    const allWords = findAllNewWords(currentBoard, newWordInfo); // tauler.js
+    const allWords = findAllNewWords(currentBoard, newWordInfo);
     if (!window.validateAllWords(allWords)) {
         alert('Alguna de les paraules formades no és vàlida!');
         return;
     }
-    const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard); // tauler.js
+     //desformata la paraula amb els escarrassos en minúscula sense normalitzar els dígrafs
+     let visualWord = displayWord(word);
+    console.log('visualWord:', visualWord);
+    const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard);
     document.getElementById('score-master').textContent = `Puntuació: ${score}`;
-    // Desa la jugada mestra temporalment
-    masterPlay = {
-        coords,
-        word: formattedWord,
-        direction,
-        scraps,
-        startRow,
-        startCol,
-        score
-    };
+    // Desa la jugada mestra com a resposta de jugador
+    const roundId = roundsList[currentRoundIndex];
+    await responsesRef.child(`${roundId}/Jugada mestra`).set({
+        coordinates: coords,
+        direction: direction,
+        word: formattedWord, // <-- Normalitzada!
+        scraps: scraps,
+        score: score,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    // No facis reset del formulari!
 });
 
 // Finalitza ronda i desa a l'historial
 finalitzaRondaBtn.addEventListener('click', async () => {
     finalitzaMessage.textContent = '';
-    const round = parseInt(roundNumberInput.value);
+    const round = currentRoundIndex + 1;
     const rack = currentRackInput.value.trim().toUpperCase();
-    if (!round || !rack || !masterPlay) {
+/*     if (!round || !rack || !masterPlayTemp) {
         finalitzaMessage.textContent = 'Cal definir ronda, faristol i jugada mestra!';
         finalitzaMessage.className = 'alert alert-danger';
         return;
-    }
+    } */
     try {
         // Desa la jugada mestra
         await masterPlaysRef.child(round).set({
-            coords: masterPlay.coords,
-            word: masterPlay.word,
-            direction: masterPlay.direction,
-            scraps: masterPlay.scraps,
+            coords: masterPlayTemp.coords,
+            word: masterPlayTemp.word, // <-- Ja ha de ser normalitzada!
+            direction: masterPlayTemp.direction,
+            scraps: masterPlayTemp.scraps,
             rack: rack,
-            score: masterPlay.score
+            score: masterPlayTemp.score
         });
         // Desa el tauler actualitzat (aplica la jugada mestra)
         saveWordsToBoard(currentBoard, [{
-            word: masterPlay.word,
-            startRow: masterPlay.startRow,
-            startCol: masterPlay.startCol,
-            direction: masterPlay.direction
+            word: masterPlayTemp.word, // <-- Normalitzada!
+            startRow: masterPlayTemp.startRow,
+            startCol: masterPlayTemp.startCol,
+            direction: masterPlayTemp.direction
         }]); // tauler.js
         await gameInfoRef.update({ currentBoard: currentBoard });
         // Desa a l'historial
         await historyRef.child(round).set({
             board: currentBoard,
             rack: rack,
-            masterPlay: masterPlay
+            masterPlay: masterPlayTemp
         });
         finalitzaMessage.textContent = 'Ronda desada a l\'historial!';
         finalitzaMessage.className = 'alert alert-success';
@@ -601,12 +608,14 @@ finalitzaRondaBtn.addEventListener('click', async () => {
         document.getElementById('score-master').textContent = '';
         renderBoard(currentBoard);
     } catch (e) {
+        console.error('Error al desar la ronda:', e);
         finalitzaMessage.textContent = 'Error en desar a l\'historial.';
         finalitzaMessage.className = 'alert alert-danger';
     }
 });
 
 function updateAllRoundResponses() {
+    console.log('Entra: updateAllRoundResponses');
     responsesRef.on('value', (snapshot) => {
         const allRoundData = snapshot.val();
         responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2><div class="accordion" id="roundResponsesAccordion">';
@@ -668,43 +677,41 @@ function updateAllRoundResponses() {
     });
 }
 
-function updateCurrentRoundResponses() {
-    // Primer obtenim la ronda actual
-    gameInfoRef.child('currentRound').once('value', (snap) => {
-        const currentRound = snap.val();
-        if (!currentRound) {
-            responsesAccordion.innerHTML = '<p>No hi ha ronda actual definida.</p>';
-            return;
+let lastResponsesRef = null;
+function updateCurrentRoundResponses(roundId) {
+    console.log('Entra: updateCurrentRoundResponses', roundId);
+    if (lastResponsesRef) lastResponsesRef.off();
+    const ref = responsesRef.child(roundId);
+    lastResponsesRef = ref;
+    ref.on('value', (snapshot) => {
+        const roundData = snapshot.val();
+        responsesAccordion.innerHTML = `<h2>Respostes ronda ${roundId}</h2>`;
+        const table = document.createElement('table');
+        table.className = 'table';
+        table.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
+        if (roundData) {
+            Object.entries(roundData).forEach(([playerName, playerData]) => {
+                const coordinatesDisplay = playerData.coordinates || '';
+                const wordDisplay = playerData.word ? displayWord(playerData.word) : '';
+                const scoreDisplay = playerData.score !== undefined ? playerData.score : '';
+                table.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
+            });
+        } else {
+            table.innerHTML += '<tr><td colspan="4">No hi ha respostes per a aquesta ronda.</td></tr>';
         }
-
-        responsesRef.child(currentRound).once('value', (snapshot) => {
-            const roundData = snapshot.val();
-            responsesAccordion.innerHTML = `<h2>Respostes ronda ${currentRound}</h2>`;
-            const table = document.createElement('table');
-            table.className = 'table';
-            table.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
-            if (roundData) {
-                Object.entries(roundData).forEach(([playerName, playerData]) => {
-                    const coordinatesDisplay = playerData.coordinates || '';
-                    const wordDisplay = playerData.word || '';
-                    table.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td></tr>`;
-                });
-            } else {
-                table.innerHTML += '<tr><td colspan="3">No hi ha respostes per a aquesta ronda.</td></tr>';
-            }
-            responsesAccordion.appendChild(table);
-        });
+        responsesAccordion.appendChild(table);
     });
 }
 
 // Crida la funció al carregar la pàgina
-document.addEventListener('DOMContentLoaded', loadRoundsHistory);
-
-let currentRoundIndex = 0;
-let roundsList = []; // Array d'ids de ronda (ordenats)
-let roundsData = {}; // Dades de cada ronda (historial)
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Entra: DOMContentLoaded');
+    loadRoundsHistory();
+    console.log('Sortida: DOMContentLoaded');
+});
 
 function loadRoundsHistory() {
+    console.log('Entra: loadRoundsHistory');
     historyRef.once('value', (snapshot) => {
         const data = snapshot.val() || {};
         roundsList = Object.keys(data).sort((a, b) => Number(a) - Number(b));
@@ -720,6 +727,7 @@ function loadRoundsHistory() {
 }
 
 function showRound(idx) {
+    console.log('Entra: showRound', idx);
     if (idx < 0 || idx >= roundsList.length) return;
     currentRoundIndex = idx;
     const roundId = roundsList[idx];
@@ -728,49 +736,214 @@ function showRound(idx) {
     const roundDisplay = document.getElementById('roundDisplay');
     if (roundDisplay) roundDisplay.textContent = `Ronda ${roundId}`;
     if (currentRackInput) currentRackInput.value = round.rack || '';
-    renderBoard(round.board || createEmptyBoard(15));
+
+    // --- AFEGEIX AIXÒ ---
+    let boardToUse = null;
+    if (round.board && Array.isArray(round.board)) {
+        boardToUse = round.board.map(row => row.slice());
+    } else {
+        // Busca el tauler de la ronda anterior
+        let prevIdx = idx - 1;
+        while (prevIdx >= 0) {
+            const prevRound = roundsData[roundsList[prevIdx]];
+            if (prevRound && prevRound.board && Array.isArray(prevRound.board)) {
+                boardToUse = prevRound.board.map(row => row.slice());
+                break;
+            }
+            prevIdx--;
+        }
+        // Si tampoc hi ha cap tauler anterior, crea un de buit
+        if (!boardToUse) boardToUse = createEmptyBoard(15);
+    }
+    currentBoard = boardToUse;
+    // --- FI AFEGEIX ---
+
+    renderBoard(currentBoard);
     updateCurrentRoundResponses(roundId);
     if (currentRackInput) currentRackInput.disabled = !!round.closed;
-    const closeBtn = document.getElementById('closeRoundBtn');
-    if (closeBtn) closeBtn.disabled = !!round.closed;
-}
+    const closeRoundBtn = document.getElementById('closeRoundBtn');
+    if (closeRoundBtn) closeRoundBtn.disabled = !!round.closed;
+    boardBeforeMasterPlay = currentBoard.map(row => row.slice());
 
-let lastResponsesRef = null;
-function updateCurrentRoundResponses(roundId) {
-    if (lastResponsesRef) lastResponsesRef.off();
-    const ref = responsesRef.child(roundId);
-    lastResponsesRef = ref;
-    ref.on('value', (snapshot) => {
-        const roundData = snapshot.val();
-        responsesAccordion.innerHTML = `<h2>Respostes ronda ${roundId}</h2>`;
-        const table = document.createElement('table');
-        table.className = 'table';
-        table.innerHTML = '<thead><tr><th>Nom/taula</th><th>Coord.</th><th>Paraula</th></tr></thead>';
-        if (roundData) {
-            Object.entries(roundData).forEach(([playerName, playerData]) => {
-                const coordinatesDisplay = playerData.coordinates || '';
-                const wordDisplay = playerData.word || '';
-                table.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td></tr>`;
-            });
-        } else {
-            table.innerHTML += '<tr><td colspan="3">No hi ha respostes per a aquesta ronda.</td></tr>';
+    // --- NOVETAT: Carrega la jugada mestra si existeix ---
+    masterPlayTemp = null;
+    responsesRef.child(`${roundId}/Jugada mestra`).once('value').then(snap => {
+        const master = snap.val();
+        if (master) {
+            masterPlayTemp = {
+                coordinates: master.coordinates,
+                direction: master.direction,
+                word: master.word,
+                scraps: master.scraps,
+                score: master.score,
+                startRow: master.startRow !== undefined ? master.startRow : null,
+                startCol: master.startCol !== undefined ? master.startCol : null
+            };
+            // Si no tens startRow/startCol a la base de dades, calcula-ho:
+            if (masterPlayTemp.startRow === null || masterPlayTemp.startCol === null) {
+                const rowLetter = master.coordinates.match(/[A-Za-z]/)?.[0];
+                const colNumber = parseInt(master.coordinates.match(/[0-9]+/)?.[0]) - 1;
+                masterPlayTemp.startRow = rowLetter ? rowLetter.toUpperCase().charCodeAt(0) - 65 : -1;
+                masterPlayTemp.startCol = colNumber;
+            }
         }
-        responsesAccordion.appendChild(table);
     });
+    // --- FI NOVETAT ---
+    console.log('Sortida: showRound', idx);
 }
 
-document.getElementById('prevRoundBtn').addEventListener('click', () => {
+// Navegació de rondes
+document.getElementById('prevRoundBtn').onclick = () => {
+    console.log('Entra: prevRoundBtn.onclick');
     if (currentRoundIndex > 0) showRound(currentRoundIndex - 1);
-});
-document.getElementById('nextRoundBtn').addEventListener('click', () => {
+    console.log('Sortida: prevRoundBtn.onclick');
+};
+document.getElementById('nextRoundBtn').onclick = () => {
+    console.log('Entra: nextRoundBtn.onclick');
     if (currentRoundIndex < roundsList.length - 1) showRound(currentRoundIndex + 1);
+    console.log('Sortida: nextRoundBtn.onclick');
+};
+document.getElementById('addRoundBtn').onclick = () => {
+    console.log('Entra: addRoundBtn.onclick');
+    addNewRound();
+    console.log('Sortida: addRoundBtn.onclick');
+};
+
+// Actualitza el faristol de la ronda actual
+document.getElementById('updateRackBtn').onclick = async () => {
+    console.log('Entra: updateRackBtn.onclick');
+    const roundId = roundsList[currentRoundIndex];
+    const rack = currentRackInput.value.trim().toUpperCase();
+    await historyRef.child(roundId).update({ rack });
+    roundsData[roundId].rack = rack;
+    gestioMessage.textContent = 'Faristol actualitzat!';
+    await gameInfoRef.update({ currentRack: rack, currentRound: roundId });
+    console.log('Sortida: updateRackBtn.onclick');
+};
+
+coordinatesInput.addEventListener('input', () => { console.log('Entra: coordinatesInput.input'); previewMasterPlay(); console.log('Sortida: coordinatesInput.input'); });
+directionInput.addEventListener('input', () => { console.log('Entra: directionInput.input'); previewMasterPlay(); console.log('Sortida: directionInput.input'); });
+wordInput.addEventListener('input', () => { console.log('Entra: wordInput.input'); previewMasterPlay(); console.log('Sortida: wordInput.input'); });
+scrapsInput.addEventListener('input', () => { console.log('Entra: scrapsInput.input'); previewMasterPlay(); console.log('Sortida: scrapsInput.input'); });
+
+// Previsualitza la jugada mestra
+function previewMasterPlay() {
+    console.log('Entra: previewMasterPlay');
+    const coords = coordinatesInput.value.trim().toUpperCase();
+    const word = wordInput.value.trim().toUpperCase();
+    const direction = directionInput.value;
+    if (!coords || !word || !direction) {
+        renderBoard(boardBeforeMasterPlay || currentBoard);
+        return;
+    }
+    // Calcula posició inicial
+    const rowLetter = coords.match(/[A-Za-z]/)?.[0];
+    const colNumber = parseInt(coords.match(/[0-9]+/)?.[0]) - 1;
+    const startRow = rowLetter ? rowLetter.toUpperCase().charCodeAt(0) - 65 : -1;
+    const startCol = colNumber;
+    if (startRow < 0 || startCol < 0) return;
+
+    // Prepara la paraula
+    const tiles = splitWordToTiles(word);
+    let formattedWord = '';
+    const scraps = JSON.parse(scrapsInput.value || '[]');
+    for (let i = 0; i < tiles.length; i++) {
+        formattedWord += scraps.includes(i)
+            ? tiles[i].toLowerCase()
+            : tiles[i].toUpperCase();
+    }
+    const newWordInfo = { word: formattedWord, startRow, startCol, direction };
+    // Còpia del tauler per fer proves
+    const testBoard = boardBeforeMasterPlay.map(row => row.slice());
+    saveWordsToBoard(testBoard, [newWordInfo]);
+
+    // Calcula les coordenades de les fitxes noves
+    let newTiles = [];
+    for (let k = 0; k < formattedWord.length; k++) {
+        const row = startRow + (direction === 'vertical' ? k : 0);
+        const col = startCol + (direction === 'horizontal' ? k : 0);
+        if (boardBeforeMasterPlay[row][col] === '') {
+            newTiles.push([row, col]);
+        }
+    }
+
+    renderBoard(testBoard, newTiles);
+    const score = calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard);
+    document.getElementById('score-master').textContent = `Puntuació: ${score}`;
+    console.log('Sortida: previewMasterPlay');
+}
+
+async function canCloseRound(roundId) {
+    console.log('Entra: canCloseRound', roundId);
+    const snap = await responsesRef.child(`${roundId}/Jugada mestra`).once('value');
+    const result = !!snap.val();
+    console.log('Sortida: canCloseRound', roundId, result);
+    return result;
+}
+
+closeRoundBtn.addEventListener('click', async () => {
+    const roundId = roundsList[currentRoundIndex];
+    if (!(await canCloseRound(roundId))) {
+        alert('No pots tancar la ronda sense definir la jugada mestra!');
+        return;
+    }
+    if (masterPlayTemp) {
+        // Aplica la jugada mestra només si no està ja aplicada
+        saveWordsToBoard(currentBoard, [{
+            word: masterPlayTemp.word,
+            startRow: masterPlayTemp.startRow,
+            startCol: masterPlayTemp.startCol,
+            direction: masterPlayTemp.direction
+        }]);
+
+        // Calcula el nou faristol restant
+        let rackTiles = splitWordToTiles(currentRackInput.value.trim().toUpperCase());
+        let usedTiles = [];
+        let wordTiles = masterPlayTemp.word.split('');
+        let scraps = masterPlayTemp.scraps || [];
+        for (let i = 0; i < wordTiles.length; i++) {
+            const row = masterPlayTemp.startRow + (masterPlayTemp.direction === 'vertical' ? i : 0);
+            const col = masterPlayTemp.startCol + (masterPlayTemp.direction === 'horizontal' ? i : 0);
+            if (boardBeforeMasterPlay[row][col] === '') {
+                if (scraps.includes(i)) {
+                    usedTiles.push('?');
+                } else {
+                    usedTiles.push(wordTiles[i].toUpperCase());
+                }
+            }
+        }
+        let newRack = rackTiles.slice();
+        for (const used of usedTiles) {
+            const idx = newRack.indexOf(used);
+            if (idx !== -1) newRack.splice(idx, 1);
+        }
+        const updatedRack = newRack.join('');
+
+        // Desa la ronda tancada amb el rack original (NO el modifiquis)
+        await historyRef.child(roundId).update({
+            board: currentBoard,
+            closed: true
+            // NO actualitzis el rack aquí!
+        });
+        // Actualitza el faristol global per a la següent ronda
+        await gameInfoRef.update({ currentRack: updatedRack, currentRound: roundId });
+        currentRackInput.value = updatedRack;
+        renderRackTiles(updatedRack);
+        showRound(currentRoundIndex);
+    }
 });
 
 function addNewRound() {
+    console.log('Entra: addNewRound');
     const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
+    const prevBoard = roundsList.length > 0 ? roundsData[roundsList[roundsList.length - 1]].board : createEmptyBoard(15);
+
+    // NOVETAT: agafa el faristol actual per defecte
+    const currentRack = currentRackInput.value.trim().toUpperCase();
+
     const newRound = {
-        rack: '',
-        board: createEmptyBoard(15),
+        rack: currentRack, // <-- aquí!
+        board: prevBoard.map(row => row.slice()),
         masterPlay: null,
         closed: false
     };
@@ -779,48 +952,49 @@ function addNewRound() {
         roundsData[newRoundId] = newRound;
         showRound(roundsList.length - 1);
     });
+    console.log('Sortida: addNewRound');
 }
 
-document.getElementById('addRoundBtn').addEventListener('click', async () => {
-    const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
-    const newRound = {
-        rack: '',
-        board: createEmptyBoard(15),
-        masterPlay: null,
-        closed: false
-    };
-    await historyRef.child(newRoundId).set(newRound);
-    roundsList.push(newRoundId);
-    roundsData[newRoundId] = newRound;
-    showRound(roundsList.length - 1);
-});
+// Renderitza les fitxes del faristol
+// (amb els escarrassos en minúscula)
 
-gestioForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const roundId = roundsList[currentRoundIndex];
-    const rack = currentRackInput.value.trim().toUpperCase();
-    await historyRef.child(roundId).update({ rack });
-    roundsData[roundId].rack = rack;
-    document.getElementById('gestio-message').textContent = 'Faristol actualitzat!';
-});
-
-document.getElementById('closeRoundBtn').addEventListener('click', async () => {
-    const roundId = roundsList[currentRoundIndex];
-    await historyRef.child(roundId).update({ closed: true });
-    roundsData[roundId].closed = true;
-    showRound(currentRoundIndex);
-});
-
-const updateRackBtn = document.getElementById('updateRackBtn');
-if (updateRackBtn) {
-    updateRackBtn.addEventListener('click', async () => {
-        const roundId = roundsList[currentRoundIndex];
-        const rack = currentRackInput.value.trim().toUpperCase();
-        // Actualitza l'historial
-        await historyRef.child(roundId).update({ rack });
-        roundsData[roundId].rack = rack;
-        // Actualitza els valors actuals a gameInfo
-        await gameInfoRef.update({ currentRack: rack, currentRound: roundId });
-        gestioMessage.textContent = 'Faristol actualitzat!';
-    });
+function renderRackTiles(rackString) {
+    const rackTilesDiv = document.getElementById('rackTiles');
+    rackTilesDiv.innerHTML = '';
+    const tiles = splitWordToTiles(rackString.toUpperCase());
+    console.log("fitxes" + tiles)
+    for (let i = 0; i < tiles.length; i++) {
+        const letter = tiles[i];
+        const div = document.createElement('div');
+        div.className = 'rack-tile' + (letter === '?' ? ' scrap' : '');
+        div.textContent = displayLetter(letter);
+        // Valor de la fitxa
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'tile-value';
+        valueSpan.textContent = (letter === '?' ? '0' : (letterValues[letter.toUpperCase()] ?? ''));
+        div.appendChild(valueSpan);
+        rackTilesDiv.appendChild(div);
+    }
 }
+
+// Escolta canvis al faristol a la base de dades i actualitza el rack visual
+gameInfoRef.child('currentRack').on('value', (snapshot) => {
+    const rack = snapshot.val() || '';
+    renderRackTiles(rack);
+    // També actualitza l'input si vols sincronitzar-lo:
+    currentRackInput.value = rack;
+});
+
+function displayWord(word) {
+    return word.split('').map(displayLetter).join('');
+}
+
+const tileDistribution = {
+    '': 2, // escarràs
+    'E': 13, 'A': 12, 'I': 8, 'R': 8, 'S': 8, 'N': 6, 'O': 5, 'T': 5, 'L': 4, 'U': 4,
+    'C': 3, 'D': 3, 'M': 3,
+    'B': 2, 'G': 2, 'P': 2,
+    'F': 1, 'V': 1,
+    'H': 1, 'J': 1, 'Q': 1, 'Z': 1,
+    'Ç': 1, 'Ł': 1, 'Ý': 1, 'X': 1 // Ł = L·L, Ý = NY
+};

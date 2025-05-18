@@ -134,5 +134,5 @@ window.getDict = getDict;
 // --- INICIALITZACIÓ ---
 jQuery(function ($) {
   getDict("disc");
-  console.log("window.validateAllWords:", window.validateAllWords);
+  //console.log("window.validateAllWords:", window.validateAllWords);
 });

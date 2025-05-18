@@ -42,30 +42,56 @@ h3 {
 /* Estils per als botons de les fitxes a index.html */
 #tileButtons {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px; /* Espai entre botons */
+  flex-wrap: nowrap;
+  gap: 4px;
   margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
-.tile-button {
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  background-color: #f8f9fa;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 1.1em;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.tile-button:hover {
-  background-color: #e2e6ea;
-}
-
-.tile-button.scrap {
-  background-color: #ffc107; /* Groc per als escarrassos */
-  border-color: #d39e00;
-  color: #212529;
+/* Fitxa quadrada, petita, estil uniforme */
+.tile-button, .rack-tile{
+  
+  flex: 1 1 0;
+  aspect-ratio: 1 / 1;
+  max-width: 60px; /* límit superior per a pantalles grans */
+  min-width: 24px; /* límit inferior per a pantalles petites */
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffedbe;
+  background-color: #fff6e0;
+  color: #222;
+  font-size:  clamp(0.9em, 6vw, 2em);
   font-weight: bold;
+  border-radius: 6px;
+  position: relative;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: font-size 0.2s, max-width 0.2s;
+  user-select: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Fitxa seleccionada com escarràs: groc i punt a la cantonada */
+.tile-button.scrap {
+  background-color: #ffe082;
+  border-color: #d39e00;
+  color: #222;
+}
+
+/* Opcional: efecte hover */
+.tile-button:hover {
+  background-color: #fffaee;
+  border-color: #ffeec3;
+}
+
+/* Evita salt de línia en contenidor */
+#tileButtons {
+  white-space: nowrap;
 }
 
 /* Estils per als missatges d'estat */
@@ -229,12 +255,13 @@ h3 {
   /* background-color: #f5f5f5; */
   transition: background 0.2s;
   font-weight: bold;
+  position: relative;
 }
 
 /* Escarrassos */
 .blank-tile {
   background-color: #ffe4b5 !important;
-  color: #888 !important;
+  
   font-style: italic;
 }
 
@@ -282,4 +309,101 @@ h3 {
 .board-cell.selected-coord {
   outline: 3px solid #ffb300 !important; /* contorn taronja */
   z-index: 2;
+}
+
+.board-cell.new {
+    background-color: #ffe082 !important; /* groc suau */
+    color: #222;
+    font-weight: bold;
+}
+
+/* Paraula x3 */
+.board-cell.tw:not(.filled)::after {
+  content: "3P";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  left: 2px;
+  font-size: 0.7em;
+  color: #fff;
+  font-weight: bold;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Paraula x2 */
+.board-cell.dw:not(.filled)::after {
+  content: "2P";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  left: 2px;
+  font-size: 0.7em;
+  color: #b71c1c;
+  font-weight: bold;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Lletra x3 */
+.board-cell.tl:not(.filled)::after {
+  content: "3M";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  left: 2px;
+  font-size: 0.7em;
+  color: #fff;
+  font-weight: bold;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Lletra x2 */
+.board-cell.dl:not(.filled)::after {
+  content: "2M";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  left: 2px;
+  font-size: 0.7em;
+  color: #01579b;
+  font-weight: bold;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.tile-value {
+    position: absolute;
+    right: 2px;
+    bottom: 0px;
+    font-size: 0.5em;
+    color: #444;
+    opacity: 0.85;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.rack-tiles {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 20px 0;
+  width: 100%;
+  justify-content: center; /* o space-between si vols repartir */
+  box-sizing: border-box;
+}
+
+.rack-tile.scrap {
+  background: #ffe082;
+  border-color: #d39e00;
+}
+.rack-tile .tile-value {
+  position: absolute;
+  right: 2px;
+  bottom: 0px;
+  font-size: 0.5em;
+  color: #444;
+  opacity: 0.85;
+  font-weight: bold;
+  pointer-events: none;
 }
