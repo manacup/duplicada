@@ -579,7 +579,7 @@ finalitzaRondaBtn.addEventListener('click', async () => {
         return;
     } */
     try {
-        // Desa la jugada mestra
+     /*    // Desa la jugada mestra
         await masterPlaysRef.child(round).set({
             coords: masterPlayTemp.coords,
             word: masterPlayTemp.word, // <-- Ja ha de ser normalitzada!
@@ -594,7 +594,7 @@ finalitzaRondaBtn.addEventListener('click', async () => {
             startRow: masterPlayTemp.startRow,
             startCol: masterPlayTemp.startCol,
             direction: masterPlayTemp.direction
-        }]); // tauler.js
+        }]); // tauler.js */
         await gameInfoRef.update({ currentBoard: currentBoard });
         // Desa a l'historial
         await historyRef.child(round).set({
@@ -803,8 +803,22 @@ document.getElementById('nextRoundBtn').onclick = () => {
     if (currentRoundIndex < roundsList.length - 1) showRound(currentRoundIndex + 1);
     console.log('Sortida: nextRoundBtn.onclick');
 };
+/* document.getElementById('addRoundBtn').onclick = () => {
+    console.log('Entra: addRoundBtn.onclick');
+    addNewRound();
+    console.log('Sortida: addRoundBtn.onclick');
+}; */
 document.getElementById('addRoundBtn').onclick = () => {
     console.log('Entra: addRoundBtn.onclick');
+    // Comprova si existeix ronda i si està tancada
+    if (roundsList.length > 0) {
+        const lastRoundId = roundsList[roundsList.length - 1];
+        const lastRound = roundsData[lastRoundId];
+        if (!lastRound.closed) {
+            alert('No pots obrir una nova ronda fins que tanquis la ronda actual!');
+            return;
+        }
+    }
     addNewRound();
     console.log('Sortida: addRoundBtn.onclick');
 };
