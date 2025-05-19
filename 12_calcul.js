@@ -222,7 +222,7 @@ function calculateWordScore(word, startRow, startCol, direction, board, letterVa
  * @param {Array<Array<string>>} board - El tauler de joc (matriu 2D).
  * @param {Array<{word: string, startRow: number, startCol: number, direction: string}>} newWords - Array d'objectes amb info de les paraules noves a afegir.
  */
-export function saveWordsToBoard(board, newWords) {
+function saveWordsToBoard(board, newWords) {
     newWords.forEach(wordInfo => {
       const { word, startRow, startCol, direction } = wordInfo;
       const letters = word.split('');
@@ -467,5 +467,5 @@ function calculateFullPlayScore(board, wordInfo, letterValues, multiplierBoard) 
 }
 
 // Exporta les funcions si cal (per a mòduls)
-export { findAllNewWords, calculateWordScoreWithNewTiles, calculateFullPlayScore };
+// export { findAllNewWords, calculateWordScoreWithNewTiles, calculateFullPlayScore };
 

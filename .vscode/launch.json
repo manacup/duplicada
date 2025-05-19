@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Launch tauler.html",
+      "file": "${workspaceFolder}/${input:htmlFile}",
+      "webRoot": "${workspaceFolder}"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "htmlFile",
+      "type": "pickString",
+      "description": "Select the HTML file to launch",
+      "options": [
+        "tauler.html",
+        "dades.html",
+        "index.html",
+        "partida.html"
+      ]
+    }
+  ]
+}

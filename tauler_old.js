@@ -1,10 +1,5 @@
 // Importar les funcions saveWordsToBoard i calculateScore si calcul.js és un mòdul
 // import { saveWordsToBoard, calculateScore } from './calcul.js';
-import { gameInfoRef } from './firebase.js';
-import { multiplierBoard, displayLetter } from './utilitats.js';
-import { saveWordsToBoard, calculateFullPlayScore, findAllNewWords } from './calcul.js';
-
-    import {previewMasterPlay} from './formulariRespostes.js';
 
 // Diccionari de dígrafs i caràcters ficticis
 const DIGRAPH_MAP = {
@@ -40,7 +35,36 @@ function normalizeWordInput(word) {
         .replace(/QU/gi, match => match[0] === match[0].toLowerCase() ? 'û' : 'Û');
 }
 
+// Funció per desnormalitzar (mostrar) caràcters ficticis com a dígrafs
+function displayLetter(letter) {
+    const upper = letter.toUpperCase();
+    if (REVERSE_DIGRAPH_MAP[upper]) {
+        // Manté minúscula si és escarràs
+        return letter === letter.toLowerCase()
+            ? REVERSE_DIGRAPH_MAP[upper].toLowerCase()
+            : REVERSE_DIGRAPH_MAP[upper];
+    }
+    return letter;
+}
 
+// Definir multiplierBoard (o importar-lo)
+const multiplierBoard = [
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['TW', '', '', 'DL', '', '', '', 'DW', '', '', '', 'DL', '', '', 'TW'],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW']
+];
 
 // Funció per crear un tauler buit
 function createEmptyBoard(size) {
@@ -52,27 +76,13 @@ function createEmptyBoard(size) {
 }
 
 // Funció per renderitzar el tauler a l'HTML
-const boardContainer = document.getElementById('board-container');
-
-function renderBoard(board, newTiles = []) {
-    // Si el board no és vàlid, crea un tauler buit per evitar errors
-    if (!Array.isArray(board) || !Array.isArray(board[0])) {
-        board = Array.from({ length: 15 }, () => Array(15).fill(''));
-    }
-    // Comprova que totes les files són arrays de mida 15
-    for (let i = 0; i < 15; i++) {
-        if (!Array.isArray(board[i])) {
-            board[i] = Array(15).fill('');
-        } else if (board[i].length !== 15) {
-            board[i] = Array.from({ length: 15 }, (_, j) => board[i][j] ?? '');
-        }
-    }
+function renderBoard(board) {
+    const boardContainer = document.getElementById('board-container');
     boardContainer.innerHTML = '';
 
     const table = document.createElement('table');
     table.classList.add('board-table');
 
-    // Capçalera de columnes
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headerRow.appendChild(document.createElement('th'));
@@ -84,7 +94,6 @@ function renderBoard(board, newTiles = []) {
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // Cos del tauler
     const tbody = document.createElement('tbody');
     for (let i = 0; i < board.length; i++) {
         const row = document.createElement('tr');
@@ -105,63 +114,27 @@ function renderBoard(board, newTiles = []) {
             else if (mult === 'TL') cell.classList.add('tl');
             else if (mult === 'DL') cell.classList.add('dl');
 
-            // Marca cel·la ocupada
             if (board[i][j] && board[i][j] !== '') {
                 cell.classList.add('filled');
             }
 
-            // Marca escarràs
             if (board[i][j] && board[i][j] === board[i][j].toLowerCase()) {
                 cell.classList.add('blank-tile');
             }
 
-            // Marca fitxes noves
-            if (newTiles.some(([rowIdx, colIdx]) => rowIdx === i && colIdx === j)) {
-                cell.classList.add('new');
-            }
-
-            // Mostra el valor de la fitxa si la casella està ocupada
-            if (board[i][j] && board[i][j] !== '') {
-                const valueSpan = document.createElement('span');
-                valueSpan.className = 'tile-value';
-                // Usa letterValues global o importat
-                const isScrap = board[i][j] === board[i][j].toLowerCase();
-                // Si tens letterValues a utilitats.js, importa'l i usa'l aquí
-                valueSpan.textContent = isScrap
-                    ? '0'
-                    : (typeof letterValues !== 'undefined'
-                        ? (letterValues[board[i][j].toUpperCase()] ?? '')
-                        : (window.letterValues?.[board[i][j].toUpperCase()] ?? ''));
-                cell.appendChild(valueSpan);
-            }
-
-            // Obtenim la coordenada seleccionada i la direcció
-            const coordinatesInput = document.getElementById('coords');
-            const directionInput = document.getElementById('direction');
-            let highlightRow = -1, highlightCol = -1, highlightDir = null;
-            if (coordinatesInput && directionInput) {
-                const coordValue = coordinatesInput.value.trim().toUpperCase();
-                const dirValue = directionInput.value;
-                const letter = coordValue.match(/[A-Z]/)?.[0];
-                const number = parseInt(coordValue.match(/[0-9]+/)?.[0]);
-                if (letter && number) {
-                    highlightRow = letter.charCodeAt(0) - 65;
-                    highlightCol = number - 1;
-                    highlightDir = dirValue;
+            // --- NOVETAT: Click per escriure coordenada ---
+            cell.addEventListener('click', () => {
+                // Detecta direcció seleccionada
+                const dir = directionInput.value || 'horizontal';
+                if (dir === 'horizontal') {
+                    coordinatesInput.value = `${String.fromCharCode(65 + i)}${j + 1}`;
+                } else {
+                    coordinatesInput.value = `${j + 1}${String.fromCharCode(65 + i)}`;
                 }
-            }
-
-            // Si la casella coincideix amb la coordenada seleccionada, està buida i hi ha direcció, mostra la fletxa
-            if (
-                i === highlightRow &&
-                j === highlightCol &&
-                board[i][j] === '' &&
-                highlightDir
-            ) {
-                cell.innerHTML = highlightDir === 'horizontal'
-                    ? '<span class="arrow-indicator" title="Horitzontal"><i class="bi bi-arrow-right-square-fill"></i></span>'
-                    : '<span class="arrow-indicator" title="Vertical"><i class="bi bi-arrow-down-square-fill"></i></span>';
-            }
+                // Llença l'event input per actualitzar la UI
+                coordinatesInput.dispatchEvent(new Event('input'));
+            });
+            // --- FI NOVETAT ---
 
             row.appendChild(cell);
         }
@@ -180,7 +153,7 @@ renderBoard(currentBoard);
 const horizontalBtn = document.getElementById('horizontalBtn');
 const verticalBtn = document.getElementById('verticalBtn');
 const directionInput = document.getElementById('direction');
-const coordinatesInput = document.getElementById('coords');
+const coordinatesInput = document.getElementById('coordinates');
 
 // Detecta automàticament la direcció segons el format de les coordenades
 coordinatesInput.addEventListener('input', () => {
@@ -218,9 +191,6 @@ horizontalBtn.addEventListener('click', () => {
     horizontalBtn.classList.add('active');
     verticalBtn.classList.remove('active');
     formatCoordinatesOnDirectionChange();
-    // Actualitza el tauler amb la nova direcció (previsualització)
-    coordinatesInput.dispatchEvent(new Event('input'));
-    wordInput.dispatchEvent(new Event('input'));
 });
 
 verticalBtn.addEventListener('click', () => {
@@ -228,9 +198,6 @@ verticalBtn.addEventListener('click', () => {
     verticalBtn.classList.add('active');
     horizontalBtn.classList.remove('active');
     formatCoordinatesOnDirectionChange();
-    // Actualitza el tauler amb la nova direcció (previsualització)
-    coordinatesInput.dispatchEvent(new Event('input'));
-    wordInput.dispatchEvent(new Event('input'));
 });
 
 // Gestionar l'enviament del formulari
@@ -238,7 +205,7 @@ const wordForm = document.getElementById('wordForm');
 wordForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const coordinatesInput = document.getElementById('coords');
+    const coordinatesInput = document.getElementById('coordinates');
     const wordInput = document.getElementById('word');
     const directionInput = document.getElementById('direction');
     const scraps = JSON.parse(scrapsInput.value || '[]');
@@ -279,8 +246,8 @@ wordForm.addEventListener('submit', (event) => {
     const startRow = rowLetter ? rowLetter.toUpperCase().charCodeAt(0) - 65 : -1;
     const startCol = colNumber;
 
-    if (startRow < 0 || startCol < 0 || startRow >= currentBoard.length || startCol >= currentBoard[0].length) {
-        alert('Coordenades fora dels límits del tauler.');
+    if (startRow < 0 || startCol < 0 || startRow >= currentBoard.length || startCol >= currentBoard.length) {
+        alert('Coordenades invàlides.');
         return;
     }
 
@@ -363,7 +330,7 @@ wordForm.addEventListener('submit', (event) => {
     const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard);
 
     // Mostrar la puntuació a l'usuari (per exemple, en un element amb id="score")
-    const scoreElement = document.getElementById('score-master');
+    const scoreElement = document.getElementById('score');
     if (scoreElement) {
         scoreElement.textContent = `Puntuació: ${score}`;
     } else {
@@ -373,9 +340,6 @@ wordForm.addEventListener('submit', (event) => {
     // Afegim la paraula al tauler
     saveWordsToBoard(currentBoard, [newWordInfo]);
 
-    // Sincronitza el tauler amb la base de dades perquè tots els clients el vegin
-    gameInfoRef.child('currentBoard').set(currentBoard);
-
     // Renderitzar el tauler actualitzat
     renderBoard(currentBoard);
 
@@ -384,14 +348,14 @@ wordForm.addEventListener('submit', (event) => {
     tileButtonsDiv.innerHTML = '';
     scrapsInput.value = '';
 });
-const scrapsInput = document.getElementById('scraps');
+
 const wordInput = document.getElementById('word');
 const tileButtonsDiv = document.getElementById('tileButtons');
-
+const scrapsInput = document.getElementById('scraps');
 let currentWordTiles = [];
 
 // Genera els botons de les lletres per marcar escarrassos
-export function splitWordToTiles(word) {
+function splitWordToTiles(word) {
     // Retorna un array on cada element és una lletra o dígraf (ja normalitzat)
     const tiles = [];
     let i = 0;
@@ -428,15 +392,6 @@ function generateTileButtons(word) {
         button.textContent = displayLetter(tiles[i]);
         button.dataset.index = i;
         button.type = 'button';
-        // Afegeix la puntuació a la cantonada inferior dreta
-        const valueSpan = document.createElement('span');   
-        valueSpan.className = 'tile-value';
-        // Si és minúscula (escarràs), mostra 0
-        const isScrap = tiles[i] === tiles[i].toLowerCase();
-        valueSpan.textContent = isScrap ? '0' : (letterValues[letter] ?? '');
-        button.appendChild(valueSpan);
-        // Afegeix l'esdeveniment de clic per marcar/desmarcar escarràs
-
         button.addEventListener('click', toggleScrap);
         tileButtonsDiv.appendChild(button);
         currentWordTiles.push({ letter: tiles[i], isScrap: false });
@@ -455,23 +410,7 @@ function toggleScrap(event) {
     button.textContent = currentWordTiles[index].isScrap
         ? displayLetter(currentWordTiles[index].letter.toLowerCase())
         : displayLetter(currentWordTiles[index].letter.toUpperCase());
-
-    // Actualitza el valor de la fitxa a la cantonada
-    let valueSpan = button.querySelector('.tile-value');
-    if (!valueSpan) {
-        valueSpan = document.createElement('span');
-        valueSpan.className = 'tile-value';
-        button.appendChild(valueSpan);
-    }
-    if (currentWordTiles[index].isScrap) {
-        valueSpan.textContent = '0';
-    } else {
-        const letter = currentWordTiles[index].letter.toUpperCase();
-        valueSpan.textContent = letterValues[letter] ?? '';
-    }
-
     updateScrapsInputValue();
-    previewMasterPlay();
 }
 
 // Actualitza el camp ocult amb els índexs dels escarrassos
@@ -505,33 +444,3 @@ if (coordValue) {
         }
     }
 }
-
-// Escolta canvis al tauler a la base de dades i renderitza
-gameInfoRef.child('currentBoard').on('value', (snapshot) => {
-    const board = snapshot.val();
-    if (board) renderBoard(board);
-});
-
-// Permet clicar sobre una casella del tauler per omplir l'input de coordenades
-boardContainer.addEventListener('click', function (event) {
-    const cell = event.target.closest('td.board-cell');
-    if (!cell) return;
-
-    // Troba la fila i columna de la cel·la clicada
-    const rowElement = cell.parentElement;
-    const tbody = rowElement.parentElement;
-    const rowIdx = Array.from(tbody.children).indexOf(rowElement);
-    const colIdx = Array.from(rowElement.children).indexOf(cell) - 1; // -1 perquè la primera és <th>
-
-    if (rowIdx >= 0 && colIdx >= 0) {
-        // Format: A1, B5, etc.
-        const coord = `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
-        const coordsInput = document.getElementById('coords');
-        if (coordsInput) {
-            coordsInput.value = coord;
-            coordsInput.dispatchEvent(new Event('input')); // Perquè es detecti el canvi i s'actualitzi la direcció
-        }
-    }
-});
-
-export { renderBoard };
