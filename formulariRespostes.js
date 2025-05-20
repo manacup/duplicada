@@ -121,7 +121,7 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
 
     // Omple els camps del formulari
     coordsInput.value = playerResult.coordinates || "";
-    wordInput.value = displayWord(playerResult.word) || "";
+    wordInput.value = displayWord(playerResult.word) || "";    
     directionInput.value = playerResult.direction || "";
     const scraps = JSON.parse(playerResult.scraps || "[]");
     document.getElementById("scraps").value = JSON.stringify(scraps);

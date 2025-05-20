@@ -8,18 +8,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="style.css" rel="stylesheet">
-    
+
     <style>
         .main-grid {
             display: grid;
             grid-template-columns: 3fr 2fr;
             grid-template-areas:
-            "titol titol"
+                "titol titol"
+                "faristol rellotge"
                 "tauler gestio"
-                "tauler faristol"
                 "tauler master"
                 "respostes respostes"
-                ;
+            ;
             gap: 2rem;
         }
 
@@ -27,29 +27,32 @@
             .main-grid {
                 grid-template-columns: 1fr;
                 grid-template-areas:
-                "titol"
+                    "titol"
                     "gestio"
+                    "rellotge"
                     "tauler"
                     "faristol"
                     "master"
                     "respostes";
             }
         }
+
         @media (min-width: 1400px) {
             .main-grid {
                 display: grid;
-            grid-template-columns: 5fr 5fr 3fr;
-            grid-template-areas:
-            "titol titol titol"
-                    
-                "tauler  gestio respostes"
-                "tauler faristol respostes"
-                "tauler master respostes"
-                
+                grid-template-columns: 5fr 5fr 3fr;
+                grid-template-areas:
+                    "titol titol titol"
+                    "faristol gestio rellotge"
+                    "tauler  gestio rellotge"
+                    "tauler gestio respostes"
+                    "tauler master respostes"
+
                 ;
-            gap: 2rem;
+                gap: 2rem;
             }
         }
+
         #titol {
             grid-area: titol;
         }
@@ -73,96 +76,116 @@
         #faristol-section {
             grid-area: faristol;
         }
+
+        #rellotge-section {
+            grid-area: rellotge;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-       
+
         <div class="main-grid">
-            <!-- Títol -->
-             <div id="titol" class="text-center">
-                <h1 >Partida Duplicada de Scrabble</h1>
-            </div>
-           
-            <!-- Gestió de ronda -->
-            <section id="gestio-section">
-                <h2></h2>
-                <div class="d-flex align-items-center mb-3 gap-2">
-                    <button id="prevRoundBtn" class="btn btn-outline-secondary" title="Ronda anterior">&lt;</button>
-                    <span id="roundDisplay" class="fs-4"></span>
-                    <button id="nextRoundBtn" class="btn btn-outline-secondary" title="Ronda següent">&gt;</button>
-                    <button id="novaRondaBtn" class="btn btn-success ms-3">+ Nova ronda</button>
-                    <button type="button" class="btn btn-warning ms-3" id="tancaRondaBtn">Tanca ronda</button>
+            <!--rellotge-->
+            <section id="rellotge-section">
+                <div class="timer-container">
+                    <div id="countdown">05:00</div>
+                    <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" id="startBtn">Iniciar</button>
+                    <button class="btn btn-outline-primary" id="stopBtn">Aturar</button>
+                    <button class="btn btn-outline-primary" id="resetBtn">Reiniciar</button></div>
                 </div>
-                <!-- Dins #gestio-section, sota els botons -->
-<div class="mb-2">
-    <label for="editRackInput" class="form-label">Faristol:</label>
-    <div class="input-group mb-3">
-    
-    <input type="text" id="editRackInput" class="form-control" maxlength="15" autocomplete="off">
-    <button id="randomRackBtn" class="btn btn-outline-secondary"><i class="bi bi-shuffle"></i></button>
-    <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
-</div>
-</div>
-                <div id="gestio-message" class="mt-2"></div>
-            </section>
+    </section>
 
-            <!-- Respostes dels jugadors i resultats -->
-            <section id="respostes-section">
-                <h2>Respostes</h2>
-                <div id="responsesAccordion" class="mt-3"></div>
-                <div id="resultats" class="mt-4"></div>
-            </section>
-        
-            <!-- Tauler -->
-            <section id="tauler-section">
-                <div id="board-container" class="mb-3"></div>
-            </section>
 
-            <!-- Faristol visual -->
-            <section id="faristol-section">
-                <div id="rackTiles" class="rack-tiles"></div>
-            </section>
-
-            <!-- Formulari jugada mestra -->
-            <section id="masterForm-section">
-                <h2>Jugada</h2>
-                <form id="wordForm">
-                    <input type="checkbox" id="validateWords" class="d-none" checked>
-                    <div class="row justify-content-between align-items-center">
-                        <div class="col-2 mb-3">
-                            <label for="coordinates" class="form-label">Coordenades:</label>
-                            <input type="text" class="form-control form-control-lg" id="coords" required>
-                        </div>
-                        <div class="col-2 mb-3">
-                            <label class="form-label"></label>
-                            <div class="d-grid gap-1 direction-btns">
-    <button type="button" class="btn btn-outline-primary btn-sm w-100" id="horizontalBtn"><i class="bi bi-arrow-right"></i>
-    </button>
-    <button type="button" class="btn btn-outline-primary btn-sm w-100" id="verticalBtn"><i class="bi bi-arrow-down"></i>
-    </button>
-    <input type="hidden" id="direction" required>
-</div>
-                        </div>
-                        <input type="hidden" id="player" value="Jugada mestra">
-                    <div class="col-8 mb-3">
-                        <label for="word" class="form-label">Paraula jugada master:</label>
-                        <input type="text" class="form-control form-control-lg" id="word" required>
-                    </div></div>
-                    <div class="mb-3">
-                        <label class="form-label">Marca els escarrassos, si n'has usat algun:</label>
-                        <div id="tileButtons"></div>
-                        <input type="hidden" id="scraps">
-                    </div>
-                    <h4 id="score-master"></h4>
-                    <button type="submit" class="btn btn-success">Desa jugada mestra</button>
-                </form>
-                
-                <div id="respostaMessage" class="mt-2"></div>
-            </section>
-        </div>
+    <!-- Títol -->
+    <div id="titol" class="text-center">
+        <h1>Partida Duplicada de Scrabble</h1>
     </div>
+
+    <!-- Gestió de ronda -->
+    <section id="gestio-section">
+        <h2></h2>
+        <div class="d-flex align-items-center mb-3 gap-2">
+            <button id="prevRoundBtn" class="btn btn-outline-secondary" title="Ronda anterior">&lt;</button>
+            <span id="roundDisplay" class="fs-4"></span>
+            <button id="nextRoundBtn" class="btn btn-outline-secondary" title="Ronda següent">&gt;</button>
+            <button id="novaRondaBtn" class="btn btn-success ms-3">+ Nova ronda</button>
+            <button type="button" class="btn btn-warning ms-3" id="tancaRondaBtn">Tanca ronda</button>
+        </div>
+        <!-- Dins #gestio-section, sota els botons -->
+        <div class="mb-2">
+            <label for="editRackInput" class="form-label">Faristol:</label>
+            <div class="input-group mb-3">
+
+                <input type="text" id="editRackInput" class="form-control" maxlength="15" autocomplete="off">
+                <button id="randomRackBtn" class="btn btn-outline-secondary"><i class="bi bi-shuffle"></i></button>
+                <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
+            </div>
+        </div>
+        <div id="gestio-message" class="mt-2"></div>
+    </section>
+
+    <!-- Respostes dels jugadors i resultats -->
+    <section id="respostes-section">
+        <h2>Respostes</h2>
+        <div id="responsesAccordion" class="mt-3"></div>
+        <div id="resultats" class="mt-4"></div>
+    </section>
+
+    <!-- Tauler -->
+    <section id="tauler-section">
+        <div id="board-container" class="mb-3"></div>
+    </section>
+
+    <!-- Faristol visual -->
+    <section id="faristol-section">
+        <div id="rackTiles" class="rack-tiles"></div>
+    </section>
+
+    <!-- Formulari jugada mestra -->
+    <section id="masterForm-section">
+        <h2>Jugada</h2>
+        <form id="wordForm">
+            <input type="checkbox" id="validateWords" class="d-none" checked>
+            <div class="row justify-content-between align-items-center">
+                <div class="col-2 mb-3">
+                    <label for="coordinates" class="form-label">Coordenades:</label>
+                    <input type="text" class="form-control form-control-lg" id="coords" required>
+                </div>
+                <div class="col-2 mb-3">
+                    <label class="form-label"></label>
+                    <div class="d-grid gap-1 direction-btns">
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100" id="horizontalBtn"><i
+                                class="bi bi-arrow-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100" id="verticalBtn"><i
+                                class="bi bi-arrow-down"></i>
+                        </button>
+                        <input type="hidden" id="direction" required>
+                    </div>
+                </div>
+                <input type="hidden" id="player" value="Jugada mestra">
+                <div class="col-8 mb-3">
+                    <label for="word" class="form-label">Paraula jugada master:</label>
+                    <input type="text" class="form-control form-control-lg" id="word" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Marca els escarrassos, si n'has usat algun:</label>
+                <div id="tileButtons"></div>
+                <input type="hidden" id="scraps">
+            </div>
+            <h4 id="score-master"></h4>
+            <button type="submit" class="btn btn-success">Desa jugada mestra</button>
+        </form>
+
+        <div id="respostaMessage" class="mt-2"></div>
+    </section>
+    </div>
+    </div>
+    <audio id="pipSound" src="pip.wav" preload="auto"></audio>
     <!-- JS dependències i scripts propis -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -178,8 +201,10 @@
     <script src="rackTile.js" type="module"></script>
     <script src="resultats.js" type="module"></script>
     <script src="formulariRespostes.js" type="module"></script>
-    
-    
+    <script src="rellotge.js" type="module"></script>
+
+
 
 </body>
+
 </html>

@@ -412,19 +412,25 @@ h3 {
   pointer-events: none;
 }
 
-/* #respostaMessage {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  
-  z-index: 100000;
-  font-size: 2rem;
-  font-weight: bold;
+/* #rrellotge-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: sans-serif;
+} */
+
+.timer-container {
   text-align: center;
-  padding: 1rem;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  display: none; /* Amagat per defecte */
 }
- */
+
+#countdown {
+  font-size: 5em;
+  font-weight: bold;
+  color: #333;
+}
+
+#countdown.warning {
+  color: red;
+}
+

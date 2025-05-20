@@ -20,6 +20,7 @@ if (!window.firebase?.apps?.length) {
 const db = firebase.database();
 const gameInfoRef = db.ref('gameInfo');
 const historyRef = db.ref('rounds');
+const clockRef = db.ref('clock');
 
 
-export { db, gameInfoRef, historyRef };
+export { db, gameInfoRef, historyRef, clockRef };
