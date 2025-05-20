@@ -1,4 +1,4 @@
-import { gameInfoRef } from './firebase.js';
+import { gameInfoRef,historyRef } from './firebase.js';
 import { splitWordToTiles, displayLetter, letterValues } from './utilitats.js';
 
 const rackTilesDiv = document.getElementById('rackTiles');
@@ -69,10 +69,26 @@ function updateRackTilesPreview(word, scraps) {
     }
   }
 
-// Escolta canvis al faristol a la base de dades
-gameInfoRef.child('currentRack').on('value', (snapshot) => {
-    const rack = snapshot.val() || '';
-    renderRackTiles(rack);
+// Escolta els canvis de la ronda actual i actualitza el rackTiles
+gameInfoRef.child('currentRound').on('value', (snapshot) => {
+    const currentRoundId = snapshot.val();
+    
+    if (!currentRoundId) {
+        console.warn('No hi ha cap ronda actual.');
+        return;
+    }
+
+    historyRef.child(currentRoundId).on('value', (roundSnapshot) => {
+        const round = roundSnapshot.val();
+        if (round && round.rack) {
+            renderRackTiles(round.rack);
+        } else {
+            console.warn('No hi ha rack disponible per a la ronda actual.');
+        }
+    });
 });
+    // Si no hi ha ronda actual, no fem res     
+    
+  
 
 export { renderRackTiles, updateRackTilesPreview };

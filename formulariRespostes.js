@@ -30,14 +30,31 @@ gameInfoRef.child("currentBoard").on("value", (snapshot) => {
     renderBoard(boardBeforeMasterPlay);
   }
 });
+// Escolta els canvis de la ronda actual i actualitza el rackTiles
+gameInfoRef.child('currentRound').on('value', (snapshot) => {
+    currentRoundId = snapshot.val();
+    
+    if (!currentRoundId) {
+        console.warn('No hi ha cap ronda actual.');
+        return;
+    }
 
-// Escolta canvis al faristol i ronda actual
+    historyRef.child(currentRoundId).on('value', (roundSnapshot) => {
+        const round = roundSnapshot.val();
+        if (round && round.rack) {
+            currentRack =round.rack;
+        } else {
+            console.warn('No hi ha rack disponible per a la ronda actual.');
+        }
+    });
+});
+/* // Escolta canvis al faristol i ronda actual
 gameInfoRef.child("currentRack").on("value", (snap) => {
   currentRack = snap.val() || "";
 });
 gameInfoRef.child("currentRound").on("value", (snap) => {
   currentRoundId = snap.val();
-});
+}); */
 
 // Updated validateTiles function to validate against the rack from the database
 function validateTiles(word, scraps) {

@@ -83,32 +83,11 @@ function showRound(idx) {
         }
        
         showResultats(roundId);
+        updateUIForClosedRound(round); // Actualitza la UI tenint en compte si la ronda està tancada
     });
 }
 
-// Actualitza les respostes de la ronda actual
-function updateCurrentRoundResponses(roundId) {
-    const ref = historyRef.child(`${roundId}/responses`);
-    ref.on('value', (snapshot) => {
-        const roundData = snapshot.val();
-        const responsesAccordion = document.getElementById('responsesAccordion');
-        responsesAccordion.innerHTML = `<h2>Respostes ronda ${roundId}</h2>`;
-        const table = document.createElement('table');
-        table.className = 'table';
-        table.innerHTML = '<thead><tr><th>Nom</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
-        if (roundData) {
-            Object.entries(roundData).forEach(([playerName, playerData]) => {
-                const coordinatesDisplay = playerData.coordinates || '';
-                const wordDisplay = playerData.word || '';
-                const scoreDisplay = playerData.score !== undefined ? playerData.score : '';
-                table.innerHTML += `<tr><td>${playerName}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
-            });
-        } else {
-            table.innerHTML += '<tr><td colspan="4">No hi ha respostes per a aquesta ronda.</td></tr>';
-        }
-        responsesAccordion.appendChild(table);
-    });
-}
+
 
 // Navegació entre rondes
 const prevRoundBtn = document.getElementById('prevRoundBtn');
@@ -126,18 +105,46 @@ if (nextRoundBtn) {
 
 // Afegir una nova ronda
 function addNewRound() {
+    // Comprova si ja hi ha una ronda oberta
+    historyRef.once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        const openRounds = Object.keys(data).filter((key) => !data[key].closed);
+        if (openRounds.length > 0) {
+            alert('Ja hi ha una ronda oberta. Tanca-la abans d\'obrir-ne una de nova.');
+            return;
+        }
+    
+    // Genera un nou ID de ronda
     const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
     const prevBoard = roundsList.length > 0 ? createEmptyBoard(15) : createEmptyBoard(15);
     const newRound = {
         rack: '',
         board: prevBoard,
-        masterPlay: null,
+        
         closed: false
     };
+    const masterPlay = {
+        word: '',
+        coordinates: '',
+        direction: '',
+        score: 0
+    };
+    // Genera una jugada mestra en blanc
+    historyRef.child(`${newRoundId}/results/${actualPlayer}`).set(masterPlay).then(() => {
+        console.log(`Jugada mestra generada per la ronda ${roundId}`);
+    });
     historyRef.child(newRoundId).set(newRound).then(() => {
         roundsList.push(newRoundId);
-        showRound(roundsList.length - 1);
+        showRound(roundsList.length - 1)
+        // Actualitza la interfície
+        if (rondaDisplay) rondaDisplay.textContent = `Ronda ${newRoundId}`; 
+        if (tancaRondaBtn) tancaRondaBtn.style.display = 'block';
+        if (novaRondaBtn) novaRondaBtn.style.display = 'none';
+        updateUIForClosedRound(newRoundId)
+        console.log(`Nova ronda afegida: ${newRoundId}`);
     });
+
+});
 }
 
 // Funció per calcular les fitxes restants al sac
@@ -232,11 +239,92 @@ if (updateRackBtn) {
             historyRef.child(`${roundId}/results`).remove().then(() => {
                 console.log(`Resultats eliminats per la ronda ${roundId}`);
             });
+            //genera Jugador mestre en blanc
+            const masterPlay = {
+                word: '',
+                coordinates: '',
+                direction: '',
+                score: 0
+            };
+            historyRef.child(`${roundId}/results/${actualPlayer}`).set(masterPlay).then(() => {
+                console.log(`Jugada mestra generada per la ronda ${roundId}`);
+            });
             
         } else {
             console.error('No hi ha cap ronda actual per actualitzar el faristol.');
         }
     });
 }
+
+// Funció per tancar la ronda actual
+function closeCurrentRound() {
+    if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
+        const roundId = roundsList[currentRoundIndex];
+        historyRef.child(`${roundId}/closed`).set(true).then(() => {
+            console.log(`Ronda ${roundId} tancada.`);
+            // Actualitza la interfície
+            disableAllButtonsExceptOpenRound();
+            if (tancaRondaBtn) tancaRondaBtn.style.display = 'none';
+            if (novaRondaBtn) novaRondaBtn.style.display = 'block';
+            
+        });
+    } else {
+        console.error('No hi ha cap ronda actual per tancar.');
+    }
+}
+if (tancaRondaBtn) {
+    tancaRondaBtn.addEventListener('click', () => {
+        if (confirm('Esteu segur que voleu tancar la ronda actual?')) {
+            closeCurrentRound();
+        }
+    });
+}
+
+// Funció per desactivar tots els botons excepte el d'obrir ronda
+function disableAllButtonsExceptOpenRound() {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach((button) => {
+        if (button !== novaRondaBtn && button !== prevRoundBtn && button !== nextRoundBtn) {
+            button.disabled = true;
+        }
+    });
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach((input) => {
+        
+            input.disabled = true;
+       
+    });
+}
+
+// Actualitza la interfície si la ronda està tancada
+function updateUIForClosedRound(round) {
+    if (round.closed) {
+        if (tancaRondaBtn) tancaRondaBtn.style.display = 'none';
+        if (novaRondaBtn) novaRondaBtn.style.display = 'block';
+        disableAllButtonsExceptOpenRound();
+    } else {
+        if (tancaRondaBtn) tancaRondaBtn.style.display = 'block';
+        if (novaRondaBtn) novaRondaBtn.style.display = 'none';
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach((button) => {
+            button.disabled = false;
+        });
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach((input) => {
+            input.disabled = false;
+        });
+    }
+}
+
+
+// Afegir esdeveniments als botons
+if (novaRondaBtn) {
+    novaRondaBtn.addEventListener('click', () => {
+        if (confirm('Esteu segur que voleu obrir una nova ronda?')) {
+            addNewRound();
+        }
+    });
+}
+
 
 export { loadRoundsHistory, showRound, addNewRound };
