@@ -112,6 +112,8 @@ const tileDistribution = {
     'Ç': 1, 'Ł': 1, 'Ý': 1, 'X': 1
 }
 
+
+
 // Centralitza funcions compartides
 export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard,displayWord };
 

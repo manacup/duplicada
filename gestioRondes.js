@@ -5,6 +5,7 @@ import { renderBoard } from './tauler.js';
 import {renderRackTiles} from './rackTile.js';
 import {fillFormDataFromRoundAndPlayer} from './formulariRespostes.js';
 //import {copyTaulerRonda,setCurrentRack,setCurrentRoundId} from './formulariRespostes.js';
+import {saveWordsToBoard,findWordInfo} from './calcul.js';
 
 
 
@@ -19,7 +20,7 @@ const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const playerInput = document.getElementById("player");
 
-const actualPlayer = playerInput ? playerInput.value : null;
+const actualPlayer = playerInput ? playerInput.value : 'Jugada mestra';
 
 // Estat local
 let roundsList = [];
@@ -49,14 +50,13 @@ function showRound(idx){
         console.log('Dades de la ronda carregades:', round);
         if (!round.results) {
             console.log("no troba resultats")
-            round.results[actualPlayer]= { word: '', coordinates: '', score: 0, usedtiles: [] };
-        }
+            }
         if (round.results[actualPlayer]) {
             console.log('Jugador actual:', round.results[actualPlayer]);
 
         }
         fillFormDataFromRoundAndPlayer(roundId,actualPlayer);
-        //updateUIForCurrentRound(round, idx === roundsList.length - 1)///desmarcar en funcionar
+        updateUIForCurrentRound(round, idx === roundsList.length - 1)///desmarcar en funcionar
         if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
         if (editRackInput) editRackInput.value = displayWord(round?.rack || ''); // Use displayWord to format the rack
         //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
@@ -77,50 +77,9 @@ function showRound(idx){
        //coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
         
         showResultats(roundId);
-        //updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
+        updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
     });
 }
-function showRound2(idx) {
-    if (idx < 0 || idx >= roundsList.length) return;
-    currentRoundIndex = idx;
-    const roundId = roundsList[idx];
-    //setCurrentRoundId (roundId);
-    historyRef.child(roundId).once('value', (snapshot) => {
-        const round = snapshot.val();
-        console.log('Dades de la ronda carregades:', round);
-        if (!round.results) {
-            console.log("no troba resultats")
-            round.results[actualPlayer]= { word: '', coordinates: '', score: 0, usedtiles: [] };
-        }
-        if (round.results[actualPlayer]) {
-            console.log('Jugador actual:', round.results[actualPlayer]);
-
-        }
-        if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
-        if (editRackInput) editRackInput.value = displayWord(round?.rack || ''); // Use displayWord to format the rack
-        //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
-        renderRackTiles(round?.rack || '')
-        //setCurrentRack(round?.rack || '')
-        
-      
-        if (round?.board) {
-            console.log('Dades del tauler carregades:', round.board);
-            //copyTaulerRonda(round.board)  
-            renderBoard(round.board)        
-        }
-        if (playerInput) playerInput.value = actualPlayer;
-        if (tancaRondaBtn) tancaRondaBtn.style.display = round?.closed ? 'none' : 'block';
-        if (novaRondaBtn) novaRondaBtn.style.display = round?.closed ? 'block' : 'none';
-        if (wordInput) wordInput.value = displayWord(round.results[actualPlayer]?.word || '');
-        if (coordsInput) {coordsInput.value = round.results[actualPlayer]?.coordinates || ''; console.log(round.results[actualPlayer]?.coordinates);}
-       coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
-        
-        showResultats(roundId);
-        //updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
-    });
-}
-
-
 
 // Navegació entre rondes
 const prevRoundBtn = document.getElementById('prevRoundBtn');
@@ -139,33 +98,58 @@ if (nextRoundBtn) {
 // Afegir una nova ronda
 function addNewRound() {
     // Comprova si ja hi ha una ronda oberta
-    historyRef.once('value', (snapshot) => {
+    historyRef.once('value', async (snapshot) => {
         const data = snapshot.val() || {};
         const openRounds = Object.keys(data).filter((key) => !data[key].closed);
         if (openRounds.length > 0) {
             alert('Ja hi ha una ronda oberta. Tanca-la abans d\'obrir-ne una de nova.');
             return;
         }
+//trobar les dades de la darrera ronda tancada per copiar el tauler a la nova ronda
+        const lastClosedRoundId = roundsList.findLast(roundId => data[roundId].closed);
+        let boardToCopy = createEmptyBoard(15); // Tauler buit per defecte
+        if (lastClosedRoundId && data[lastClosedRoundId]?.board) {
+            boardToCopy = data[lastClosedRoundId].board;
+        }
     
     // Genera un nou ID de ronda
     const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
-    const prevBoard = roundsList.length > 0 ? createEmptyBoard(15) : createEmptyBoard(15);
-    const newRound = {
-        rack: '',
-        board: prevBoard,
+    const lastWord = data[lastClosedRoundId].results[actualPlayer].word;
+    const lastCoordinates = data[lastClosedRoundId].results[actualPlayer].coordinates;
+    const lastDirection = data[lastClosedRoundId].results[actualPlayer].direction
+    const lastWordInfo  = findWordInfo(lastWord, lastCoordinates, lastDirection)
+
+   saveWordsToBoard(boardToCopy, [lastWordInfo]);
+   const lastRack = data[lastClosedRoundId].rack.split('')
+   const lastUsedTiles = data[lastClosedRoundId].results[actualPlayer].usedtiles ;
+  
+   const remainingTilesArray = [...lastRack]; // Copia el rack anterior
+   // Resta les fitxes usades del rack anterior
+   lastUsedTiles.forEach(usedTile => {
+    const index = remainingTilesArray.indexOf(usedTile);
+    if (index > -1) {
+        remainingTilesArray.splice(index, 1); // Elimina una instància de la fitxa usada
+    }
+   });
+   const remainingTiles = remainingTilesArray.join('');
+   const newRound = {
+        rack: remainingTiles, // o cridar a openNewRoundWithRandomTiles() si voleu generar el rack aquí
+        board: boardToCopy,
         
-        closed: false
+        closed: false,
+        results: {
+            [actualPlayer]: {
+                word: '',
+                coordinates: '',
+                direction: '',
+                score: 0,
+                usedtiles: []
+            }
+        },
+        
     };
-    const masterPlay = {
-        word: '',
-        coordinates: '',
-        direction: '',
-        score: 0
-    };
-    // Genera una jugada mestra en blanc
-    historyRef.child(`${newRoundId}/results/${actualPlayer}`).set(masterPlay).then(() => {
-        console.log(`Jugada mestra generada per la ronda ${roundId}`);
-    });
+    gameInfoRef.child('currentRound').set(newRoundId);
+    //gameInfoRef.child('currentRack').set(remainingTiles)
     historyRef.child(newRoundId).set(newRound).then(() => {
         roundsList.push(newRoundId);
         showRound(roundsList.length - 1)
@@ -173,7 +157,7 @@ function addNewRound() {
         if (rondaDisplay) rondaDisplay.textContent = `Ronda ${newRoundId}`; 
         if (tancaRondaBtn) tancaRondaBtn.style.display = 'block';
         if (novaRondaBtn) novaRondaBtn.style.display = 'none';
-        updateUIForClosedRound(newRoundId)
+        //updateUIForClosedRound(newRoundId)
         console.log(`Nova ronda afegida: ${newRoundId}`);
     });
 
@@ -234,7 +218,17 @@ function selectRandomTiles(count) {
     return selectedTiles;
 }
 randomRackBtn.addEventListener('click', () => {
-    const selectedTiles = selectRandomTiles(7); // Selecciona 7 fitxes
+    //compta quantes fitxes hi ha al editRackInput
+    const remainingRack = normalizeWordInput(editRackInput.value).split('');
+    console.log(remainingRack)
+    const currentRackLength = remainingRack.length;
+      
+    const newTiles = selectRandomTiles(7-currentRackLength);
+    const selectedTiles = [...remainingRack,...newTiles];
+    console.log(newTiles);
+   
+    console.log(selectedTiles)
+     // Selecciona 7 fitxes
     editRackInput.value = displayWord(selectedTiles.join('')); // Mostra les fitxes seleccionades
 });
 // Exemple d'ús: Seleccionar fitxes quan s'obre una nova ronda
@@ -290,7 +284,9 @@ if (updateRackBtn) {
 }
 
 // Funció per tancar la ronda actual
+
 function closeCurrentRound() {
+    
     if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
         const roundId = roundsList[currentRoundIndex];
         historyRef.child(`${roundId}/closed`).set(true).then(() => {

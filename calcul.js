@@ -222,7 +222,7 @@ function calculateWordScore(word, startRow, startCol, direction, board, letterVa
  * @param {Array<Array<string>>} board - El tauler de joc (matriu 2D).
  * @param {Array<{word: string, startRow: number, startCol: number, direction: string}>} newWords - Array d'objectes amb info de les paraules noves a afegir.
  */
-export function saveWordsToBoard(board, newWords) {
+function saveWordsToBoard(board, newWords) {
     newWords.forEach(wordInfo => {
       const { word, startRow, startCol, direction } = wordInfo;
       const letters = word.split('');
@@ -466,6 +466,34 @@ function calculateFullPlayScore(board, wordInfo, letterValues, multiplierBoard) 
     return totalScore;
 }
 
+/**
+ * Troba la informació de la paraula (wordInfo) a partir de les seves propietats bàsiques.
+ *
+ * @param {string} word - La paraula.
+ * @param {string} coordinates - Les coordenades d'inici (ex: "A1").
+ * @param {string} direction - La direcció ('horizontal' o 'vertical').
+ * @returns {{word: string, startRow: number, startCol: number, direction: string} | null} - L'objecte wordInfo, o null si les coordenades són invàlides.
+ */
+function findWordInfo(word, coordinates, direction) {
+    // Convertir coordenades (ex: A1 -> [0, 0], B2 -> [1, 1])
+    const rowLetter = coordinates.match(/[A-Za-z]/)?.[0];
+    const colNumber = parseInt(coordinates.match(/[0-9]+/)?.[0]) - 1;
+    const startCol = colNumber;
+    const startRow = rowLetter ? rowLetter.charCodeAt(0) - 65 : -1;
+    
+
+    // Validar que les coordenades siguin vàlides (pots afegir més validacions si cal, com els límits del tauler)
+    if (startRow < 0 || startCol < 0) {
+        return null; // Coordenades invàlides
+    }
+
+    return {
+        word: word, 
+        startRow: startRow,
+        startCol: startCol,
+        direction: direction
+    };
+}
 // Exporta les funcions si cal (per a mòduls)
-export { findAllNewWords, calculateWordScoreWithNewTiles, calculateFullPlayScore };
+export { findWordInfo,findAllNewWords, calculateWordScoreWithNewTiles, calculateFullPlayScore ,saveWordsToBoard};
 
