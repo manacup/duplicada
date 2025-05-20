@@ -20,6 +20,6 @@ if (!window.firebase?.apps?.length) {
 const db = firebase.database();
 const gameInfoRef = db.ref('gameInfo');
 const historyRef = db.ref('rounds');
-const masterPlaysRef = db.ref('masterPlays');
 
-export { db, gameInfoRef, historyRef, masterPlaysRef };
+
+export { db, gameInfoRef, historyRef };

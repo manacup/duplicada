@@ -42,11 +42,11 @@ function renderResultats(round) {
     }
 
     // Mostra respostes dels jugadors si existeixen
-    if (round.responses) {
+    if (round.results) {
         const table = document.createElement('table');
         table.className = 'table';
         table.innerHTML = '<thead><tr><th>Jugador</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
-        Object.entries(round.responses).forEach(([player, data]) => {
+        Object.entries(round.results).forEach(([player, data]) => {
             const coordinatesDisplay = data.coordinates || '';
             const wordDisplay = data.word ? displayWord(data.word) : '';
             const scoreDisplay = data.score !== undefined ? data.score : '';
@@ -59,12 +59,12 @@ function renderResultats(round) {
 }
 
 // Si vols mostrar resultats de la ronda actual quan canviï:
-if (rondaDisplay) {
+/* if (rondaDisplay) {
     const observer = new MutationObserver(() => {
         const match = rondaDisplay.textContent.match(/Ronda (\d+)/);
         if (match) showResultats(match[1]);
     });
     observer.observe(rondaDisplay, { childList: true });
-}
+} */
 
 export { showResultats };

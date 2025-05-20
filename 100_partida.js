@@ -817,6 +817,8 @@ document.getElementById('updateRackBtn').onclick = async () => {
     await historyRef.child(roundId).update({ rack });
     roundsData[roundId].rack = rack;
     gestioMessage.textContent = 'Faristol actualitzat!';
+    // Normalize the rack before saving to the database
+    const rack = currentRackInput.value.trim().toUpperCase();
     await gameInfoRef.update({ currentRack: rack, currentRound: roundId });
     console.log('Sortida: updateRackBtn.onclick');
 };

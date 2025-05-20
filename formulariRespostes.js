@@ -1,18 +1,22 @@
 import { gameInfoRef, historyRef } from "./firebase.js";
 import {
+    splitWordToTiles,
   displayLetter,
   letterValues,
   normalizeWordInput,
   multiplierBoard,
 } from "./utilitats.js";
-import { splitWordToTiles, renderBoard } from "./tauler.js";
-import { saveWordsToBoard, calculateFullPlayScore } from "./calcul.js";
+import { renderBoard } from "./tauler.js";
+import { saveWordsToBoard, findAllNewWords, calculateFullPlayScore } from "./calcul.js";
+import {updateRackTilesPreview} from "./rackTile.js";
 
 const wordForm = document.getElementById("wordForm");
+const playerInput = document.getElementById("player");
 const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
 const respostaMessage = document.getElementById("respostaMessage");
+let ENABLE_WORD_VALIDATION = document.getElementById("validateWords")?.checked;
 
 let currentRack = "";
 let currentRoundId = null;
@@ -35,9 +39,9 @@ gameInfoRef.child("currentRound").on("value", (snap) => {
   currentRoundId = snap.val();
 });
 
-// Validació: comprova que les fitxes noves són al faristol
+// Updated validateTiles function to validate against the rack from the database
 function validateTiles(word, scraps) {
-  const rackTiles = splitWordToTiles(currentRack.toUpperCase());
+  const rackTiles = splitWordToTiles(currentRack);
   const rackCounts = {};
   rackTiles.forEach((tile) => {
     if (tile !== "?") {
@@ -81,6 +85,10 @@ wordForm.addEventListener("submit", async (e) => {
   if (!currentRoundId) {
     respostaMessage.textContent = "No hi ha ronda activa!";
     respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+    }, 3000);
     return;
   }
 
@@ -91,15 +99,16 @@ wordForm.addEventListener("submit", async (e) => {
 
   // Detecta escarrassos (minúscules)
   const tiles = splitWordToTiles(wordRaw);
-  const scraps = [];
-  for (let i = 0; i < tiles.length; i++) {
-    if (tiles[i] === tiles[i].toLowerCase()) scraps.push(i);
-  }
-
+  const scraps = document.getElementById("scraps").value;
+ 
   // Validació: comprova que les fitxes noves són al faristol
   if (!validateTiles(word, scraps)) {
     respostaMessage.textContent = "Les fitxes no coincideixen amb el faristol!";
     respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+    }, 3000);
     return;
   }
 
@@ -111,6 +120,10 @@ wordForm.addEventListener("submit", async (e) => {
   if (startRow < 0 || startCol < 0) {
     respostaMessage.textContent = "Coordenades invàlides!";
     respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+    }, 3000);
     return;
   }
   let formattedWord = "";
@@ -128,29 +141,134 @@ wordForm.addEventListener("submit", async (e) => {
     ) {
       respostaMessage.textContent = `La lletra "${displayLetter(formattedWord[i])}" no coincideix amb la lletra "${displayLetter(boardBeforeMasterPlay[row][col])}" a la posició ${String.fromCharCode(65 + row)}${col + 1}.`;
       respostaMessage.className = "alert alert-danger";
+      setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+    }, 3000);
       return;
     }
   }
+  // Comprova si el tauler està buit
+  const isBoardEmpty = boardBeforeMasterPlay.flat().every((cell) => cell === "");
+
+  const boardSize = boardBeforeMasterPlay.length;
+  const center = Math.floor(boardSize / 2);
+
+  if (isBoardEmpty) {
+    // Si el tauler està buit, la paraula ha de passar per la casella central
+    let passesThroughCenter = false;
+    for (let i = 0; i < formattedWord.length; i++) {
+      const row = startRow + (directionInput.value === "vertical" ? i : 0);
+      const col = startCol + (directionInput.value === "horizontal" ? i : 0);
+      if (row === center && col === center) {
+        passesThroughCenter = true;
+        break;
+      }
+    }
+    if (!passesThroughCenter) {
+      
+      respostaMessage.textContent = "La primera paraula ha de passar per la casella central!";
+    respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+    }, 3000);
+      return;
+    }
+  } else {
+    // Si el tauler NO està buit, la paraula ha de tocar almenys una fitxa existent
+    let touchesExisting = false;
+    for (let i = 0; i < formattedWord.length; i++) {
+      const row = startRow + (directionInput.value === "vertical" ? i : 0);
+      const col = startCol + (directionInput.value === "horizontal" ? i : 0);
+
+      // Comprova les 4 caselles adjacents (amunt, avall, esquerra, dreta)
+      const adjacents = [
+        [row - 1, col],
+        [row + 1, col],
+        [row, col - 1],
+        [row, col + 1],
+      ];
+      for (const [adjRow, adjCol] of adjacents) {
+        if (
+          adjRow >= 0 &&
+          adjRow < boardSize &&
+          adjCol >= 0 &&
+          adjCol < boardSize &&
+          boardBeforeMasterPlay[adjRow][adjCol] !== ""
+        ) {
+          touchesExisting = true;
+          break;
+        }
+      }
+      // També considera si la casella ja té una lletra (sobreposa)
+      if (boardBeforeMasterPlay[row][col] !== "") {
+        touchesExisting = true;
+      }
+      if (touchesExisting) break;
+    }
+    if (!touchesExisting) {
+      
+      respostaMessage.textContent = "La paraula ha de tocar almenys una fitxa existent al tauler!";
+    respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+    }, 3000);
+      return;
+    }}
+    // Just abans de calcular la puntuació i afegir la paraula al tauler:
+    const newWordInfo = {
+        word: formattedWord,
+        startRow: startRow,
+        startCol: startCol,
+        direction: directionInput.value,
+      };
+    const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
+    //afegeig una variable global per si s'han de validar o no les paraules
+    if (typeof ENABLE_WORD_VALIDATION !== "undefined" && ENABLE_WORD_VALIDATION) {
+        // Comprova si totes les paraules formades són vàlides          
+    if (!window.validateAllWords(allWords)) {
+        
+        respostaMessage.textContent = "Alguna de les paraules formades no és vàlida!";
+        respostaMessage.className = "alert alert-danger";
+        setTimeout(() => {
+            respostaMessage.textContent = "";
+            respostaMessage.className = "";
+        }, 3000);
+        return; // No puntua ni afegeix la jugada
+    }
+    }
 
   // Calcula la puntuació de la jugada mestra
-  const newWordInfo = { word: formattedWord, startRow, startCol, direction };
-  const score = calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard);
-
-  // Desa la jugada mestra a la base de dades (NO reseteja el formulari ni modifica el tauler)
-  const resposta = {
-    player: "Jugada mestra",
+const score = calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard);
+const player = playerInput.value;
+// Desa la jugada mestra a l'apartat de resultats amb key=player
+const resposta = {
     coordinates: coords,
     direction: direction,
     word: word,
     scraps: scraps,
     score: score,
     timestamp: Date.now(),
-  };
-  await historyRef.child(`${currentRoundId}/responses`).push(resposta);
+};
+await historyRef.child(`${currentRoundId}/results/${player}`).set(resposta);
+//mostra missatge durant 5 segons
+respostaMessage.textContent = `Jugada desada!`;
+respostaMessage.className = "alert alert-success";
+setTimeout(() => {
+    respostaMessage.textContent = "";
+    respostaMessage.className = "";
+}, 3000);
 
-  respostaMessage.textContent = "Jugada mestra desada!";
-  respostaMessage.className = "alert alert-success";
-  // NO facis wordForm.reset();
+//desa a la ronda les noves lletres posades al tauler
+//comprova les fitxes que queden visibles del racktile
+const newLetters = document.querySelectorAll(".rack-tile[style*='visibility: hidden']");
+const newLettersArray = Array.from(newLetters).map((tile) => tile.dataset.letter);
+console.log("Noves lletres:", newLettersArray);
+await historyRef.child(`${currentRoundId}/results/${player}/usedtiles`).set(newLettersArray);
+// Actualitza el faristol a la base de dades
+// NO facis wordForm.reset();
 });
 
 coordsInput.addEventListener("input", () => {
@@ -179,7 +297,9 @@ document.getElementById("verticalBtn")?.addEventListener("click", () => {
   if (letter && number) coordsInput.value = `${number[0]}${letter[0]}`;
 });
 
-export function previewMasterPlay() {
+
+// Guarda la jugada mestra anterior per a la previsualització
+function previewMasterPlay() {
   if (!boardBeforeMasterPlay) return;
   const coords = coordsInput.value.trim().toUpperCase();
   const word = wordInput.value.trim();
@@ -212,11 +332,13 @@ export function previewMasterPlay() {
 
   // Calcula les coordenades de les fitxes noves
   let newTiles = [];
+  
   for (let k = 0; k < formattedWord.length; k++) {
     const row = startRow + (direction === "vertical" ? k : 0);
     const col = startCol + (direction === "horizontal" ? k : 0);
     if (boardBeforeMasterPlay[row][col] === "") {
       newTiles.push([row, col]);
+      
     }
   }
 
@@ -238,9 +360,95 @@ directionInput.addEventListener("input", previewMasterPlay);
 wordInput.addEventListener("input", previewMasterPlay);
 document.getElementById("scraps").addEventListener("input", previewMasterPlay);
  // Llegeix l'estat actual dels escarrassos
- let scraps = JSON.parse(document.getElementById("scraps").value || "[]");
+ 
+ const scrapsInput = document.getElementById("scraps");
+const tileButtonsDiv = document.getElementById("tileButtons");
+
+let currentWordTiles = [];
 
 function generateTileButtons(word) {
+  tileButtonsDiv.innerHTML = "";
+  currentWordTiles = [];
+  const tiles = splitWordToTiles(word);
+  for (let i = 0; i < tiles.length; i++) {
+    const letter = displayLetter(tiles[i]).toUpperCase();
+    const button = document.createElement("button");
+    button.classList.add("tile-button");
+    button.textContent = displayLetter(tiles[i]);
+    button.dataset.index = i;
+    button.type = "button";
+    // Afegeix la puntuació a la cantonada inferior dreta
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "tile-value";
+    // Si és minúscula (escarràs), mostra 0
+    const isScrap = tiles[i] === tiles[i].toLowerCase();
+    valueSpan.textContent = isScrap ? "0" : letterValues[letter] ?? "";
+    button.appendChild(valueSpan);
+    // Afegeix l'esdeveniment de clic per marcar/desmarcar escarràs
+
+    button.addEventListener("click", toggleScrap);
+    tileButtonsDiv.appendChild(button);
+    currentWordTiles.push({ letter: tiles[i], isScrap: false });
+  }
+  scrapsInput.value = "";
+  const scraps = JSON.parse(scrapsInput.value || "[]");
+  updateRackTilesPreview(word, scraps)
+}
+
+// Marca/desmarca una lletra com a escarràs
+function toggleScrap(event) {
+  event.preventDefault();
+  const button = event.target;
+  const index = parseInt(button.dataset.index);
+  currentWordTiles[index].isScrap = !currentWordTiles[index].isScrap;
+  button.classList.toggle("scrap");
+  // Mostra minúscula si és escarràs, sinó majúscula
+  button.textContent = currentWordTiles[index].isScrap
+    ? displayLetter(currentWordTiles[index].letter.toLowerCase())
+    : displayLetter(currentWordTiles[index].letter.toUpperCase());
+
+  // Actualitza el valor de la fitxa a la cantonada
+  let valueSpan = button.querySelector(".tile-value");
+  if (!valueSpan) {
+    valueSpan = document.createElement("span");
+    valueSpan.className = "tile-value";
+    button.appendChild(valueSpan);
+  }
+  if (currentWordTiles[index].isScrap) {
+    valueSpan.textContent = "0";
+  } else {
+    const letter = currentWordTiles[index].letter.toUpperCase();
+    valueSpan.textContent = letterValues[letter] ?? "";
+  }
+
+  // Actualitza el camp ocult amb els índexs dels escarrassos
+  updateScrapsInputValue();
+
+  // Actualitza la vista del rack amb els valors correctes
+  const scraps = JSON.parse(scrapsInput.value || "[]");
+  updateRackTilesPreview(wordInput.value, scraps);
+
+  // Actualitza la previsualització de la jugada
+  previewMasterPlay();
+}
+
+// Actualitza el camp ocult amb els índexs dels escarrassos
+function updateScrapsInputValue() {
+  const scrapIndices = currentWordTiles
+    .map((tile, idx) => (tile.isScrap ? idx : null))
+    .filter((idx) => idx !== null);
+  scrapsInput.value = JSON.stringify(scrapIndices);
+}
+
+// Quan s'escriu la paraula, genera els botons (amb dígrafs)
+// Sempre converteix a majúscula abans de processar
+wordInput.addEventListener("input", () => {
+  const word = wordInput.value.toUpperCase();
+  wordInput.value = word; // Actualitza el valor de l'input
+  generateTileButtons(word);
+});
+ /////////////////////
+/* function generateTileButtons(word) {
   const tileButtonsDiv = document.getElementById("tileButtons");
   if (!tileButtonsDiv) return;
   tileButtonsDiv.innerHTML = "";
@@ -263,9 +471,12 @@ function generateTileButtons(word) {
     // Marca visualment si és escarràs
     if (scraps.includes(i)) btn.classList.add("btn-warning");
 
+  
+    // Afegeix l'esdeveniment de clic per marcar/desmarcar escarràs
+
     btn.addEventListener("click", () => {
       // Actualitza scraps abans de fer res més
-      //let scrapsNow = JSON.parse(document.getElementById("scraps").value || "[]");
+      let scrapsNow = JSON.parse(document.getElementById("scraps").value || "[]");
       if (scrapsNow.includes(i)) {
         scrapsNow = scrapsNow.filter((idx) => idx !== i);
       } else {
@@ -283,61 +494,30 @@ function generateTileButtons(word) {
 
   // Un cop generats tots els botons, actualitza el rack visual
   updateRackTilesPreview(word, scraps);
-}
+} */
 
-function updateRackTilesPreview(word, scraps) {
-  const rackTilesDiv = document.getElementById("rackTiles");
-  if (!rackTilesDiv) return;
 
-  // Mostra totes les fitxes primer
-  Array.from(rackTilesDiv.children).forEach(
-    (tile) => (tile.style.visibility = "visible")
-  );
 
-  const tiles = splitWordToTiles(word);
-  // Crea una còpia de l'estat de les fitxes del rack (no només referència)
-  let rackState = Array.from(rackTilesDiv.children).map((tile) => ({
-    el: tile,
-    letter: tile.dataset.letter?.toUpperCase() || tile.textContent.trim().charAt(0).toUpperCase(),
-    isBlank: tile.dataset.value === "0" || tile.classList.contains("scrap"),
-    used: false
-  }));
 
-  for (let i = 0; i < tiles.length; i++) {
-    const isScrap = scraps.includes(i);
-    const tileLetter = tiles[i].toUpperCase();
 
-    if (isScrap) {
-      // Amaga la primera fitxa escarràs visible i no usada
-      const blankTile = rackState.find(
-        (t) => t.isBlank && !t.used && t.el.style.visibility !== "hidden"
-      );
-      if (blankTile) {
-        blankTile.el.style.visibility = "hidden";
-        blankTile.used = true;
-      }
-    } else {
-      // Amaga la primera fitxa normal visible i no usada que coincideixi amb la lletra
-      const normalTile = rackState.find(
-        (t) => !t.isBlank && t.letter === tileLetter && !t.used && t.el.style.visibility !== "hidden"
-      );
-      if (normalTile) {
-        normalTile.el.style.visibility = "hidden";
-        normalTile.used = true;
-      }
-    }
-  }
-}
-
-// Actualitza els botons quan s'escriu la paraula
-wordInput.addEventListener("input", () => {
-  generateTileButtons(wordInput.value);
-  previewMasterPlay();
-});
 
 // També actualitza els botons en carregar la pàgina si hi ha valor inicial
 if (wordInput.value) {
   generateTileButtons(wordInput.value);
 }
+
+// Desa el nom del jugador al localStorage
+playerInput.addEventListener("input", () => {
+  const playerName = playerInput.value.trim();
+  localStorage.setItem("playerName", playerName);
+});
+
+// Carrega el nom del jugador del localStorage en carregar la pàgina
+window.addEventListener("load", () => {
+  const savedPlayerName = localStorage.getItem("playerName");
+  if (savedPlayerName) {
+    playerInput.value = savedPlayerName;
+  }
+});
 
 export {};

@@ -24,6 +24,7 @@ const letterValues = {
     û: 0, ł: 0, ý: 0    // escarrassos dígraf
 };
 
+
 // Substitueix dígrafs per caràcter fictici (majúscula/minúscula segons cas)
 function normalizeWordInput(word) {
     return word
@@ -50,17 +51,19 @@ function displayWord(word) {
 }
 
 // Divideix una paraula en fitxes (tenint en compte dígrafs)
+
 function splitWordToTiles(word) {
+    // Retorna un array on cada element és una lletra o dígraf (ja normalitzat)
     const tiles = [];
     let i = 0;
     while (i < word.length) {
         let found = false;
-        for (const d of ['L·L', 'L.L', 'L-L', 'ĿL', 'W', 'NY', 'QU']) {
-            const regex = new RegExp('^' + d, 'i');
-            if (regex.test(word.slice(i))) {
-                const norm = normalizeWordInput(word.slice(i, i + d.length));
+        for (const [digraph, replacement] of Object.entries(DIGRAPH_MAP)) {
+            if (word.slice(i, i + digraph.length).toUpperCase() === digraph) {
+                // Substitueix pel caràcter fictici
+                const norm = normalizeWordInput(word.slice(i, i + digraph.length));
                 tiles.push(norm);
-                i += d.length;
+                i += digraph.length;
                 found = true;
                 break;
             }
@@ -70,6 +73,7 @@ function splitWordToTiles(word) {
             i++;
         }
     }
+    console.log('Tiles:', tiles);
     return tiles;
 }
 
@@ -97,13 +101,24 @@ const multiplierBoard = [
     ['TW','','','DL','','','','TW','','','','DL','','','TW']
 ];
 
+// Distribució de fitxes
+const tileDistribution = {
+    '?': 2, // Escarrassos (fitxes en blanc)
+    'E': 13, 'A': 12, 'I': 8, 'R': 8, 'S': 8, 'N': 6, 'O': 5, 'T': 5, 'L': 4, 'U': 4,
+    'C': 3, 'D': 3, 'M': 3,
+    'B': 2, 'G': 2, 'P': 2,
+    'F': 1, 'V': 1,
+    'H': 1, 'J': 1, 'Û': 1, 'Z': 1,
+    'Ç': 1, 'Ł': 1, 'Ý': 1, 'X': 1
+}
+
 // Centralitza funcions compartides
-export { splitWordToTiles, normalizeWordInput, displayLetter, displayWord };
+export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard,displayWord };
 
 export {
     DIGRAPH_MAP,
     REVERSE_DIGRAPH_MAP,
-    letterValues,
-    createEmptyBoard,
-    multiplierBoard
+    letterValues,    
+    multiplierBoard,
+    tileDistribution
 };
