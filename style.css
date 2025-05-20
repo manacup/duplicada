@@ -14,6 +14,7 @@ body {
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: none; !important
 }
 
 h1,
@@ -119,6 +120,9 @@ h3 {
   background-color: #fff3cd;
   border-color: #ffeeba;
   color: #85640a;
+}
+.alert{
+  display: block;
 }
 
 /* Estils per a l'acordió de respostes a dades.html */
@@ -407,3 +411,20 @@ h3 {
   font-weight: bold;
   pointer-events: none;
 }
+
+/* #respostaMessage {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  
+  z-index: 100000;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: none; /* Amagat per defecte */
+}
+ */
