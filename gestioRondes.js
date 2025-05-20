@@ -1,6 +1,12 @@
 import { gameInfoRef, historyRef } from './firebase.js';
 import { createEmptyBoard, normalizeWordInput, displayWord,tileDistribution } from './utilitats.js';
 import { showResultats } from './resultats.js';
+import { renderBoard } from './tauler.js';
+import {renderRackTiles} from './rackTile.js';
+import {fillFormDataFromRoundAndPlayer} from './formulariRespostes.js';
+//import {copyTaulerRonda,setCurrentRack,setCurrentRoundId} from './formulariRespostes.js';
+
+
 
 // Elements UI
 const novaRondaBtn = document.getElementById('novaRondaBtn');
@@ -34,56 +40,83 @@ function loadRoundsHistory() {
 }
 
 // Mostra una ronda específica
-function showRound(idx) {
+function showRound(idx){
     if (idx < 0 || idx >= roundsList.length) return;
     currentRoundIndex = idx;
     const roundId = roundsList[idx];
-    historyRef.child(roundId).once('value', (snapshot) => {
+    historyRef.child(roundId).on('value', (snapshot) => {
         const round = snapshot.val();
-        //console.log('Dades de la ronda carregades:', round);
+        console.log('Dades de la ronda carregades:', round);
         if (!round.results) {
+            console.log("no troba resultats")
             round.results[actualPlayer]= { word: '', coordinates: '', score: 0, usedtiles: [] };
         }
         if (round.results[actualPlayer]) {
             console.log('Jugador actual:', round.results[actualPlayer]);
+
+        }
+        fillFormDataFromRoundAndPlayer(roundId,actualPlayer);
+        //updateUIForCurrentRound(round, idx === roundsList.length - 1)///desmarcar en funcionar
+        if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
+        if (editRackInput) editRackInput.value = displayWord(round?.rack || ''); // Use displayWord to format the rack
+        //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
+        renderRackTiles(round?.rack || '')
+        //setCurrentRack(round?.rack || '')
+        
+      
+        if (round?.board) {
+            console.log('Dades del tauler carregades:', round.board);
+            //copyTaulerRonda(round.board)  
+            renderBoard(round.board)        
+        }
+        
+        if (tancaRondaBtn) tancaRondaBtn.style.display = round?.closed ? 'none' : 'block';
+        if (novaRondaBtn) novaRondaBtn.style.display = round?.closed ? 'block' : 'none';
+        //if (wordInput) wordInput.value = displayWord(round.results[actualPlayer]?.word || '');
+        //if (coordsInput) {coordsInput.value = round.results[actualPlayer]?.coordinates || ''; console.log(round.results[actualPlayer]?.coordinates);}
+       //coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
+        
+        showResultats(roundId);
+        //updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
+    });
+}
+function showRound2(idx) {
+    if (idx < 0 || idx >= roundsList.length) return;
+    currentRoundIndex = idx;
+    const roundId = roundsList[idx];
+    //setCurrentRoundId (roundId);
+    historyRef.child(roundId).once('value', (snapshot) => {
+        const round = snapshot.val();
+        console.log('Dades de la ronda carregades:', round);
+        if (!round.results) {
+            console.log("no troba resultats")
+            round.results[actualPlayer]= { word: '', coordinates: '', score: 0, usedtiles: [] };
+        }
+        if (round.results[actualPlayer]) {
+            console.log('Jugador actual:', round.results[actualPlayer]);
+
         }
         if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
         if (editRackInput) editRackInput.value = displayWord(round?.rack || ''); // Use displayWord to format the rack
         //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
-
+        renderRackTiles(round?.rack || '')
+        //setCurrentRack(round?.rack || '')
+        
+      
+        if (round?.board) {
+            console.log('Dades del tauler carregades:', round.board);
+            //copyTaulerRonda(round.board)  
+            renderBoard(round.board)        
+        }
         if (playerInput) playerInput.value = actualPlayer;
         if (tancaRondaBtn) tancaRondaBtn.style.display = round?.closed ? 'none' : 'block';
         if (novaRondaBtn) novaRondaBtn.style.display = round?.closed ? 'block' : 'none';
         if (wordInput) wordInput.value = displayWord(round.results[actualPlayer]?.word || '');
-        if (coordsInput) coordsInput.value = round.results[actualPlayer]?.coordinates || '';
-        coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
+        if (coordsInput) {coordsInput.value = round.results[actualPlayer]?.coordinates || ''; console.log(round.results[actualPlayer]?.coordinates);}
+       coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
         
-
-        if (round && round.board) {
-            console.log('Dades del tauler carregades:', round.board);
-            //gameInfoRef.child('currentBoard').set(round.board); // Carrega el tauler desat
-            const boardElement = document.getElementById('board');
-            if (boardElement) {
-                console.log('Renderitzant el tauler...');
-                boardElement.innerHTML = '';
-                round.board.forEach(row => {
-                    const rowElement = document.createElement('div');
-                    rowElement.className = 'board-row';
-                    row.forEach(cell => {
-                        const cellElement = document.createElement('div');
-                        cellElement.className = 'board-cell';
-                        cellElement.textContent = cell || '';
-                        rowElement.appendChild(cellElement);
-                    });
-                    boardElement.appendChild(rowElement);
-                });
-            } else {
-                console.error('Element del tauler no trobat!');
-            }
-        }
-       
         showResultats(roundId);
-        updateUIForClosedRound(round); // Actualitza la UI tenint en compte si la ronda està tancada
+        //updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
     });
 }
 
@@ -280,31 +313,31 @@ if (tancaRondaBtn) {
     });
 }
 
-// Funció per desactivar tots els botons excepte el d'obrir ronda
-function disableAllButtonsExceptOpenRound() {
+// Funció per actualitzar la UI basant-se en la ronda actual i si és l'última
+function updateUIForCurrentRound(round, isLastRound) {
     const buttons = document.querySelectorAll('button');
-    buttons.forEach((button) => {
-        if (button !== novaRondaBtn && button !== prevRoundBtn && button !== nextRoundBtn) {
-            button.disabled = true;
-        }
-    });
     const inputs = document.querySelectorAll('input');
-    inputs.forEach((input) => {
-        
-            input.disabled = true;
-       
-    });
-}
 
-// Actualitza la interfície si la ronda està tancada
-function updateUIForClosedRound(round) {
     if (round.closed) {
+        // Si la ronda està tancada
         if (tancaRondaBtn) tancaRondaBtn.style.display = 'none';
-        if (novaRondaBtn) novaRondaBtn.style.display = 'block';
-        disableAllButtonsExceptOpenRound();
+        if (novaRondaBtn) novaRondaBtn.style.display = isLastRound ? 'block' : 'none'; // Mostra Nova Ronda només si és l'última ronda
+
+        // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
+        buttons.forEach((button) => {
+            if (button !== prevRoundBtn && button !== nextRoundBtn && button !== novaRondaBtn) {
+                button.disabled = true;
+            }
+        });
+        inputs.forEach((input) => {
+            input.disabled = true;
+        });
     } else {
+        // Si la ronda està oberta
         if (tancaRondaBtn) tancaRondaBtn.style.display = 'block';
         if (novaRondaBtn) novaRondaBtn.style.display = 'none';
+
+        // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
         const buttons = document.querySelectorAll('button');
         buttons.forEach((button) => {
             button.disabled = false;

@@ -14,6 +14,7 @@ import {
 
 // Funció per renderitzar el tauler a l'HTML
 const boardContainer = document.getElementById("board-container");
+const wordInput = document.getElementById("word");
 
 function renderBoard(board, newTiles = []) {
   // Si el board no és vàlid, crea un tauler buit per evitar errors

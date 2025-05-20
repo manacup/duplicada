@@ -69,26 +69,8 @@ function updateRackTilesPreview(word, scraps) {
     }
   }
 
-// Escolta els canvis de la ronda actual i actualitza el rackTiles
-gameInfoRef.child('currentRound').on('value', (snapshot) => {
-    const currentRoundId = snapshot.val();
-    
-    if (!currentRoundId) {
-        console.warn('No hi ha cap ronda actual.');
-        return;
-    }
+//Funció per mostrar el rack d'una ronda donada
 
-    historyRef.child(currentRoundId).on('value', (roundSnapshot) => {
-        const round = roundSnapshot.val();
-        if (round && round.rack) {
-            renderRackTiles(round.rack);
-        } else {
-            console.warn('No hi ha rack disponible per a la ronda actual.');
-        }
-    });
-});
-    // Si no hi ha ronda actual, no fem res     
-    
   
 
 export { renderRackTiles, updateRackTilesPreview };

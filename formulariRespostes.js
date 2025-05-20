@@ -20,16 +20,21 @@ let ENABLE_WORD_VALIDATION = document.getElementById("validateWords")?.checked;
 
 let currentRack = "";
 let currentRoundId = null;
-
+/* function setCurrentRack(rack) {
+  currentRack = rack;
+}
+function setCurrentRoundId(roundId) {
+  currentRoundId = roundId;
+} */
 // Assumeix que tens accés a currentBoard o boardBeforeMasterPlay
 let boardBeforeMasterPlay = null;
-gameInfoRef.child("currentBoard").on("value", (snapshot) => {
+/* gameInfoRef.child("currentBoard").on("value", (snapshot) => {
   const board = snapshot.val();
   if (board) {
     boardBeforeMasterPlay = board.map((row) => row.slice());
     renderBoard(boardBeforeMasterPlay);
   }
-});
+}); */
 // Escolta els canvis de la ronda actual i actualitza el rackTiles
 gameInfoRef.child('currentRound').on('value', (snapshot) => {
     currentRoundId = snapshot.val();
@@ -48,13 +53,24 @@ gameInfoRef.child('currentRound').on('value', (snapshot) => {
         }
     });
 });
-/* // Escolta canvis al faristol i ronda actual
+
+/*// Assumeix que tens accés a currentBoard o boardBeforeMasterPlay
+let boardBeforeMasterPlay = null;
+
+function copyTaulerRonda(board){
+  boardBeforeMasterPlay=board.map((row) => row.slice());
+  renderBoard(boardBeforeMasterPlay);
+  
+}
+
+
+ // Escolta canvis al faristol i ronda actual
 gameInfoRef.child("currentRack").on("value", (snap) => {
   currentRack = snap.val() || "";
-});
+}); 
 gameInfoRef.child("currentRound").on("value", (snap) => {
   currentRoundId = snap.val();
-}); */
+});*/
 
 // Updated validateTiles function to validate against the rack from the database
 function validateTiles(word, scraps) {
@@ -92,6 +108,97 @@ function validateTiles(word, scraps) {
   }
 
   return true;
+}
+
+async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
+    respostaMessage.textContent = "";
+    const roundRef = historyRef.child(roundNumber);
+
+    try {
+        const snapshot = await roundRef.once('value');
+        const roundData = snapshot.val();
+
+        if (!roundData) {
+            console.warn(`No es troba la ronda amb número: ${roundNumber}`);
+            respostaMessage.textContent = `No es troba la ronda ${roundNumber}!`;
+            respostaMessage.className = "alert alert-danger";
+            return;
+        }
+boardBeforeMasterPlay = roundData.board.map((row) => row.slice())
+        const playerResult = roundData.results?.[playerId];
+
+        if (!playerResult) {
+            console.warn(`No es troben dades de joc per al jugador ${playerId} a la ronda ${roundNumber}.`);
+            respostaMessage.textContent = `No hi ha dades per al jugador ${playerId} a la ronda ${roundNumber}!`;
+            respostaMessage.className = "alert alert-warning";
+            // Optionally clear form fields if no data found
+            coordsInput.value = "";
+            wordInput.value = "";
+            directionInput.value = "";
+            document.getElementById("scraps").value = "";
+            generateTileButtons("");
+            updateRackTilesPreview("", []);
+            return;
+        }
+
+        // Omple els camps del formulari
+        coordsInput.value = playerResult.coordinates || "";
+        wordInput.value = playerResult.word || "";
+        directionInput.value = playerResult.direction || "";
+        const scraps = JSON.parse(playerResult.scraps || "[]");
+        document.getElementById("scraps").value = JSON.stringify(scraps);
+
+        // Actualitza els botons de les fitxes i la vista del rack
+        generateTileButtons(playerResult.word || "");
+        // Re-apply the scrap visual state based on the loaded scraps
+        const tileButtons = tileButtonsDiv.querySelectorAll('.tile-button');
+        tileButtons.forEach(button => {
+            const index = parseInt(button.dataset.index);
+            if (scraps.includes(index)) {
+                button.classList.add("scrap");
+                 // Update letter case and value for scraps
+                 const letter = currentWordTiles[index].letter.toLowerCase();
+                 button.textContent = displayLetter(letter);
+                 let valueSpan = button.querySelector(".tile-value");
+                 if (!valueSpan) {
+                    valueSpan = document.createElement("span");
+                    valueSpan.className = "tile-value";
+                    button.appendChild(valueSpan);
+                 }
+                 valueSpan.textContent = "0";
+
+            } else {
+                button.classList.remove("scrap");
+                const letter = currentWordTiles[index].letter.toUpperCase();
+                button.textContent = displayLetter(letter);
+                let valueSpan = button.querySelector(".tile-value");
+                if (!valueSpan) {
+                    valueSpan = document.createElement("span");
+                    valueSpan.className = "tile-value";
+                    button.appendChild(valueSpan);
+                }
+                valueSpan.textContent = letterValues[letter] ?? "";
+            }
+             currentWordTiles[index].isScrap = scraps.includes(index);
+        });
+
+
+        updateRackTilesPreview(playerResult.word || "", scraps);
+
+        // Actualitza la previsualització del tauler i la puntuació si hi ha dades
+        if (playerResult.coordinates && playerResult.word && playerResult.direction && boardBeforeMasterPlay) {
+             previewMasterPlay();
+        } else {
+            renderBoard(boardBeforeMasterPlay);
+            document.getElementById("score-master").textContent = "";
+        }
+
+
+    } catch (error) {
+        console.error("Error omplint el formulari de resposta:", error);
+        respostaMessage.textContent = "Error carregant les dades de la jugada!";
+        respostaMessage.className = "alert alert-danger";
+    }
 }
 
 // Envia la resposta
@@ -463,8 +570,8 @@ wordInput.addEventListener("input", () => {
   const word = wordInput.value.toUpperCase();
   wordInput.value = word; // Actualitza el valor de l'input
   generateTileButtons(word);
+  previewMasterPlay(); // Call preview after generating buttons
 });
- /////////////////////
 /* function generateTileButtons(word) {
   const tileButtonsDiv = document.getElementById("tileButtons");
   if (!tileButtonsDiv) return;
@@ -537,4 +644,4 @@ window.addEventListener("load", () => {
   }
 });
 
-export {};
+export {fillFormDataFromRoundAndPlayer};
