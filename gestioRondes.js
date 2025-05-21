@@ -122,17 +122,18 @@ function addNewRound() {
       roundsList.length > 0
         ? String(Number(roundsList[roundsList.length - 1]) + 1)
         : "1";
-    const lastWord = data[lastClosedRoundId].results[actualPlayer].word;
+        
+    const lastWord = data[lastClosedRoundId]?.results[actualPlayer].word || "";
     const lastCoordinates =
-      data[lastClosedRoundId].results[actualPlayer].coordinates;
+      data[lastClosedRoundId]?.results[actualPlayer].coordinates || "";
     const lastDirection =
-      data[lastClosedRoundId].results[actualPlayer].direction;
+      data[lastClosedRoundId]?.results[actualPlayer].direction   || "";
     const lastWordInfo = findWordInfo(lastWord, lastCoordinates, lastDirection);
-
+if(data[lastClosedRoundId])
     saveWordsToBoard(boardToCopy, [lastWordInfo]);
-    const lastRack = data[lastClosedRoundId].rack.split("");
+    const lastRack = data[lastClosedRoundId]?.rack.split("") || []; // Converteix a array
     const lastUsedTiles =
-      data[lastClosedRoundId].results[actualPlayer].usedtiles;
+      data[lastClosedRoundId]?.results[actualPlayer].usedtiles || []; // Fitxes usades
 
     const remainingTilesArray = [...lastRack]; // Copia el rack anterior
     // Resta les fitxes usades del rack anterior
@@ -146,7 +147,6 @@ function addNewRound() {
     const newRound = {
       rack: remainingTiles, // o cridar a openNewRoundWithRandomTiles() si voleu generar el rack aquí
       board: boardToCopy,
-
       closed: false,
       results: {
         [actualPlayer]: {
