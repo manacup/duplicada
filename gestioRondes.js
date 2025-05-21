@@ -13,6 +13,7 @@ import { generateRankingTable,displayRanking } from './classificacio.js';
 // Elements UI
 const novaRondaBtn = document.getElementById('novaRondaBtn');
 const tancaRondaBtn = document.getElementById('tancaRondaBtn');
+const obreRondaBtn = document.getElementById('obreRondaBtn')
 const rondaDisplay = document.getElementById('roundDisplay');
 const randomRackBtn = document.getElementById('randomRackBtn');
 const editRackInput = document.getElementById('editRackInput');
@@ -70,13 +71,7 @@ function showRound(idx){
             //copyTaulerRonda(round.board)  
             renderBoard(round.board)        
         }
-        
-        if (tancaRondaBtn) tancaRondaBtn.style.display = round?.closed ? 'none' : 'block';
-        if (novaRondaBtn) novaRondaBtn.style.display = round?.closed ? 'block' : 'none';
-        //if (wordInput) wordInput.value = displayWord(round.results[actualPlayer]?.word || '');
-        //if (coordsInput) {coordsInput.value = round.results[actualPlayer]?.coordinates || ''; //console.log(round.results[actualPlayer]?.coordinates);}
-       //coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
-        
+     
         showResultats(roundId);
         displayRanking(roundId)
         updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
@@ -156,9 +151,8 @@ function addNewRound() {
         roundsList.push(newRoundId);
         showRound(roundsList.length - 1)
         // Actualitza la interfície
-        if (rondaDisplay) rondaDisplay.textContent = `Ronda ${newRoundId}`; 
-        if (tancaRondaBtn) tancaRondaBtn.style.display = 'block';
-        if (novaRondaBtn) novaRondaBtn.style.display = 'none';
+        //if (rondaDisplay) rondaDisplay.textContent = `Ronda ${newRoundId}`; 
+    
         //updateUIForClosedRound(newRoundId)
         //console.log(`Nova ronda afegida: ${newRoundId}`);
     });
@@ -288,27 +282,38 @@ if (updateRackBtn) {
 // Funció per tancar la ronda actual
 
 function closeCurrentRound() {
-    
+    //afegeix validació 
     if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
         const roundId = roundsList[currentRoundIndex];
         historyRef.child(`${roundId}/closed`).set(true).then(() => {
-            //console.log(`Ronda ${roundId} tancada.`);
-            // Actualitza la interfície
-            disableAllButtonsExceptOpenRound();
-            if (tancaRondaBtn) tancaRondaBtn.style.display = 'none';
-            if (novaRondaBtn) novaRondaBtn.style.display = 'block';
-            
+          
         });
     } else {
-        console.error('No hi ha cap ronda actual per tancar.');
+        alert('No hi ha cap ronda actual per tancar.');
     }
 }
 if (tancaRondaBtn) {
     tancaRondaBtn.addEventListener('click', () => {
-        if (confirm('Esteu segur que voleu tancar la ronda actual?')) {
-            closeCurrentRound();
-        }
+        
+            closeCurrentRound();            
+        
     });
+}
+function openCurrentRound() {
+    //afegeix validació 
+    if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
+        const roundId = roundsList[currentRoundIndex];
+        historyRef.child(`${roundId}/closed`).set(false).then(() => {
+          
+        });
+    } else {
+        alert('No hi ha cap ronda actual per tancar.');
+    }
+}
+if(obreRondaBtn){
+    obreRondaBtn.addEventListener('click',()=>{
+        openCurrentRound()
+    })
 }
 
 // Funció per actualitzar la UI basant-se en la ronda actual i si és l'última
@@ -324,8 +329,8 @@ function updateUIForCurrentRound(round, isLastRound) {
         if (novaRondaBtn) novaRondaBtn.style.display = isLastRound ? 'block' : 'none'; // Mostra Nova Ronda només si és l'última ronda
 
         // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
-        const excludedButtonIds = [prevRoundBtn.id, nextRoundBtn.id,"startBtn","stopBtn","resetBtn"];
-        if (isLastRound) excludedButtonIds.push(novaRondaBtn.id);
+        const excludedButtonIds = ["prevRoundBtn", "nextRoundBtn","startBtn","stopBtn","resetBtn"];
+        if (isLastRound) excludedButtonIds.push("novaRondaBtn","obreRondaBtn");
         buttons.forEach((button) => {
             if (!excludedButtonIds.includes(button.id)) { button.disabled = true;
             }

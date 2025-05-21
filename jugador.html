@@ -26,6 +26,8 @@
                 grid-template-columns: 1fr;
                 grid-template-areas:
                     "titol"
+                    "rellotge"
+                    "ronda"                    
                     "tauler"
                     "faristol"
                     "master"
@@ -42,9 +44,9 @@
             grid-area: titol;
         }
 
-
-
-
+        #ronda-section {
+            grid-area: ronda;
+        }
 
         #masterForm-section {
             grid-area: master;
@@ -52,6 +54,9 @@
 
         #faristol-section {
             grid-area: faristol;
+        }
+        #rellotge-section {
+            grid-area: rellotge;
         }
     </style>
 </head>
@@ -69,13 +74,16 @@
             <section id="tauler-section">
                 <div id="board-container" class="mb-3"></div>
             </section>
-
-                  <!--Rellotge-->
-                  <section id="rellotge-section">
-                    <div class="timer-container">
-                        <div id="countdownSlave">05:00</div>                      
-                    </div>
-                </section>
+            <!--Ronda-->
+            <section id="ronda-section">
+                <div id="roundDisplay"></div>
+            </section>
+            <!--Rellotge-->
+            <section id="rellotge-section">
+                <div class="timer-container">
+                    <div id="countdownSlave">05:00</div>
+                </div>
+            </section>
 
             <!-- Faristol visual -->
             <section id="faristol-section">
@@ -139,7 +147,10 @@
     <script src="tauler.js" type="module"></script>
     <script src="rackTile.js" type="module"></script>
     <script src="formulariRespostes.js" type="module"></script>
-    
+    <script src="jugador.js" type="module"></script>
+
+
+    </script>
 
 
 

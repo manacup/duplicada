@@ -114,12 +114,14 @@
 
             <!-- Gestió de ronda -->
             <section id="gestio-section">
-                <h2></h2>
+               
                 <div class="d-flex align-items-center mb-3 gap-2">
                     <button id="prevRoundBtn" class="btn btn-outline-secondary" title="Ronda anterior">&lt;</button>
                     <span id="roundDisplay" class="fs-4"></span>
                     <button id="nextRoundBtn" class="btn btn-outline-secondary" title="Ronda següent">&gt;</button>
                     <button id="novaRondaBtn" class="btn btn-success ms-3">+ Nova ronda</button>
+                    <button id="obreRondaBtn" class="btn btn-success ms-3">Desbloqueja ronda</button>
+                    
                     <button type="button" class="btn btn-warning ms-3" id="tancaRondaBtn">Tanca ronda</button>
                 </div>
                 <!-- Dins #gestio-section, sota els botons -->
@@ -145,7 +147,7 @@
             <!-- Classificacio -->
             <section id="classificacio-section">
                 <h2>Classificació</h2>
-                <div id="rankingContainer" class="mt-4"></div>
+                <div id="rankingContainer" class="table-responsive mt-4"></div>
             </section>
 
             <!-- Tauler -->
@@ -164,7 +166,7 @@
                 <form id="wordForm">
                     <input type="checkbox" id="validateWords" class="d-none" checked>
                     <div class="row justify-content-between align-items-center">
-                        <div class="col-2 mb-3">
+                        <div class="col-3 mb-3">
                             <label for="coordinates" class="form-label">Coordenades:</label>
                             <input type="text" class="form-control form-control-lg" id="coords" required>
                         </div>
@@ -181,7 +183,7 @@
                             </div>
                         </div>
                         <input type="hidden" id="player" value="Jugada mestra">
-                        <div class="col-8 mb-3">
+                        <div class="col-7 mb-3">
                             <label for="word" class="form-label">Paraula jugada master:</label>
                             <input type="text" class="form-control form-control-lg" id="word" required>
                         </div>
