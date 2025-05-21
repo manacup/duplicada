@@ -28,7 +28,13 @@ function updateTimerDisplay() {
         if (timeLeft > 0 && timeLeft <= 30 && timeLeft % 10 === 0) { // Play pip sound every 10 seconds in the last 30
             pipSound.play();
         } else if (timeLeft === 0) {
-            pipSound.play(); // Final pip at 0
+            
+            //repeteix el so 3 vegades
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    pipSound.play();
+                }, i * 200); // Play every second
+            }
         }
     } else {
         countdownElement.classList.remove('warning');
@@ -48,6 +54,8 @@ function startTimer() {
                 timer = null;
                 // Optionally, add actions when the timer reaches zero
                 db.ref('formEnabled').set(false);
+                clockRef.child('running').set(false)
+                clockRef.child('timeLeft').set(300)
 
             }
         }, 1000); // Update every 1 second
@@ -67,6 +75,7 @@ function resetTimer() {
     clockRef.child('running').set(false)
     stopTimer();
     timeLeft = 300; // Reset to 5 minutes
+    clockRef.child('timeLeft').set(timeLeft)
     updateTimerDisplay();
     countdownElement.classList.remove('warning'); // Remove warning class on reset
 }

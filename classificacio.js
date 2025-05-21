@@ -53,7 +53,7 @@ function generateRankingTable(numRondes, callback) {
 
     // Generate the table HTML
     let tableHtml = '<table class="table">';
-    tableHtml += '<thead><tr><th>Jugador</th>';
+    tableHtml += '<thead><tr><th class="sticky-col">Jugador</th>';
     
 
     // Add headers for each round
@@ -70,7 +70,7 @@ function generateRankingTable(numRondes, callback) {
     // Add rows for each player
     for (const player of sortedPlayers) {
       tableHtml += '<tr>';
-      tableHtml += `<td>${player}</td>`;
+      tableHtml += `<td class="sticky-col">${player}</td>`;
 
       // Add scores for each round
       let playerTotalForDisplay = 0;

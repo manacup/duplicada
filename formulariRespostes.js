@@ -560,58 +560,6 @@ wordInput.addEventListener("input", () => {
   generateTileButtons(word);
   previewMasterPlay(); // Call preview after generating buttons
 });
-/* function generateTileButtons(word) {
-  const tileButtonsDiv = document.getElementById("tileButtons");
-  if (!tileButtonsDiv) return;
-  tileButtonsDiv.innerHTML = "";
-
-  const tiles = splitWordToTiles(word);
-
- 
-
-  for (let i = 0; i < tiles.length; i++) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "btn btn-outline-secondary btn-sm m-1 tile-btn";
-    btn.dataset.index = i;
-
-    // Mostra la lletra i el valor de punts
-    const letter = displayLetter(tiles[i]);
-    const value = letterValues[tiles[i].toUpperCase()] ?? "";
-    btn.innerHTML = `${letter.toUpperCase()}<span class="tile-value">${value}</span>`;
-
-    // Marca visualment si és escarràs
-    if (scraps.includes(i)) btn.classList.add("btn-warning");
-
-  
-    // Afegeix l'esdeveniment de clic per marcar/desmarcar escarràs
-
-    btn.addEventListener("click", () => {
-      // Actualitza scraps abans de fer res més
-      let scrapsNow = JSON.parse(document.getElementById("scraps").value || "[]");
-      if (scrapsNow.includes(i)) {
-        scrapsNow = scrapsNow.filter((idx) => idx !== i);
-      } else {
-        scrapsNow.push(i);
-      }
-      document.getElementById("scraps").value = JSON.stringify(scrapsNow);
-
-      // Torna a generar els botons i actualitza el rack visual
-      generateTileButtons(wordInput.value);
-      previewMasterPlay();
-    });
-
-    tileButtonsDiv.appendChild(btn);
-  }
-
-  // Un cop generats tots els botons, actualitza el rack visual
-  updateRackTilesPreview(word, scraps);
-} */
-
-
-
-
-
 
 // També actualitza els botons en carregar la pàgina si hi ha valor inicial
 if (wordInput.value) {

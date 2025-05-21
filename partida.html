@@ -42,7 +42,7 @@
         @media (min-width: 1400px) {
             .main-grid {
                 display: grid;
-                grid-template-columns: 5fr 5fr 3fr;
+                grid-template-columns: 1fr 1fr 1fr;
                 grid-template-areas:
                     "titol titol titol"
                     "faristol gestio rellotge"
@@ -85,6 +85,9 @@
 
         #classificacio-section {
             grid-area: classificacio;
+            max-width: 100%;
+            /* o el valor que vulguis */
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -114,15 +117,20 @@
 
             <!-- Gestió de ronda -->
             <section id="gestio-section">
-               
+
                 <div class="d-flex align-items-center mb-3 gap-2">
-                    <button id="prevRoundBtn" class="btn btn-outline-secondary" title="Ronda anterior">&lt;</button>
-                    <span id="roundDisplay" class="fs-4"></span>
-                    <button id="nextRoundBtn" class="btn btn-outline-secondary" title="Ronda següent">&gt;</button>
-                    <button id="novaRondaBtn" class="btn btn-success ms-3">+ Nova ronda</button>
-                    <button id="obreRondaBtn" class="btn btn-success ms-3">Desbloqueja ronda</button>
-                    
-                    <button type="button" class="btn btn-warning ms-3" id="tancaRondaBtn">Tanca ronda</button>
+                    <div class="btn-group  btn-group-lg" role="group">
+
+                        <button id="prevRoundBtn" class="btn btn-outline-secondary" title="Ronda anterior">&lt;</button>
+                        <span id="roundDisplay" class=" btn btn-outline-secondary  disabled"></span>
+                        <button id="nextRoundBtn" class="btn btn-outline-secondary" title="Ronda següent">&gt;</button>
+                    </div>
+                    <div class="btn-group  btn-group-lg" role="group">
+                        <button id="novaRondaBtn" class="btn btn-outline-success">+ Nova ronda</button>
+                        <button id="obreRondaBtn" class="btn btn-outline-secondary">Desbloqueja ronda</button>
+                    </div>
+                    <button type="button" class="btn btn-outline-warning btn-lg" id="tancaRondaBtn">Tanca ronda</button>
+
                 </div>
                 <!-- Dins #gestio-section, sota els botons -->
                 <div class="mb-2">

@@ -434,3 +434,9 @@ h3 {
   color: red;
 }
 
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: white; /* Recomanat per evitar que es solapi el contingut */
+  z-index: 2;        /* Opcional, per sobreposar la columna sticky */
+}
