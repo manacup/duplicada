@@ -19,6 +19,7 @@ const letterValues = {
     F: 4, V: 4,
     H: 8, J: 8, Q: 8, Z: 8,
     Ç: 10, X: 10,
+    L·L: 10, NY: 10, QU: 8,
     Ł: 10, Ý: 10, // dígrafs
     Û: 8,         // QU
     û: 0, ł: 0, ý: 0    // escarrassos dígraf
@@ -73,7 +74,7 @@ function splitWordToTiles(word) {
             i++;
         }
     }
-    console.log('Tiles:', tiles);
+    //console.log('Tiles:', tiles);
     return tiles;
 }
 
@@ -84,21 +85,21 @@ function createEmptyBoard(size = 15) {
 
 // Exemple de tauler de multiplicadors (TW, DW, TL, DL, '')
 const multiplierBoard = [
-    ['TW','','','DL','','','','TW','','','','DL','','','TW'],
-    ['','DW','','','','TL','','','','TL','','','','DW',''],
-    ['','','DW','','','','DL','','DL','','','','DW','',''],
-    ['DL','','','DW','','','','DL','','','','DW','','DL'],
-    ['','','','','DW','','','','','','DW','','','',''],
-    ['','TL','','','','TL','','','','TL','','','','TL',''],
-    ['','','DL','','','','DL','','DL','','','','DL','',''],
-    ['TW','','','DL','','','','DW','','','','DL','','','TW'],
-    ['','','DL','','','','DL','','DL','','','','DL','',''],
-    ['','TL','','','','TL','','','','TL','','','','TL',''],
-    ['','','','','DW','','','','','','DW','','','',''],
-    ['DL','','','DW','','','','DL','','','','DW','','DL'],
-    ['','','DW','','','','DL','','DL','','','','DW','',''],
-    ['','DW','','','','TL','','','','TL','','','','DW',''],
-    ['TW','','','DL','','','','TW','','','','DL','','','TW']
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', 'DL'],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['TW', '', '', 'DL', '', '', '', 'DW', '', '', '', 'DL', '', '', 'TW'],
+    ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+    ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
+    ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
+    ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', 'DL'],
+    ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
+    ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
+    ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW']
 ];
 
 // Distribució de fitxes
@@ -115,12 +116,12 @@ const tileDistribution = {
 
 
 // Centralitza funcions compartides
-export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard,displayWord };
+export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord };
 
 export {
     DIGRAPH_MAP,
     REVERSE_DIGRAPH_MAP,
-    letterValues,    
+    letterValues,
     multiplierBoard,
     tileDistribution
 };

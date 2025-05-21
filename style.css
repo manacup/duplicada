@@ -351,7 +351,7 @@ h3 {
 
 /* Lletra x3 */
 .board-cell.tl:not(.filled)::after {
-  content: "3M";
+  content: "3L";
   position: absolute;
   top: 2px;
   right: 2px;
@@ -365,7 +365,7 @@ h3 {
 
 /* Lletra x2 */
 .board-cell.dl:not(.filled)::after {
-  content: "2M";
+  content: "2L";
   position: absolute;
   top: 2px;
   right: 2px;
@@ -424,7 +424,7 @@ h3 {
   text-align: center;
 }
 
-#countdown {
+#countdown, #countdownSlave {
   font-size: 5em;
   font-weight: bold;
   color: #333;

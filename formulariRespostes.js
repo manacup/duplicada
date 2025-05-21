@@ -381,14 +381,6 @@ wordForm.addEventListener("submit", async (e) => {
     respostaMessage.className = "";
   }, 3000);
 
-  //desa a la ronda les noves lletres posades al tauler
-  //comprova les fitxes que queden visibles del racktile
-  /*  const newLetters = document.querySelectorAll(".rack-tile[style*='visibility: hidden']");
-    const newLettersArray = Array.from(newLetters).map((tile) => tile.dataset.letter);
-   console.log("Noves lletres:", newLettersArray);
-   await historyRef.child(`${currentRoundId}/results/${player}/usedtiles`).set(newLettersArray);
-    */ // Actualitza el faristol a la base de dades
-  // NO facis wordForm.reset();
 });
 
 coordsInput.addEventListener("input", () => {

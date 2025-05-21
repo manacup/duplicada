@@ -6,6 +6,7 @@ import {renderRackTiles} from './rackTile.js';
 import {fillFormDataFromRoundAndPlayer} from './formulariRespostes.js';
 //import {copyTaulerRonda,setCurrentRack,setCurrentRoundId} from './formulariRespostes.js';
 import {saveWordsToBoard,findWordInfo} from './calcul.js';
+import { generateRankingTable,displayRanking } from './classificacio.js';
 
 
 
@@ -47,12 +48,12 @@ function showRound(idx){
     const roundId = roundsList[idx];
     historyRef.child(roundId).on('value', (snapshot) => {
         const round = snapshot.val();
-        console.log('Dades de la ronda carregades:', round);
+        //console.log('Dades de la ronda carregades:', round);
         if (!round.results) {
-            console.log("no troba resultats")
+            //console.log("no troba resultats")
             }
         if (round.results[actualPlayer]) {
-            console.log('Jugador actual:', round.results[actualPlayer]);
+            //console.log('Jugador actual:', round.results[actualPlayer]);
 
         }
         fillFormDataFromRoundAndPlayer(roundId,actualPlayer);
@@ -65,7 +66,7 @@ function showRound(idx){
         
       
         if (round?.board) {
-            console.log('Dades del tauler carregades:', round.board);
+            //console.log('Dades del tauler carregades:', round.board);
             //copyTaulerRonda(round.board)  
             renderBoard(round.board)        
         }
@@ -73,10 +74,11 @@ function showRound(idx){
         if (tancaRondaBtn) tancaRondaBtn.style.display = round?.closed ? 'none' : 'block';
         if (novaRondaBtn) novaRondaBtn.style.display = round?.closed ? 'block' : 'none';
         //if (wordInput) wordInput.value = displayWord(round.results[actualPlayer]?.word || '');
-        //if (coordsInput) {coordsInput.value = round.results[actualPlayer]?.coordinates || ''; console.log(round.results[actualPlayer]?.coordinates);}
+        //if (coordsInput) {coordsInput.value = round.results[actualPlayer]?.coordinates || ''; //console.log(round.results[actualPlayer]?.coordinates);}
        //coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
         
         showResultats(roundId);
+        displayRanking(roundId)
         updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
     });
 }
@@ -158,7 +160,7 @@ function addNewRound() {
         if (tancaRondaBtn) tancaRondaBtn.style.display = 'block';
         if (novaRondaBtn) novaRondaBtn.style.display = 'none';
         //updateUIForClosedRound(newRoundId)
-        console.log(`Nova ronda afegida: ${newRoundId}`);
+        //console.log(`Nova ronda afegida: ${newRoundId}`);
     });
 
 });
@@ -220,14 +222,14 @@ function selectRandomTiles(count) {
 randomRackBtn.addEventListener('click', () => {
     //compta quantes fitxes hi ha al editRackInput
     const remainingRack = normalizeWordInput(editRackInput.value).split('');
-    console.log(remainingRack)
+    //console.log(remainingRack)
     const currentRackLength = remainingRack.length;
       
     const newTiles = selectRandomTiles(7-currentRackLength);
     const selectedTiles = [...remainingRack,...newTiles];
-    console.log(newTiles);
+    //console.log(newTiles);
    
-    console.log(selectedTiles)
+    //console.log(selectedTiles)
      // Selecciona 7 fitxes
     editRackInput.value = displayWord(selectedTiles.join('')); // Mostra les fitxes seleccionades
 });
@@ -237,7 +239,7 @@ function openNewRoundWithRandomTiles() {
     if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
         const roundId = roundsList[currentRoundIndex];
         historyRef.child(`${roundId}/rack`).set(newRack).then(() => {
-            console.log(`Faristol inicial assignat per la ronda ${roundId}: ${newRack}`);
+            //console.log(`Faristol inicial assignat per la ronda ${roundId}: ${newRack}`);
         });
     } else {
         console.error('No hi ha cap ronda actual per assignar el faristol inicial.');
@@ -260,11 +262,11 @@ if (updateRackBtn) {
         if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
             const roundId = roundsList[currentRoundIndex];
             historyRef.child(`${roundId}/rack`).set(newRack).then(() => {
-                console.log(`Faristol actualitzat per la ronda ${roundId}`);
+                //console.log(`Faristol actualitzat per la ronda ${roundId}`);
             });
             //eliminar resultats de la ronda actual
             historyRef.child(`${roundId}/results`).remove().then(() => {
-                console.log(`Resultats eliminats per la ronda ${roundId}`);
+                //console.log(`Resultats eliminats per la ronda ${roundId}`);
             });
             //genera Jugador mestre en blanc
             const masterPlay = {
@@ -274,7 +276,7 @@ if (updateRackBtn) {
                 score: 0
             };
             historyRef.child(`${roundId}/results/${actualPlayer}`).set(masterPlay).then(() => {
-                console.log(`Jugada mestra generada per la ronda ${roundId}`);
+                //console.log(`Jugada mestra generada per la ronda ${roundId}`);
             });
             
         } else {
@@ -290,7 +292,7 @@ function closeCurrentRound() {
     if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
         const roundId = roundsList[currentRoundIndex];
         historyRef.child(`${roundId}/closed`).set(true).then(() => {
-            console.log(`Ronda ${roundId} tancada.`);
+            //console.log(`Ronda ${roundId} tancada.`);
             // Actualitza la interfície
             disableAllButtonsExceptOpenRound();
             if (tancaRondaBtn) tancaRondaBtn.style.display = 'none';
@@ -312,6 +314,8 @@ if (tancaRondaBtn) {
 // Funció per actualitzar la UI basant-se en la ronda actual i si és l'última
 function updateUIForCurrentRound(round, isLastRound) {
     const buttons = document.querySelectorAll('button');
+    //console.log(buttons)
+
     const inputs = document.querySelectorAll('input');
 
     if (round.closed) {
@@ -320,9 +324,10 @@ function updateUIForCurrentRound(round, isLastRound) {
         if (novaRondaBtn) novaRondaBtn.style.display = isLastRound ? 'block' : 'none'; // Mostra Nova Ronda només si és l'última ronda
 
         // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
+        const excludedButtonIds = [prevRoundBtn.id, nextRoundBtn.id,"startBtn","stopBtn","resetBtn"];
+        if (isLastRound) excludedButtonIds.push(novaRondaBtn.id);
         buttons.forEach((button) => {
-            if (button !== prevRoundBtn && button !== nextRoundBtn && button !== novaRondaBtn) {
-                button.disabled = true;
+            if (!excludedButtonIds.includes(button.id)) { button.disabled = true;
             }
         });
         inputs.forEach((input) => {

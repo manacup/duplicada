@@ -1,5 +1,3 @@
-// Importar les funcions saveWordsToBoard i calculateScore si calcul.js és un mòdul
-// import { saveWordsToBoard, calculateScore } from './calcul.js';
 
 import {  
   displayLetter,

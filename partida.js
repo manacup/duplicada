@@ -516,9 +516,9 @@ rackTiles.forEach(tile => {
     }
 });
 const rackScraps = rackTiles.filter(tile => tile === '?').length;
-console.log('racktiles', rackTiles);
-console.log('rackCounts', rackCounts);
-console.log("tiles", tiles);
+//console.log('racktiles', rackTiles);
+//console.log('rackCounts', rackCounts);
+//console.log("tiles", tiles);
 
 let usedScraps = 0;
 let newTiles = [];
@@ -542,7 +542,7 @@ for (let i = 0; i < tiles.length; i++) {
         }
     }
 }
-console.log("newTiles", newTiles);
+//console.log("newTiles", newTiles);
     // Validació i càlcul de puntuació
     const newWordInfo = { word: formattedWord, startRow, startCol, direction };
     const allWords = findAllNewWords(currentBoard, newWordInfo);
@@ -552,7 +552,7 @@ console.log("newTiles", newTiles);
     }
      //desformata la paraula amb els escarrassos en minúscula sense normalitzar els dígrafs
      let visualWord = displayWord(word);
-    console.log('visualWord:', visualWord);
+    //console.log('visualWord:', visualWord);
     const score = calculateFullPlayScore(currentBoard, newWordInfo, letterValues, multiplierBoard);
     document.getElementById('score-master').textContent = `Puntuació: ${score}`;
     // Desa la jugada mestra com a resposta de jugador
@@ -615,7 +615,7 @@ finalitzaRondaBtn.addEventListener('click', async () => {
 });
 
 function updateAllRoundResponses() {
-    console.log('Entra: updateAllRoundResponses');
+    //console.log('Entra: updateAllRoundResponses');
     responsesRef.on('value', (snapshot) => {
         const allRoundData = snapshot.val();
         responsesAccordion.innerHTML = '<h2>Respostes per Ronda</h2><div class="accordion" id="roundResponsesAccordion">';
@@ -679,7 +679,7 @@ function updateAllRoundResponses() {
 
 let lastResponsesRef = null;
 function updateCurrentRoundResponses(roundId) {
-    console.log('Entra: updateCurrentRoundResponses', roundId);
+    //console.log('Entra: updateCurrentRoundResponses', roundId);
     if (lastResponsesRef) lastResponsesRef.off();
     const ref = responsesRef.child(roundId);
     lastResponsesRef = ref;
@@ -705,13 +705,13 @@ function updateCurrentRoundResponses(roundId) {
 
 // Crida la funció al carregar la pàgina
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Entra: DOMContentLoaded');
+    //console.log('Entra: DOMContentLoaded');
     loadRoundsHistory();
-    console.log('Sortida: DOMContentLoaded');
+    //console.log('Sortida: DOMContentLoaded');
 });
 
 function loadRoundsHistory() {
-    console.log('Entra: loadRoundsHistory');
+    //console.log('Entra: loadRoundsHistory');
     historyRef.once('value', (snapshot) => {
         const data = snapshot.val() || {};
         roundsList = Object.keys(data).sort((a, b) => Number(a) - Number(b));
@@ -727,7 +727,7 @@ function loadRoundsHistory() {
 }
 
 function showRound(idx) {
-    console.log('Entra: showRound', idx);
+    //console.log('Entra: showRound', idx);
     if (idx < 0 || idx >= roundsList.length) return;
     currentRoundIndex = idx;
     const roundId = roundsList[idx];
@@ -789,27 +789,27 @@ function showRound(idx) {
         }
     });
     // --- FI NOVETAT ---
-    console.log('Sortida: showRound', idx);
+    //console.log('Sortida: showRound', idx);
 }
 
 // Navegació de rondes
 document.getElementById('prevRoundBtn').onclick = () => {
-    console.log('Entra: prevRoundBtn.onclick');
+    //console.log('Entra: prevRoundBtn.onclick');
     if (currentRoundIndex > 0) showRound(currentRoundIndex - 1);
-    console.log('Sortida: prevRoundBtn.onclick');
+    //console.log('Sortida: prevRoundBtn.onclick');
 };
 document.getElementById('nextRoundBtn').onclick = () => {
-    console.log('Entra: nextRoundBtn.onclick');
+    //console.log('Entra: nextRoundBtn.onclick');
     if (currentRoundIndex < roundsList.length - 1) showRound(currentRoundIndex + 1);
-    console.log('Sortida: nextRoundBtn.onclick');
+    //console.log('Sortida: nextRoundBtn.onclick');
 };
 /* document.getElementById('addRoundBtn').onclick = () => {
-    console.log('Entra: addRoundBtn.onclick');
+    //console.log('Entra: addRoundBtn.onclick');
     addNewRound();
-    console.log('Sortida: addRoundBtn.onclick');
+    //console.log('Sortida: addRoundBtn.onclick');
 }; */
 document.getElementById('addRoundBtn').onclick = () => {
-    console.log('Entra: addRoundBtn.onclick');
+    //console.log('Entra: addRoundBtn.onclick');
     // Comprova si existeix ronda i si està tancada
     if (roundsList.length > 0) {
         const lastRoundId = roundsList[roundsList.length - 1];
@@ -820,29 +820,29 @@ document.getElementById('addRoundBtn').onclick = () => {
         }
     }
     addNewRound();
-    console.log('Sortida: addRoundBtn.onclick');
+    //console.log('Sortida: addRoundBtn.onclick');
 };
 
 // Actualitza el faristol de la ronda actual
 document.getElementById('updateRackBtn').onclick = async () => {
-    console.log('Entra: updateRackBtn.onclick');
+    //console.log('Entra: updateRackBtn.onclick');
     const roundId = roundsList[currentRoundIndex];
     const rack = currentRackInput.value.trim().toUpperCase();
     await historyRef.child(roundId).update({ rack });
     roundsData[roundId].rack = rack;
     gestioMessage.textContent = 'Faristol actualitzat!';
     await gameInfoRef.update({ currentRack: rack, currentRound: roundId });
-    console.log('Sortida: updateRackBtn.onclick');
+    //console.log('Sortida: updateRackBtn.onclick');
 };
 
-coordinatesInput.addEventListener('input', () => { console.log('Entra: coordinatesInput.input'); previewMasterPlay(); console.log('Sortida: coordinatesInput.input'); });
-directionInput.addEventListener('input', () => { console.log('Entra: directionInput.input'); previewMasterPlay(); console.log('Sortida: directionInput.input'); });
-wordInput.addEventListener('input', () => { console.log('Entra: wordInput.input'); previewMasterPlay(); console.log('Sortida: wordInput.input'); });
-scrapsInput.addEventListener('input', () => { console.log('Entra: scrapsInput.input'); previewMasterPlay(); console.log('Sortida: scrapsInput.input'); });
+coordinatesInput.addEventListener('input', () => { //console.log('Entra: coordinatesInput.input'); previewMasterPlay(); //console.log('Sortida: coordinatesInput.input'); });
+directionInput.addEventListener('input', () => { //console.log('Entra: directionInput.input'); previewMasterPlay(); //console.log('Sortida: directionInput.input'); });
+wordInput.addEventListener('input', () => { //console.log('Entra: wordInput.input'); previewMasterPlay(); //console.log('Sortida: wordInput.input'); });
+scrapsInput.addEventListener('input', () => { //console.log('Entra: scrapsInput.input'); previewMasterPlay(); //console.log('Sortida: scrapsInput.input'); });
 
 // Previsualitza la jugada mestra
 function previewMasterPlay() {
-    console.log('Entra: previewMasterPlay');
+    //console.log('Entra: previewMasterPlay');
     const coords = coordinatesInput.value.trim().toUpperCase();
     const word = wordInput.value.trim().toUpperCase();
     const direction = directionInput.value;
@@ -884,14 +884,14 @@ function previewMasterPlay() {
     renderBoard(testBoard, newTiles);
     const score = calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard);
     document.getElementById('score-master').textContent = `Puntuació: ${score}`;
-    console.log('Sortida: previewMasterPlay');
+    //console.log('Sortida: previewMasterPlay');
 }
 
 async function canCloseRound(roundId) {
-    console.log('Entra: canCloseRound', roundId);
+    //console.log('Entra: canCloseRound', roundId);
     const snap = await responsesRef.child(`${roundId}/Jugada mestra`).once('value');
     const result = !!snap.val();
-    console.log('Sortida: canCloseRound', roundId, result);
+    //console.log('Sortida: canCloseRound', roundId, result);
     return result;
 }
 
@@ -948,7 +948,7 @@ closeRoundBtn.addEventListener('click', async () => {
 });
 
 function addNewRound() {
-    console.log('Entra: addNewRound');
+    //console.log('Entra: addNewRound');
     const newRoundId = roundsList.length > 0 ? String(Number(roundsList[roundsList.length - 1]) + 1) : '1';
     const prevBoard = roundsList.length > 0 ? roundsData[roundsList[roundsList.length - 1]].board : createEmptyBoard(15);
 
@@ -966,7 +966,7 @@ function addNewRound() {
         roundsData[newRoundId] = newRound;
         showRound(roundsList.length - 1);
     });
-    console.log('Sortida: addNewRound');
+    //console.log('Sortida: addNewRound');
 }
 
 // Renderitza les fitxes del faristol
@@ -976,7 +976,7 @@ function renderRackTiles(rackString) {
     const rackTilesDiv = document.getElementById('rackTiles');
     rackTilesDiv.innerHTML = '';
     const tiles = splitWordToTiles(rackString.toUpperCase());
-    console.log("fitxes" + tiles)
+    //console.log("fitxes" + tiles)
     for (let i = 0; i < tiles.length; i++) {
         const letter = tiles[i];
         const div = document.createElement('div');
