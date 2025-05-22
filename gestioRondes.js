@@ -17,6 +17,7 @@ import { generateRankingTable, displayRanking } from "./classificacio.js";
 const novaRondaBtn = document.getElementById("novaRondaBtn");
 const tancaRondaBtn = document.getElementById("tancaRondaBtn");
 const obreRondaBtn = document.getElementById("obreRondaBtn");
+const deleteRondaBtn = document.getElementById("deleteRondaBtn");
 const rondaDisplay = document.getElementById("roundDisplay");
 const randomRackBtn = document.getElementById("randomRackBtn");
 const editRackInput = document.getElementById("editRackInput");
@@ -25,7 +26,7 @@ const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const playerInput = document.getElementById("player");
 
-const actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
+let actualPlayer ="Jugada mestra";
 
 // Estat local
 let roundsList = [];
@@ -57,9 +58,11 @@ function showRound(idx) {
     if (!round.results) {
       //console.log("no troba resultats")
     }
+    actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
     if (round.results[actualPlayer]) {
       //console.log('Jugador actual:', round.results[actualPlayer]);
     }
+    console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
     updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
     console.log(roundId, idx === roundsList.length - 1)
@@ -323,6 +326,9 @@ function closeCurrentRound() {
   }
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
+    gameInfoRef
+      .child("currentRound")
+        .set("")
     historyRef
       .child(`${roundId}/closed`)
       .set(true)
@@ -340,6 +346,9 @@ function openCurrentRound() {
   //afegeix validació
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
+    gameInfoRef
+      .child("currentRound")
+        .set(roundId)
     historyRef
       .child(`${roundId}/closed`)
       .set(false)
@@ -363,11 +372,14 @@ function updateUIForCurrentRound(round, isLastRound) {
 
   if (round.closed) {
     // Si la ronda està tancada
-    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
+    if (tancaRondaBtn) tancaRondaBtn.style.display = "none"; 
+    
     if (novaRondaBtn)
       novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
     if (obreRondaBtn)
-      obreRondaBtn.style.display = isLastRound ? "block" : "none";
+      obreRondaBtn.style.display = isLastRound ? "block" : "none"; 
+    if (deleteRondaBtn)
+      deleteRondaBtn.style.display = isLastRound ? "block" : "none";
     // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
     const excludedButtonIds = [
       "prevRoundBtn",
@@ -376,7 +388,7 @@ function updateUIForCurrentRound(round, isLastRound) {
       "stopBtn",
       "resetBtn",
     ];
-    if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn");
+    if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn","deleteRondaBtn");
     buttons.forEach((button) => {
       console.log(button.id);
       if (!excludedButtonIds.includes(button.id)) {
@@ -391,6 +403,7 @@ function updateUIForCurrentRound(round, isLastRound) {
     if (tancaRondaBtn) tancaRondaBtn.style.display = "block";
     if (novaRondaBtn) novaRondaBtn.style.display = "none";
     if (obreRondaBtn) obreRondaBtn.style.display = "none";
+    if (deleteRondaBtn) deleteRondaBtn.style.display = "none";
 
     // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
     const buttons = document.querySelectorAll("button");
@@ -403,7 +416,22 @@ function updateUIForCurrentRound(round, isLastRound) {
     });
   }
 }
-
+if (deleteRondaBtn)
+      deleteRondaBtn.addEventListener("click", () => {
+        if (confirm("Esteu segur que voleu esborrar la ronda actual?")) {
+          const roundId = roundsList[currentRoundIndex];
+          historyRef
+            .child(roundId)
+            .remove()
+            .then(() => {
+              alert("Ronda esborrada correctament.");
+              loadRoundsHistory(); // Torna a carregar l'historial de rondes
+            })
+            .catch((error) => {
+              console.error("Error al esborrar la ronda:", error);
+            });
+        }
+      });
 // Afegir esdeveniments als botons
 if (novaRondaBtn) {
   novaRondaBtn.addEventListener("click", () => {

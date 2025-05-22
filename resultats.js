@@ -43,28 +43,58 @@ function renderResultats(round) {
 
     // Mostra respostes dels jugadors si existeixen
     if (round.results) {
+        //ordena per punts descentents
+        const resultats = Object.entries(round.results)
+        const jug1 = resultats.shift(); // Obté i elimina el primer
+        const sortedResults = resultats.sort((a, b) => {
+            const scoreA = a[1].score || 0;
+            const scoreB = b[1].score || 0;
+            return scoreB - scoreA;
+        });
+        // Torna a posar jug1 a la primera posició si existeix
+        if (jug1) sortedResults.unshift(jug1);
+
         const table = document.createElement('table');
-        table.className = 'table';
+        table.className = 'table';            
+        table.classList.add('table-hover');
         table.innerHTML = '<thead><tr><th>Jugador</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
-        Object.entries(round.results).forEach(([player, data]) => {
+
+        sortedResults.forEach(([player, data]) => {
             const coordinatesDisplay = data.coordinates || '';
             const wordDisplay = data.word ? displayWord(data.word) : '';
             const scoreDisplay = data.score !== undefined ? data.score : '';
-            table.innerHTML += `<tr><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
+            table.innerHTML += `<tr data-coords="${coordinatesDisplay}" data-word="${data.word}"><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
         });
         resultatsDiv.appendChild(table);
+        // Afegir event listener per a cada fila
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row) => {
+            row.addEventListener('click', () => {
+                const coords = row.getAttribute('data-coords');
+                const word = row.getAttribute('data-word');
+                setCoordinatesAndWord(coords, word);
+            });
+        });
+    
+    // Si no hi ha respostes, mostra un missatge
     } else {
         resultatsDiv.innerHTML += '<p>No hi ha respostes de jugadors per aquesta ronda.</p>';
     }
 }
-
-// Si vols mostrar resultats de la ronda actual quan canviï:
-/* if (rondaDisplay) {
-    const observer = new MutationObserver(() => {
-        const match = rondaDisplay.textContent.match(/Ronda (\d+)/);
-        if (match) showResultats(match[1]);
-    });
-    observer.observe(rondaDisplay, { childList: true });
-} */
+// funció per posar coordenades i paraula al formulari
+function setCoordinatesAndWord(coords, word) {
+    const coordinatesInput = document.getElementById('coords'); 
+    const wordInput = document.getElementById('word');
+    if (coordinatesInput && wordInput) {
+        coordinatesInput.value = coords;
+        wordInput.value = word;
+    }
+    // aplica dispatch a l'input de coordenades
+    const event = new Event('input', { bubbles: true });
+    coordinatesInput.dispatchEvent(event);
+    // aplica dispatch a l'input de paraula
+    const eventWord = new Event('input', { bubbles: true });
+    wordInput.dispatchEvent(eventWord);
+}
 
 export { showResultats };

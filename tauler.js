@@ -1,4 +1,3 @@
-
 import {  
   displayLetter,
   createEmptyBoard,
@@ -223,24 +222,32 @@ gameInfoRef.child('currentBoard').on('value', (snapshot) => {
 }); */
 
 // Permet clicar sobre una casella del tauler per omplir l'input de coordenades
+
+let lastCoordType = "H"; // Variable global per alternar
+
 boardContainer.addEventListener("click", function (event) {
   const cell = event.target.closest("td.board-cell");
   if (!cell) return;
 
-  // Troba la fila i columna de la cel·la clicada
   const rowElement = cell.parentElement;
   const tbody = rowElement.parentElement;
   const rowIdx = Array.from(tbody.children).indexOf(rowElement);
-  const colIdx = Array.from(rowElement.children).indexOf(cell) - 1; // -1 perquè la primera és <th>
+  const colIdx = Array.from(rowElement.children).indexOf(cell) - 1;
 
   if (rowIdx >= 0 && colIdx >= 0) {
-    // Format: A1, B5, etc.
-    const coord = `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
+    const coordH = `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
+    const coordV = `${colIdx + 1}${String.fromCharCode(65 + rowIdx)}`;
     const coordsInput = document.getElementById("coords");
-    if (coordsInput) {
-      coordsInput.value = coord;
-      coordsInput.dispatchEvent(new Event("input")); // Perquè es detecti el canvi i s'actualitzi la direcció
+
+    if (lastCoordType === "H") {
+      coordsInput.value = coordV;
+      lastCoordType = "V";
+    } else {
+      coordsInput.value = coordH;
+      lastCoordType = "H";
     }
+
+    coordsInput.dispatchEvent(new Event("input"));
   }
 });
 

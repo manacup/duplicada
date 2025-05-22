@@ -1,4 +1,4 @@
-import { gameInfoRef, historyRef } from "./firebase.js";
+import { gameInfoRef, historyRef ,formEnabled} from "./firebase.js";
 import {
   splitWordToTiles,
   displayLetter, createEmptyBoard,
@@ -12,14 +12,19 @@ import { renderBoard } from "./tauler.js";
 import { saveWordsToBoard, findAllNewWords, calculateFullPlayScore } from "./calcul.js";
 import { updateRackTilesPreview } from "./rackTile.js";
 
+
+
+
+
 const wordForm = document.getElementById("wordForm");
 const playerInput = document.getElementById("player");
+const tableInput = document.getElementById('taula');
 const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
 const respostaMessage = document.getElementById("respostaMessage");
-let ENABLE_WORD_VALIDATION = document.getElementById("validateWords")?.checked;
-
+let ENABLE_WORD_VALIDATION = document.getElementById("validateWords") ;
+console.log("ENABLE_WORD_VALIDATION", ENABLE_WORD_VALIDATION);
 let currentRack = "";
 let currentRoundId = null;
 
@@ -36,6 +41,7 @@ gameInfoRef.child('currentRound').on('value', (snapshot) => {
   }
 
   historyRef.child(currentRoundId).on('value', (roundSnapshot) => {
+    console.log(currentRoundId,"roundSnapshot", roundSnapshot.val());
     const round = roundSnapshot.val();
     if (round && round.rack) {
       currentRack = round.rack;
@@ -46,8 +52,37 @@ gameInfoRef.child('currentRound').on('value', (snapshot) => {
 });
 
 // Updated validateTiles function to validate against the rack from the database
-function validateTiles(word, scraps) {
+function validateTiles(newTiles ) {
+
   const rackTiles = splitWordToTiles(currentRack);
+  console.log("rackTiles", rackTiles, currentRack);
+  //compara si racktiles conté totes les fitxes de newTiles
+  const rackCounts = {};
+  rackTiles.forEach((tile) => {
+    if (tile !== "?") {
+      rackCounts[tile] = (rackCounts[tile] || 0) + 1;
+    }
+  });
+  const rackScraps = rackTiles.filter((tile) => tile === "?").length;
+  let usedScraps = 0;
+  const tiles = newTiles;
+  console.log("newTiles", newTiles);
+  for (let i = 0; i < tiles.length; i++) {
+    const letter = tiles[i].toUpperCase();
+    if (rackCounts[letter]) {
+      rackCounts[letter]--;
+    } else if (rackScraps > usedScraps) {
+      usedScraps++;
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+  
+/* function validateTiles(word, scraps) {
+  const rackTiles = splitWordToTiles(currentRack);
+  console.log(word, scraps, rackTiles,currentRack);
   const rackCounts = {};
   rackTiles.forEach((tile) => {
     if (tile !== "?") {
@@ -81,7 +116,7 @@ function validateTiles(word, scraps) {
   }
 
   return true;
-}
+} */
 
 async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
   respostaMessage.textContent = "";
@@ -203,16 +238,7 @@ wordForm.addEventListener("submit", async (e) => {
   const tiles = splitWordToTiles(wordRaw);
   const scraps = document.getElementById("scraps").value;
 
-  // Validació: comprova que les fitxes noves són al faristol
-  if (!validateTiles(word, scraps)) {
-    respostaMessage.textContent = "Les fitxes no coincideixen amb el faristol!";
-    respostaMessage.className = "alert alert-danger";
-    setTimeout(() => {
-      respostaMessage.textContent = "";
-      respostaMessage.className = "";
-    }, 3000);
-    return;
-  }
+ 
 
   // Comprova que encaixa amb el tauler (no sobreescriu lletres diferents)
   const rowLetter = coords.match(/[A-Za-z]/)?.[0];
@@ -265,6 +291,17 @@ wordForm.addEventListener("submit", async (e) => {
       }, 3000);
       return;
     }
+  }
+   // Validació: comprova que les fitxes noves són al faristol
+   const usedTilesWord = usedTiles;
+  if (!validateTiles(usedTilesWord, scraps)) {
+    respostaMessage.textContent = "Les fitxes no coincideixen amb el faristol!";
+    respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+      respostaMessage.textContent = "";
+      respostaMessage.className = "";
+    }, 3000);
+    return;
   }
   // Comprova si el tauler està buit
   const isBoardEmpty = boardBeforeMasterPlay.flat().every((cell) => cell === "");
@@ -345,7 +382,7 @@ wordForm.addEventListener("submit", async (e) => {
   };
   const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
   //afegeig una variable global per si s'han de validar o no les paraules
-  if (typeof ENABLE_WORD_VALIDATION !== "undefined" && ENABLE_WORD_VALIDATION) {
+  if (typeof ENABLE_WORD_VALIDATION !== "undefined" && ENABLE_WORD_VALIDATION.checked) {
     // Comprova si totes les paraules formades són vàlides          
     if (!window.validateAllWords(allWords)) {
 
@@ -569,15 +606,67 @@ if (wordInput.value) {
 // Desa el nom del jugador al localStorage
 playerInput.addEventListener("input", () => {
   const playerName = playerInput.value.trim();
-  localStorage.setItem("playerName", playerName);
+  localStorage.setItem("nomJugador", playerName);
 });
-
+// Desa el taula del jugador al localStorage
+tableInput.addEventListener("input", () => {
+  const table = tableInput.value.trim();
+  localStorage.setItem('playerTable', table);
+  
+});
+//
 // Carrega el nom del jugador del localStorage en carregar la pàgina
 window.addEventListener("load", () => {
-  const savedPlayerName = localStorage.getItem("playerName");
+  const savedPlayerName = localStorage.getItem("nomJugador");
   if (savedPlayerName) {
     playerInput.value = savedPlayerName;
   }
+});
+
+// Carrega el taula del jugador del localStorage en carregar la pàgina
+window.addEventListener("load", () => {
+  const savedTable = localStorage.getItem("playerTable");
+  if (savedTable) {
+    tableInput.value = savedTable;
+  }
+});
+
+//escolta el db.formEnabled i desabilita el formulari si és false i la taula no és "administrador"
+
+formEnabled.on('value', (snapshot) => {
+  const enabled = snapshot.val();
+  const table = tableInput.value.trim();
+  const isAdmin = table.toLowerCase() === "administrador";
+  wordForm.querySelectorAll("input, button, select, textarea").forEach(el => {
+    el.disabled = !enabled && !isAdmin;
+  });
+  // Opcional: mostra un missatge si està deshabilitat
+  if (!enabled && !isAdmin) {
+    respostaMessage.textContent = "El formulari està deshabilitat per l'administrador.";
+    respostaMessage.className = "alert alert-warning";
+  } else {
+    respostaMessage.textContent = "";
+    respostaMessage.className = "";
+  }
+});
+
+// Si l'usuari canvia la taula, torna a aplicar la lògica
+tableInput.addEventListener("input", () => {
+  formEnabled.once('value').then(snapshot => {
+    const enabled = snapshot.val();
+    const table = tableInput.value.trim();
+    const isAdmin = table.toLowerCase() === "administrador";
+    wordForm.querySelectorAll("input, button, select, textarea").forEach(el => {
+      el.disabled = !enabled && !isAdmin;
+    });
+    if (!enabled && !isAdmin) {
+      respostaMessage.textContent = "El formulari està deshabilitat per l'administrador.";
+      respostaMessage.className = "alert alert-warning";
+    } else {
+      respostaMessage.textContent = "";
+      respostaMessage.className = "";
+    }
+  });
 });
 
 export { fillFormDataFromRoundAndPlayer };

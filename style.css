@@ -78,14 +78,14 @@ h3 {
 }
 
 /* Fitxa seleccionada com escarràs: groc i punt a la cantonada */
-.tile-button.scrap {
+.tile-button.scrap, .rack-tile.scrap {
   background-color: #ffe082;
   border-color: #d39e00;
   color: #222;
 }
 
 /* Opcional: efecte hover */
-.tile-button:hover {
+.tile-button:hover, .rack-tile:hover {
   background-color: #fffaee;
   border-color: #ffeec3;
 }
@@ -422,10 +422,11 @@ h3 {
 
 .timer-container {
   text-align: center;
+  
 }
 
 #countdown, #countdownSlave {
-  font-size: 5em;
+  font-size: 4em;
   font-weight: bold;
   color: #333;
 }
@@ -433,10 +434,25 @@ h3 {
 #countdown.warning {
   color: red;
 }
+#countdown.paused {
+  color: rgb(128, 128, 128);
+}
 
 .sticky-col {
   position: sticky;
   left: 0;
   background: white; /* Recomanat per evitar que es solapi el contingut */
   z-index: 2;        /* Opcional, per sobreposar la columna sticky */
+}
+
+.arrow-indicator{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  color: #000000;
+  pointer-events: none; /* Evita que l'usuari pugui interactuar amb l'índex */
+  z-index: 10000; /* Assegura que l'índex estigui per sobre de la cel·la */
+  
 }
