@@ -54,7 +54,7 @@ function startTimer() {
     if (!timer) {
         db.ref('formEnabled').set(true);
         clockRef.child('running').set(true)
-
+        timeLeft===0? timeLeft = 300 : timeLeft;
         timer = setInterval(() => {
             timeLeft--;
             updateTimerDisplay();
@@ -114,7 +114,7 @@ clockRef.once('value', (snapshot) => {
 }
 
 const rellotgeEsclau = document.getElementById("countdown")
-function updateTimerDisplaySlave() {
+
     
     if (!isAdmin()) {
         rellotgeEsclau.id = "countdownSlave"
@@ -143,5 +143,3 @@ function updateTimerDisplaySlave() {
 
         })
     }
-}
-updateTimerDisplaySlave()

@@ -437,17 +437,33 @@ h3 {
   text-align: center;
   
 }
-
 #countdown, #countdownSlave {
   font-size: 4em;
   font-weight: bold;
   color: #333;
 }
+#countdownSlave {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    font-size: 1em;
+   
+    background: #ffffff;
+    z-index: 10000;
+    padding: 5px;
+    border-radius: 5px;
+    margin: 10px;
+    border-color: black;
+    
+    border: solid;
+}
 
-#countdown.warning {
+
+
+#countdown.warning,#countdownSlave.warning {
   color: red;
 }
-#countdown.paused {
+#countdown.paused,#countdownSlave.paused {
   color: rgb(128, 128, 128);
 }
 
@@ -476,20 +492,5 @@ h3 {
 #directionLabel{
   padding: 0% ! important ;
 }
-#countdownSlave {
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    font-size: 1em;
-    /* color: white; */
-    background: #ffffff;
-    z-index: 10000;
-    padding: 5px;
-    /* border-radius: 10px; */
-    margin: 10px;
-    border-color: black;
-    /* border-block-color: beige; */
-    border-width: thin;
-    border: solid;
-}
+
 /* min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2)); */
