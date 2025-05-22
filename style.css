@@ -8,12 +8,13 @@ body {
 }
 
 .container {
-  margin-top: 20px;
+  /* margin-top: 20px;
   margin-bottom: 20px;
-  background-color: #fff;
+  
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  background-color: #fff;
   max-width: none; !important
 }
 
@@ -396,6 +397,18 @@ h3 {
   justify-content: center; /* o space-between si vols repartir */
   box-sizing: border-box;
 }
+.sac-tiles {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 4px;
+  margin: 10px 0 20px 0;
+  width: 100%;  
+  justify-content: center; /* o space-between si vols repartir */
+  box-sizing: border-box;
+
+  
+}
 
 .rack-tile.scrap {
   background: #ffe082;
@@ -456,3 +469,27 @@ h3 {
   z-index: 10000; /* Assegura que l'índex estigui per sobre de la cel·la */
   
 }
+/* Estils per a l'input group */
+#coords,#taula{
+  max-width: 25%;
+}
+#directionLabel{
+  padding: 0% ! important ;
+}
+#countdownSlave {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    font-size: 1em;
+    /* color: white; */
+    background: #ffffff;
+    z-index: 10000;
+    padding: 5px;
+    /* border-radius: 10px; */
+    margin: 10px;
+    border-color: black;
+    /* border-block-color: beige; */
+    border-width: thin;
+    border: solid;
+}
+/* min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2)); */

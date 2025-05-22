@@ -130,6 +130,10 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
       console.warn(`No es troba la ronda amb número: ${roundNumber}`);
       respostaMessage.textContent = `No es troba la ronda ${roundNumber}!`;
       respostaMessage.className = "alert alert-danger";
+      setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+      }, 5000);
       return;
     }
     if (!roundData.board) {
@@ -142,8 +146,14 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
 
     if (!playerResult) {
       console.warn(`No es troben dades de joc per al jugador ${playerId} a la ronda ${roundNumber}.`);
+      // Actualitza el missatge d'error durant 5 segons     
+      
       respostaMessage.textContent = `No hi ha dades per al jugador ${playerId} a la ronda ${roundNumber}!`;
       respostaMessage.className = "alert alert-warning";
+      setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+      }, 5000);
       // Optionally clear form fields if no data found
       coordsInput.value = "";
       wordInput.value = "";
@@ -211,6 +221,10 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
     console.error("Error omplint el formulari de resposta:", error);
     respostaMessage.textContent = "Error carregant les dades de la jugada!";
     respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+      }, 5000);
   }
 }
 
@@ -381,10 +395,11 @@ wordForm.addEventListener("submit", async (e) => {
     direction: directionInput.value,
   };
   const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
+  const jugadaValida = window.validateAllWords(allWords)
   //afegeig una variable global per si s'han de validar o no les paraules
   if (typeof ENABLE_WORD_VALIDATION !== "undefined" && ENABLE_WORD_VALIDATION.checked) {
     // Comprova si totes les paraules formades són vàlides          
-    if (!window.validateAllWords(allWords)) {
+    if (!jugadaValida) {
 
       respostaMessage.textContent = "Alguna de les paraules formades no és vàlida!";
       respostaMessage.className = "alert alert-danger";
@@ -397,7 +412,7 @@ wordForm.addEventListener("submit", async (e) => {
   }
   //await historyRef.child(`${currentRoundId}/results/${player}/newWordInfo`).set(newWordInfo)
   // Calcula la puntuació de la jugada mestra
-  const score = calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard);
+  const score = jugadaValida? calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard):0;
   const player = playerInput.value;
   // Desa la jugada a l'apartat de resultats amb key=player
   const resposta = {
@@ -493,13 +508,16 @@ function previewMasterPlay() {
 
   renderBoard(testBoard, newTiles);
 
+   const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
+  const jugadaValida = window.validateAllWords(allWords)
+
   // Calcula i mostra la puntuació en temps real
-  const score = calculateFullPlayScore(
+  const score = jugadaValida? calculateFullPlayScore(
     boardBeforeMasterPlay,
     newWordInfo,
     letterValues,
     multiplierBoard
-  );
+  ):0;
   document.getElementById("score-master").textContent = `Puntuació: ${score}`;
 }
 
@@ -644,9 +662,14 @@ formEnabled.on('value', (snapshot) => {
   if (!enabled && !isAdmin) {
     respostaMessage.textContent = "El formulari està deshabilitat per l'administrador.";
     respostaMessage.className = "alert alert-warning";
+    setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+      }, 5000);
   } else {
     respostaMessage.textContent = "";
     respostaMessage.className = "";
+    
   }
 });
 
@@ -662,6 +685,10 @@ tableInput.addEventListener("input", () => {
     if (!enabled && !isAdmin) {
       respostaMessage.textContent = "El formulari està deshabilitat per l'administrador.";
       respostaMessage.className = "alert alert-warning";
+      setTimeout(() => {
+        respostaMessage.textContent = "";
+        respostaMessage.className = "";
+      }, 5000);
     } else {
       respostaMessage.textContent = "";
       respostaMessage.className = "";

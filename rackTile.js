@@ -2,6 +2,7 @@ import { gameInfoRef,historyRef } from './firebase.js';
 import { splitWordToTiles, displayLetter, letterValues } from './utilitats.js';
 
 const rackTilesDiv = document.getElementById('rackTiles');
+const sacTilesDiv = document.getElementById('sacTiles');
 
 function renderRackTiles(rackString) {
     rackTilesDiv.innerHTML = '';
@@ -21,6 +22,28 @@ function renderRackTiles(rackString) {
         valueSpan.textContent = (letter === '?' ? '0' : (letterValues[letter.toUpperCase()] ?? ''));
         div.appendChild(valueSpan);
         rackTilesDiv.appendChild(div);
+    }
+}
+
+// Mostra el sac de fitxes
+function renderSacTiles(sacString) {
+    sacTilesDiv.innerHTML = '';
+    const tiles = splitWordToTiles(sacString.toUpperCase());
+    for (let i = 0; i < tiles.length; i++) {
+        const letter = tiles[i];
+        const div = document.createElement('div');
+        div.className = 'rack-tile' + (letter === '?' ? ' scrap' : '');
+        div.textContent = displayLetter(letter);
+
+        // Afegeix dataset-letter i dataset-value
+        div.dataset.letter = letter;
+        div.dataset.value = (letter === '?' ? '0' : (letterValues[letter.toUpperCase()] ?? ''));
+
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'tile-value';
+        valueSpan.textContent = (letter === '?' ? '0' : (letterValues[letter.toUpperCase()] ?? ''));
+        div.appendChild(valueSpan);
+        sacTilesDiv.appendChild(div);
     }
 }
 
@@ -73,4 +96,4 @@ function updateRackTilesPreview(word, scraps) {
 
   
 
-export { renderRackTiles, updateRackTilesPreview };
+export { renderRackTiles, updateRackTilesPreview,renderSacTiles };

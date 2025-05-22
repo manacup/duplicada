@@ -45,14 +45,18 @@ function renderResultats(round) {
     if (round.results) {
         //ordena per punts descentents
         const resultats = Object.entries(round.results)
-        const jug1 = resultats.shift(); // Obté i elimina el primer
+       
         const sortedResults = resultats.sort((a, b) => {
             const scoreA = a[1].score || 0;
             const scoreB = b[1].score || 0;
             return scoreB - scoreA;
         });
-        // Torna a posar jug1 a la primera posició si existeix
-        if (jug1) sortedResults.unshift(jug1);
+        //Si Jugada mestra existeix, posa'l al primer
+        const masterPlay = sortedResults.find(([player]) => player.toLowerCase() === 'jugada mestra');
+        if (masterPlay) {
+            sortedResults.unshift(sortedResults.splice(sortedResults.indexOf(masterPlay), 1)[0]);
+        }
+       
 
         const table = document.createElement('table');
         table.className = 'table';            
@@ -72,7 +76,11 @@ function renderResultats(round) {
             row.addEventListener('click', () => {
                 const coords = row.getAttribute('data-coords');
                 const word = row.getAttribute('data-word');
-                setCoordinatesAndWord(coords, word);
+                setCoordinatesAndWord(coords, displayWord(word));
+                //deixar la fila seleccionada activa fins que es faci clic a una altra
+                rows.forEach((r) => r.classList.remove('table-active'));
+                row.classList.add('table-active');
+
             });
         });
     

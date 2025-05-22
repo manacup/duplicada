@@ -66,7 +66,13 @@ function generateRankingTable(numRondes, callback) {
 
     // Sort players by total score (descending)
     const sortedPlayers = Object.keys(playerTotals).sort((a, b) => playerTotals[b] - playerTotals[a]);
-
+    //si Jugada mestra existeix, posa'l al primer
+    const masterPlay = sortedPlayers.find(player => player.toLowerCase() === 'jugada mestra');
+    if (masterPlay) {
+      sortedPlayers.splice(sortedPlayers.indexOf(masterPlay), 1);
+      sortedPlayers.unshift(masterPlay);
+    }
+    
     // Add rows for each player
     for (const player of sortedPlayers) {
       tableHtml += '<tr>';

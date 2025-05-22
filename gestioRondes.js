@@ -4,10 +4,11 @@ import {
   normalizeWordInput,
   displayWord,
   tileDistribution,
+  displayLetter
 } from "./utilitats.js";
 import { showResultats } from "./resultats.js";
 import { renderBoard } from "./tauler.js";
-import { renderRackTiles } from "./rackTile.js";
+import { renderRackTiles,renderSacTiles } from "./rackTile.js";
 import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 //import {copyTaulerRonda,setCurrentRack,setCurrentRoundId} from './formulariRespostes.js';
 import { saveWordsToBoard, findWordInfo } from "./calcul.js";
@@ -25,6 +26,7 @@ const updateRackBtn = document.getElementById("updateRackBtn");
 const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const playerInput = document.getElementById("player");
+const fitxesRestants = document.getElementById("fitxesRestants");
 
 let actualPlayer ="Jugada mestra";
 
@@ -53,15 +55,8 @@ function showRound(idx) {
   currentRoundIndex = idx;
   const roundId = roundsList[idx];
   historyRef.child(roundId).on("value", (snapshot) => {
-    const round = snapshot.val();
-    //console.log('Dades de la ronda carregades:', round);
-    if (!round.results) {
-      //console.log("no troba resultats")
-    }
-    actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
-    if (round.results[actualPlayer]) {
-      //console.log('Jugador actual:', round.results[actualPlayer]);
-    }
+    const round = snapshot.val();    
+    actualPlayer = playerInput ? playerInput.value : "Jugada mestra";   
     console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
     updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
@@ -70,18 +65,39 @@ function showRound(idx) {
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
     //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
     renderRackTiles(round?.rack || "");
-    //setCurrentRack(round?.rack || '')
-
     if (round?.board) {
-      //console.log('Dades del tauler carregades:', round.board);
-      //copyTaulerRonda(round.board)
-      renderBoard(round.board);
+          renderBoard(round.board);
     }
-
+    updateSac()
+    updateRemainingTiles()
     showResultats(roundId);
     displayRanking(roundId);
     updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
   });
+}
+//actualitza informació de fitxes restants
+function updateRemainingTiles() {
+    const remainingTiles = calculateRemainingTiles();
+    const remainingTilesCount = Object.values(remainingTiles).reduce(
+        (acc, count) => acc + count,
+        0
+    );
+    const remainingTilesText = Object.entries(remainingTiles)
+        .map(([tile, count]) => `${displayLetter(tile)}: ${count}`)
+        .join(", ");
+    if (fitxesRestants) {
+        fitxesRestants.textContent = `${remainingTilesCount} Fitxes restants: ${remainingTilesText}`;
+    }
+}
+//actualitza el sac de fitxes
+function updateSac() {  
+    const remainingTiles = calculateRemainingTiles();
+   
+    const tiles = Object.entries(remainingTiles).flatMap(([tile, count]) =>
+        Array(count).fill(tile)
+    );
+    const sacString = tiles.join("");
+    renderSacTiles(sacString);
 }
 
 // Navegació entre rondes
@@ -197,7 +213,13 @@ function calculateRemainingTiles() {
       }
     });
   });
-
+  //s'han de tenir en compte les fitxes que hi ha al faristol actual
+    const currentRack = editRackInput.value.split("");
+    currentRack.forEach((tile) => {
+    usedTiles[tile] = (usedTiles[tile] || 0) + 1;
+    });
+    //console.log(usedTiles)
+   
   // Calcula les fitxes restants basant-se en la distribució inicial
   const remainingTiles = { ...tileDistribution };
   Object.entries(usedTiles).forEach(([tile, count]) => {
@@ -205,6 +227,9 @@ function calculateRemainingTiles() {
       remainingTiles[tile] = Math.max(0, remainingTiles[tile] - count);
     }
   });
+   console.log("Fitxes usades:", usedTiles);
+    console.log("Fitxes restants:", remainingTiles);
+
 
   return remainingTiles;
 }
