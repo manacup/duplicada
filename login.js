@@ -9,20 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const storedName = localStorage.getItem('nomJugador');
   const storedTable = localStorage.getItem('playerTable');
   if (storedName && storedTable) {
-   /*  if (loginSection) loginSection.style.display = 'none';
-    if (mainContent) mainContent.classList.remove('d-none'); */
+    if (loginSection) loginSection.style.display = 'none';
+    if (mainContent) mainContent.classList.remove('d-none');
     // Omple el camp player del formulari principal si existeix
     const playerInput = document.getElementById('loginName');
     if (playerInput) playerInput.value = storedName;
     // Amaga elements amb class="master" si la taula no
     const tableInput = document.getElementById('loginTable');
     if (tableInput) tableInput.value = storedTable;
-   /*  if (storedTable.toLowerCase() !== 'administrador') {
+    if (storedTable.toLowerCase() !== 'administrador') {
       document.querySelectorAll('.master').forEach(el => el.style.display = 'none');
       document.getElementById('validateWords').checked = false;
       document. getElementById('countdown').id = 'countdownSlave';
     }
-    return; */
+    return;
   }
 
   if (loginForm) {

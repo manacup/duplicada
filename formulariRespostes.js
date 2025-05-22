@@ -24,7 +24,7 @@ const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
 const respostaMessage = document.getElementById("respostaMessage");
 let ENABLE_WORD_VALIDATION = document.getElementById("validateWords") ;
-console.log("ENABLE_WORD_VALIDATION", ENABLE_WORD_VALIDATION);
+console.log("ENABLE_WORD_VALIDATION", ENABLE_WORD_VALIDATION.checked);
 let currentRack = "";
 let currentRoundId = null;
 
