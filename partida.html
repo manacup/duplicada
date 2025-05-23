@@ -26,6 +26,18 @@
             ;
             gap: 2rem;
         }
+        .mostra-grid{
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            grid-template-areas:
+                "titol logos"                               
+                "tauler rellotge"
+                "tauler faristol"
+                "tauler sac"
+                "respostes respostes"
+                "classificacio classificacio";                
+            gap: 2rem;
+        }
 
         @media (max-width: 991px) {
             .main-grid {
@@ -283,12 +295,12 @@
                         <input type="hidden" id="scraps">
                     </div>
                     <h4 id="score-master" class="master"></h4>
-                    <div class="d-grid gap-2 d-md-block">
+                    <div class="d-grid gap-2 d-md-block mb-3">
                          <button type="submit" class="btn btn-success mb-3 ">Desa la jugada</button>
                     </div>
                    
                 </form>
-                <div id="respostaMessage" class="mt-2"></div>
+                <div id="respostaMessage" class="mb-3"></div>
             </section>
         </div>
     </div>
