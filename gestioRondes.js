@@ -14,6 +14,8 @@ import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 import { saveWordsToBoard, findWordInfo } from "./calcul.js";
 import { generateRankingTable, displayRanking } from "./classificacio.js";
 
+const modalitat = "duplicada"
+
 // Elements UI
 const novaRondaBtn = document.getElementById("novaRondaBtn");
 const tancaRondaBtn = document.getElementById("tancaRondaBtn");
@@ -151,8 +153,9 @@ function addNewRound() {
 if(data[lastClosedRoundId])
     saveWordsToBoard(boardToCopy, [lastWordInfo]);
     const lastRack = data[lastClosedRoundId]?.rack.split("") || []; // Converteix a array
+const playedup = modalitat==="duplicada"?"Jugada mestra": actualPlayer
     const lastUsedTiles =
-      data[lastClosedRoundId]?.results[actualPlayer].usedtiles || []; // Fitxes usades
+      data[lastClosedRoundId]?.results[playerdup].usedtiles || []; // Fitxes usades
 
     const remainingTilesArray = [...lastRack]; // Copia el rack anterior
     // Resta les fitxes usades del rack anterior
@@ -203,7 +206,12 @@ function calculateRemainingTiles() {
     historyRef.child(roundId).once("value", (snapshot) => {
       const round = snapshot.val();
       if (round && round.closed && round.results) {
+if(modalitat==="duplicada"){
+round.results=round.results.filter(key=>key["Jugada mestra"])
+}
         Object.values(round.results).forEach((result) => {
+
+
           if (result.usedtiles) {
             result.usedtiles.forEach((tile) => {
               usedTiles[tile] = (usedTiles[tile] || 0) + 1;
