@@ -443,21 +443,7 @@ h3 {
   font-weight: bold;
   color: #333;
 }
-#countdownSlave {
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    font-size: 1em;
-   
-    background: #ffffff;
-    z-index: 10000;
-    padding: 5px;
-    border-radius: 5px;
-    margin: 10px;
-    border-color: black;
-    
-    border: solid;
-}
+
 
 
 

@@ -16,28 +16,24 @@
             grid-template-areas:
                 "titol titol"
                 "gestio rellotge"
-                 
                 "tauler rellotge"
                 "tauler faristol"
                 "tauler master"
                 "respostes respostes"
                 "classificacio classificacio"
-                "sac sac";
-            ;
+                "sac sac";            
             gap: 2rem;
         }
-        .mostra-grid{
-            display: grid;
-            grid-template-columns: 3fr 2fr;
-            grid-template-areas:
-                "titol logos"                               
-                "tauler rellotge"
-                "tauler faristol"
-                "tauler sac"
-                "respostes respostes"
-                "classificacio classificacio";                
-            gap: 2rem;
+
+        .main-grid.mode-pantalla #gestio-section,
+        .main-grid.mode-pantalla #faristolInput,
+        .main-grid.mode-pantalla #clockBtn,
+        .main-grid.mode-pantalla #master-section,
+        .main-grid.mode-pantalla #masterForm-section {
+            display: none;
+            /* Oculta el sac i allibera el seu espai */
         }
+
 
         @media (max-width: 991px) {
             .main-grid {
@@ -52,28 +48,59 @@
                     "respostes"
                     "classificacio"
                     "sac";
-                     gap: 0rem;
+                gap: 0rem;
+            }
+
+            #countdownSlave {
+                position: fixed;
+                top: 0px;
+                right: 0px;
+                font-size: 1em;
+
+                background: #ffffff;
+                z-index: 10000;
+                padding: 5px;
+                border-radius: 5px;
+                margin: 10px;
+                border-color: black;
+
+                border: solid;
             }
         }
 
         @media (min-width: 1400px) {
+            
             .main-grid {
                 display: grid;
                 grid-template-columns: 2fr 2fr 2fr;
-                
+
                 grid-template-areas:
-                    "titol titol titol"                   
-                    
+                    "titol titol titol"
                     "faristol gestio rellotge"
                     "faristol tauler respostes"
                     "master tauler respostes"
-                     "master tauler respostes"
-                      "classificacio classificacio classificacio"                   
+                    "master tauler respostes"
+                    "classificacio classificacio classificacio"
                     "sac  sac sac"
-
                 ;
                 gap: 2rem;
             }
+            .main-grid.mode-pantalla{
+                display: grid;
+                grid-template-columns: 2fr 2fr;
+                grid-template-areas:
+                    "titol titol"
+                "tauler rellotge"
+                "tauler faristol"
+                "tauler faristol"
+                "tauler faristol"
+                "respostes respostes"
+                "classificacio classificacio"
+                "sac sac";
+                ;
+                gap: 2rem;
+            }
+           
         }
 
         #titol {
@@ -110,15 +137,15 @@
             /* o el valor que vulguis */
             overflow-x: auto;
         }
+
         #sac-section {
             grid-area: sac;
         }
-  
     </style>
 </head>
 
 <body>
-    
+
     <!-- Formulari de login: demana nom i taula -->
     <section id="login-section">
 
@@ -143,6 +170,12 @@
                         <input type="text" class="form-control" id="loginTable" name="loginTable" required
                             autocomplete="off">
                     </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="desaSessio">
+                        <label class="form-check-label" for="desaSessio">
+                          Entra directament amb l'usuari.
+                        </label>
+                      </div>
                     <div class="mb-3">
                         <label for="loginTable" class="form-label">Vols rebre informació sobre el món del
                             Scrabble?</label>
@@ -165,7 +198,7 @@
             <section id="rellotge-section">
                 <div class="d-flex flex-column align-items-center gap-2">
                     <div id="countdown" class="paused"></div>
-                    <div class="btn-group btn-group-sm master mb-3" role="group">
+                    <div class="btn-group btn-group-sm master mb-3" role="group" id="clockBtn">
                         <button class="btn btn-outline-primary" id="startBtn"><i class="bi bi-play-fill"></i></button>
                         <button class="btn btn-outline-primary" id="stopBtn"><i class="bi bi-pause-fill"></i></button>
                         <button class="btn btn-outline-primary" id="resetBtn"><i
@@ -209,7 +242,7 @@
                         </div>
                     </div>
                     <!-- Dins #gestio-section, sota els botons -->
-                    
+
                     <div id="gestio-message" class="mt-2"></div>
             </section>
 
@@ -233,18 +266,17 @@
             <!-- Faristol visual -->
             <section id="faristol-section">
                 <div id="rackTiles" class="rack-tiles"></div>
-                <div class="row w-100 master">
-                        <label for="editRackInput" class="form-label">Faristol:</label>
-                        <div class="input-group mb-3">
+                <div class="row w-100 master" id="faristolInput">
+                    <label for="editRackInput" class="form-label">Faristol:</label>
+                    <div class="input-group mb-3">
 
-                            <input type="text" id="editRackInput" class="form-control" maxlength="15"
-                                autocomplete="off">
-                            <button id="randomRackBtn" class="btn btn-outline-secondary"><i
-                                    class="bi bi-shuffle"></i></button>
-                            <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
-                        </div>
-                        <div id="fitxesRestants" class="d-flex flex-wrap gap-2"></div>
+                        <input type="text" id="editRackInput" class="form-control" maxlength="15" autocomplete="off">
+                        <button id="randomRackBtn" class="btn btn-outline-secondary"><i
+                                class="bi bi-shuffle"></i></button>
+                        <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
                     </div>
+                    <div id="fitxesRestants" class="d-flex flex-wrap gap-2"></div>
+                </div>
             </section>
             <!-- sac de fitxes -->
             <section id="sac-section" class="master">
@@ -296,9 +328,9 @@
                     </div>
                     <h4 id="score-master" class="master"></h4>
                     <div class="d-grid gap-2 d-md-block mb-3">
-                         <button type="submit" class="btn btn-success mb-3 ">Desa la jugada</button>
+                        <button type="submit" class="btn btn-success mb-3 ">Desa la jugada</button>
                     </div>
-                   
+
                 </form>
                 <div id="respostaMessage" class="mb-3"></div>
             </section>
