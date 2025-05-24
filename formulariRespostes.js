@@ -560,7 +560,7 @@ function generateTileButtons(word) {
     tileButtonsDiv.appendChild(button);
     currentWordTiles.push({ letter: tiles[i], isScrap: false });
   }
-  scrapsInput.value = "";
+  //scrapsInput.value = "";
   const scraps = JSON.parse(scrapsInput.value || "[]");
   updateRackTilesPreview(word, scraps)
 }

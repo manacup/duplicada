@@ -3,6 +3,7 @@ import { displayWord } from './utilitats.js';
 
 const resultatsDiv = document.getElementById('resultats');
 const rondaDisplay = document.getElementById('roundDisplay');
+import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 
 let currentRoundId = null;
 
@@ -68,7 +69,7 @@ function renderResultats(round) {
             const coordinatesDisplay = data.coordinates || '';
             const wordDisplay = data.word ? displayWord(data.word,data.scraps) : '';
             const scoreDisplay = data.score !== undefined ? data.score : '';
-            table.innerHTML += `<tr data-coords="${coordinatesDisplay}" data-word="${data.word}"><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
+            table.innerHTML += `<tr data-coords="${coordinatesDisplay}" data-word="${data.word}" data-scraps="${data.scraps}"  data-player="${player}"><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
         });
         resultatsDiv.appendChild(table);
         // Afegir event listener per a cada fila
@@ -77,7 +78,11 @@ function renderResultats(round) {
             row.addEventListener('click', () => {
                 const coords = row.getAttribute('data-coords');
                 const word = row.getAttribute('data-word');
-                setCoordinatesAndWord(coords, displayWord(word));
+                const scraps = row.getAttribute('data-scraps');
+                const player = row.getAttribute('data-player');
+                
+                //setCoordinatesAndWord(coords, displayWord(word,scraps),scraps);
+                fillFormDataFromRoundAndPlayer(currentRoundId, player);
                 //deixar la fila seleccionada activa fins que es faci clic a una altra
                 rows.forEach((r) => r.classList.remove('table-active'));
                 row.classList.add('table-active');
@@ -90,13 +95,18 @@ function renderResultats(round) {
         resultatsDiv.innerHTML += '<p>No hi ha respostes de jugadors per aquesta ronda.</p>';
     }
 }
-// funció per posar coordenades i paraula al formulari
-function setCoordinatesAndWord(coords, word) {
+/* // funció per posar coordenades i paraula al formulari
+function setCoordinatesAndWord(coords, word,scraps) {
+    console.log("coords",coords,"word",word,"scraps",scraps)
     const coordinatesInput = document.getElementById('coords'); 
     const wordInput = document.getElementById('word');
+    const scrapsInput = document.getElementById('scraps');
     if (coordinatesInput && wordInput) {
+        
         coordinatesInput.value = coords;
         wordInput.value = word;
+        scrapsInput.value = JSON.stringify(scraps) //|| '';
+        //scrapsInput.value = scraps;
     }
     // aplica dispatch a l'input de coordenades
     const event = new Event('input', { bubbles: true });
@@ -104,6 +114,8 @@ function setCoordinatesAndWord(coords, word) {
     // aplica dispatch a l'input de paraula
     const eventWord = new Event('input', { bubbles: true });
     wordInput.dispatchEvent(eventWord);
-}
+    const eventScraps = new Event('input', { bubbles: true });
+    scrapsInput.dispatchEvent(eventScraps);
+} */
 
 export { showResultats };
