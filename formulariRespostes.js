@@ -163,14 +163,16 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
       updateRackTilesPreview("", []);
       return;
     }
-
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3200668774.
+console.log("resultats del jugador actual",playerResult)
     // Omple els camps del formulari
     coordsInput.value = playerResult.coordinates || "";
-    wordInput.value = displayWord(playerResult.word) || "";    
+    wordInput.value = displayWord(playerResult.word, playerResult.scraps) || "";    
     directionInput.value = playerResult.direction || "";
     const scraps = JSON.parse(playerResult.scraps || "[]");
-    document.getElementById("scraps").value = JSON.stringify(scraps);
-
+    document.getElementById("scraps").disabled = false
+ document.getElementById("scraps").value = playerResult.scraps //|| "[]";
+console.log(document.getElementById("scraps"),JSON.stringify(scraps))
     // Actualitza els botons de les fitxes i la vista del rack
     generateTileButtons(playerResult.word || "");
     // Re-apply the scrap visual state based on the loaded scraps
@@ -178,6 +180,7 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
     tileButtons.forEach(button => {
       const index = parseInt(button.dataset.index);
       if (scraps.includes(index)) {
+
         button.classList.add("scrap");
         // Update letter case and value for scraps
         const letter = currentWordTiles[index].letter.toLowerCase();
@@ -418,7 +421,7 @@ wordForm.addEventListener("submit", async (e) => {
   const resposta = {
     coordinates: coords,
     direction: direction,
-    word: word,
+    word: formattedWord,
     scraps: scraps,
     score: score,
     timestamp: Date.now(),
@@ -611,7 +614,7 @@ function updateScrapsInputValue() {
 // Sempre converteix a majúscula abans de processar
 wordInput.addEventListener("input", () => {
   const word = wordInput.value.toUpperCase();
-  wordInput.value = word; // Actualitza el valor de l'input
+  //wordInput.value = word; // Actualitza el valor de l'input
   generateTileButtons(word);
   previewMasterPlay(); // Call preview after generating buttons
 });

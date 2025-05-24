@@ -26,6 +26,7 @@ function renderResultats(round) {
 
     // Mostra jugada mestra si existeix
     if (round.masterPlay) {
+        console.log("hi ha masterPlay")
         const master = round.masterPlay;
         const masterDiv = document.createElement('div');
         masterDiv.className = 'master-play-result';
@@ -65,7 +66,7 @@ function renderResultats(round) {
 
         sortedResults.forEach(([player, data]) => {
             const coordinatesDisplay = data.coordinates || '';
-            const wordDisplay = data.word ? displayWord(data.word) : '';
+            const wordDisplay = data.word ? displayWord(data.word,data.scraps) : '';
             const scoreDisplay = data.score !== undefined ? data.score : '';
             table.innerHTML += `<tr data-coords="${coordinatesDisplay}" data-word="${data.word}"><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
         });

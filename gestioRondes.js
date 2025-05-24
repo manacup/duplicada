@@ -8,7 +8,7 @@ import {
 } from "./utilitats.js";
 import { showResultats } from "./resultats.js";
 import { renderBoard } from "./tauler.js";
-import { renderRackTiles,renderSacTiles } from "./rackTile.js";
+import { renderRackTiles, renderSacTiles } from "./rackTile.js";
 import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 //import {copyTaulerRonda,setCurrentRack,setCurrentRoundId} from './formulariRespostes.js';
 import { saveWordsToBoard, findWordInfo } from "./calcul.js";
@@ -30,7 +30,7 @@ const coordsInput = document.getElementById("coords");
 const playerInput = document.getElementById("player");
 const fitxesRestants = document.getElementById("fitxesRestants");
 
-let actualPlayer ="Jugada mestra";
+let actualPlayer = "Jugada mestra";
 
 // Estat local
 let roundsList = [];
@@ -57,19 +57,20 @@ function showRound(idx) {
   currentRoundIndex = idx;
   const roundId = roundsList[idx];
   historyRef.child(roundId).on("value", (snapshot) => {
-    const round = snapshot.val();    
-    actualPlayer = playerInput ? playerInput.value : "Jugada mestra";   
-    console.log("actualPlayer", actualPlayer);
-    fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
-    updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
+    const round = snapshot.val();
+    actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
+    
+    //updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
     console.log(roundId, idx === roundsList.length - 1)
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
     //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
     renderRackTiles(round?.rack || "");
     if (round?.board) {
-          renderBoard(round.board);
+      renderBoard(round.board);
     }
+    console.log("actualPlayer", actualPlayer);
+    fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
     updateSac()
     updateRemainingTiles()
     showResultats(roundId);
@@ -79,27 +80,27 @@ function showRound(idx) {
 }
 //actualitza informació de fitxes restants
 function updateRemainingTiles() {
-    const remainingTiles = calculateRemainingTiles();
-    const remainingTilesCount = Object.values(remainingTiles).reduce(
-        (acc, count) => acc + count,
-        0
-    );
-    const remainingTilesText = Object.entries(remainingTiles)
-        .map(([tile, count]) => `${displayLetter(tile)}: ${count}`)
-        .join(", ");
-    if (fitxesRestants) {
-        fitxesRestants.textContent = `${remainingTilesCount} Fitxes restants: ${remainingTilesText}`;
-    }
+  const remainingTiles = calculateRemainingTiles();
+  const remainingTilesCount = Object.values(remainingTiles).reduce(
+    (acc, count) => acc + count,
+    0
+  );
+  const remainingTilesText = Object.entries(remainingTiles)
+    .map(([tile, count]) => `${displayLetter(tile)}: ${count}`)
+    .join(", ");
+  if (fitxesRestants) {
+    fitxesRestants.textContent = `${remainingTilesCount} Fitxes restants: ${remainingTilesText}`;
+  }
 }
 //actualitza el sac de fitxes
-function updateSac() {  
-    const remainingTiles = calculateRemainingTiles();
-   
-    const tiles = Object.entries(remainingTiles).flatMap(([tile, count]) =>
-        Array(count).fill(tile)
-    );
-    const sacString = tiles.join("");
-    renderSacTiles(sacString);
+function updateSac() {
+  const remainingTiles = calculateRemainingTiles();
+
+  const tiles = Object.entries(remainingTiles).flatMap(([tile, count]) =>
+    Array(count).fill(tile)
+  );
+  const sacString = tiles.join("");
+  renderSacTiles(sacString);
 }
 
 // Navegació entre rondes
@@ -107,7 +108,8 @@ const prevRoundBtn = document.getElementById("prevRoundBtn");
 const nextRoundBtn = document.getElementById("nextRoundBtn");
 if (prevRoundBtn) {
   prevRoundBtn.addEventListener("click", () => {
-    if (currentRoundIndex > 0) showRound(currentRoundIndex - 1);
+    if (currentRoundIndex > 0) 
+      showRound(currentRoundIndex - 1);
   });
 }
 if (nextRoundBtn) {
@@ -143,17 +145,17 @@ function addNewRound() {
       roundsList.length > 0
         ? String(Number(roundsList[roundsList.length - 1]) + 1)
         : "1";
-        
+
     const lastWord = data[lastClosedRoundId]?.results[actualPlayer].word || "";
     const lastCoordinates =
       data[lastClosedRoundId]?.results[actualPlayer].coordinates || "";
     const lastDirection =
-      data[lastClosedRoundId]?.results[actualPlayer].direction   || "";
+      data[lastClosedRoundId]?.results[actualPlayer].direction || "";
     const lastWordInfo = findWordInfo(lastWord, lastCoordinates, lastDirection);
-if(data[lastClosedRoundId])
-    saveWordsToBoard(boardToCopy, [lastWordInfo]);
+    if (data[lastClosedRoundId])
+      saveWordsToBoard(boardToCopy, [lastWordInfo]);
     const lastRack = data[lastClosedRoundId]?.rack.split("") || []; // Converteix a array
-const playedup = modalitat==="duplicada"?"Jugada mestra": actualPlayer
+    const playerdup = modalitat === "duplicada" ? "Jugada mestra" : actualPlayer
     const lastUsedTiles =
       data[lastClosedRoundId]?.results[playerdup].usedtiles || []; // Fitxes usades
 
@@ -206,28 +208,34 @@ function calculateRemainingTiles() {
     historyRef.child(roundId).once("value", (snapshot) => {
       const round = snapshot.val();
       if (round && round.closed && round.results) {
-if(modalitat==="duplicada"){
-round.results=round.results.filter(key=>key["Jugada mestra"])
-}
-        Object.values(round.results).forEach((result) => {
-
-
-          if (result.usedtiles) {
-            result.usedtiles.forEach((tile) => {
+        const resultats = round.results//Object.values(round.results)
+        if (modalitat === "duplicada") {   
+          console.log("TONI: calcul de fitxers restants",resultats)       
+          if (resultats["Jugada mestra"].usedtiles) {
+            resultats["Jugada mestra"].usedtiles.forEach((tile) => {
               usedTiles[tile] = (usedTiles[tile] || 0) + 1;
-            });
-          }
-        });
+            });            
+          }   
+
+        } else {
+          resultats.forEach((result) => {
+            if (result.usedtiles) {
+              result.usedtiles.forEach((tile) => {
+                usedTiles[tile] = (usedTiles[tile] || 0) + 1;
+              });
+            }
+          });
+        }
       }
     });
   });
   //s'han de tenir en compte les fitxes que hi ha al faristol actual
-    const currentRack = editRackInput.value.split("");
-    currentRack.forEach((tile) => {
+  const currentRack = editRackInput.value.split("");
+  currentRack.forEach((tile) => {
     usedTiles[tile] = (usedTiles[tile] || 0) + 1;
-    });
-    //console.log(usedTiles)
-   
+  });
+  //console.log(usedTiles)
+
   // Calcula les fitxes restants basant-se en la distribució inicial
   const remainingTiles = { ...tileDistribution };
   Object.entries(usedTiles).forEach(([tile, count]) => {
@@ -235,8 +243,8 @@ round.results=round.results.filter(key=>key["Jugada mestra"])
       remainingTiles[tile] = Math.max(0, remainingTiles[tile] - count);
     }
   });
-   console.log("Fitxes usades:", usedTiles);
-    console.log("Fitxes restants:", remainingTiles);
+  console.log("Fitxes usades:", usedTiles);
+  console.log("Fitxes restants:", remainingTiles);
 
 
   return remainingTiles;
@@ -353,7 +361,7 @@ if (updateRackBtn) {
 
 function closeCurrentRound() {
   //afegeix validació
-  if(wordInput.value == ""&&coordsInput.value==""){
+  if (wordInput.value == "" && coordsInput.value == "") {
     alert("No hi ha cap jugada mestra per tancar la ronda actual.");
     return;
   }
@@ -361,11 +369,11 @@ function closeCurrentRound() {
     const roundId = roundsList[currentRoundIndex];
     gameInfoRef
       .child("currentRound")
-        .set("")
+      .set("")
     historyRef
       .child(`${roundId}/closed`)
       .set(true)
-      .then(() => {});
+      .then(() => { });
   } else {
     alert("No hi ha cap ronda actual per tancar.");
   }
@@ -381,11 +389,11 @@ function openCurrentRound() {
     const roundId = roundsList[currentRoundIndex];
     gameInfoRef
       .child("currentRound")
-        .set(roundId)
+      .set(roundId)
     historyRef
       .child(`${roundId}/closed`)
       .set(false)
-      .then(() => {});
+      .then(() => { });
   } else {
     alert("No hi ha cap ronda actual per tancar.");
   }
@@ -398,19 +406,20 @@ if (obreRondaBtn) {
 
 // Funció per actualitzar la UI basant-se en la ronda actual i si és l'última
 function updateUIForCurrentRound(round, isLastRound) {
-  const buttons = document.querySelectorAll("button");
+  const mainContent = document.getElementById("main-content");
+  const buttons = mainContent.querySelectorAll("button");
   //console.log(buttons)
 
-  const inputs = document.querySelectorAll("input");
+  const inputs = mainContent.querySelectorAll("input");
 
   if (round.closed) {
     // Si la ronda està tancada
-    if (tancaRondaBtn) tancaRondaBtn.style.display = "none"; 
-    
+    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
+
     if (novaRondaBtn)
       novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
     if (obreRondaBtn)
-      obreRondaBtn.style.display = isLastRound ? "block" : "none"; 
+      obreRondaBtn.style.display = isLastRound ? "block" : "none";
     if (deleteRondaBtn)
       deleteRondaBtn.style.display = isLastRound ? "block" : "none";
     // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
@@ -421,7 +430,7 @@ function updateUIForCurrentRound(round, isLastRound) {
       "stopBtn",
       "resetBtn",
     ];
-    if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn","deleteRondaBtn");
+    if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
     buttons.forEach((button) => {
       console.log(button.id);
       if (!excludedButtonIds.includes(button.id)) {
@@ -450,21 +459,21 @@ function updateUIForCurrentRound(round, isLastRound) {
   }
 }
 if (deleteRondaBtn)
-      deleteRondaBtn.addEventListener("click", () => {
-        if (confirm("Esteu segur que voleu esborrar la ronda actual?")) {
-          const roundId = roundsList[currentRoundIndex];
-          historyRef
-            .child(roundId)
-            .remove()
-            .then(() => {
-              alert("Ronda esborrada correctament.");
-              loadRoundsHistory(); // Torna a carregar l'historial de rondes
-            })
-            .catch((error) => {
-              console.error("Error al esborrar la ronda:", error);
-            });
-        }
-      });
+  deleteRondaBtn.addEventListener("click", () => {
+    if (confirm("Esteu segur que voleu esborrar la ronda actual?")) {
+      const roundId = roundsList[currentRoundIndex];
+      historyRef
+        .child(roundId)
+        .remove()
+        .then(() => {
+          alert("Ronda esborrada correctament.");
+          loadRoundsHistory(); // Torna a carregar l'historial de rondes
+        })
+        .catch((error) => {
+          console.error("Error al esborrar la ronda:", error);
+        });
+    }
+  });
 // Afegir esdeveniments als botons
 if (novaRondaBtn) {
   novaRondaBtn.addEventListener("click", () => {

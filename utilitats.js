@@ -47,8 +47,15 @@ function displayLetter(letter) {
 }
 
 // Mostra una paraula sencera amb dígrafs humans
-function displayWord(word) {
-    return word.split('').map(displayLetter).join('');
+function displayWord(word,scraps) {
+
+    return word.split('').map((letter, index) => {
+        // Si l'índex és en l'array scraps, converteix la lletra a minúscula
+        if (scraps && scraps.includes(index)) {
+            return displayLetter(letter.toLowerCase());
+        }
+        return displayLetter(letter);
+    }).join('');
 }
 
 // Divideix una paraula en fitxes (tenint en compte dígrafs)
