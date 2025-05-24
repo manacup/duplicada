@@ -539,6 +539,8 @@ let currentWordTiles = [];
 function generateTileButtons(word) {
   tileButtonsDiv.innerHTML = "";
   currentWordTiles = [];
+  const scraps =[]
+  
   const tiles = splitWordToTiles(word);
   for (let i = 0; i < tiles.length; i++) {
     const letter = displayLetter(tiles[i]).toUpperCase();
@@ -552,6 +554,9 @@ function generateTileButtons(word) {
     valueSpan.className = "tile-value";
     // Si és minúscula (escarràs), mostra 0
     const isScrap = tiles[i] === tiles[i].toLowerCase();
+    if (isScrap) {
+      scraps.push(i)
+    }
     valueSpan.textContent = isScrap ? "0" : letterValues[letter] ?? "";
     button.appendChild(valueSpan);
     // Afegeix l'esdeveniment de clic per marcar/desmarcar escarràs
@@ -560,8 +565,8 @@ function generateTileButtons(word) {
     tileButtonsDiv.appendChild(button);
     currentWordTiles.push({ letter: tiles[i], isScrap: false });
   }
-  //scrapsInput.value = "";
-  const scraps = JSON.parse(scrapsInput.value || "[]");
+  scrapsInput.value = JSON.stringify(scraps);
+   //JSON.parse(scrapsInput.value || "[]");
   updateRackTilesPreview(word, scraps)
 }
 

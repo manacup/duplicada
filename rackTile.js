@@ -54,7 +54,7 @@ function updateRackTilesPreview(word, scraps) {
   
     // Mostra totes les fitxes primer
     Array.from(rackTilesDiv.children).forEach(
-      (tile) => (tile.style.visibility = "visible")
+      (tile) => (tile.style.opacity = "100%")
     );
   
     const tiles = splitWordToTiles(word);
@@ -73,19 +73,21 @@ function updateRackTilesPreview(word, scraps) {
       if (isScrap) {
         // Amaga la primera fitxa escarràs visible i no usada
         const blankTile = rackState.find(
-          (t) => t.isBlank && !t.used && t.el.style.visibility !== "hidden"
+          (t) => t.isBlank && !t.used && t.el.style.opacity !== "100%"
         );
         if (blankTile) {
-          blankTile.el.style.visibility = "hidden";
+          blankTile.el.style.opacity = "50%";
+          blankTile.used = "hidden";
           blankTile.used = true;
         }
       } else {
         // Amaga la primera fitxa normal visible i no usada que coincideixi amb la lletra
         const normalTile = rackState.find(
-          (t) => !t.isBlank && t.letter === tileLetter && !t.used && t.el.style.visibility !== "hidden"
+          (t) => !t.isBlank && t.letter === tileLetter && !t.used && t.el.style.opacity !== "50%"
         );
         if (normalTile) {
-          normalTile.el.style.visibility = "hidden";
+          normalTile.el.style.opacity = "50%";
+          normalTile.used = "hidden";
           normalTile.used = true;
         }
       }
