@@ -84,6 +84,8 @@ h3 {
   background-color: #ffe082;
   border-color: #d39e00;
   color: #222;
+  text-transform: lowercase;
+      font-style: italic;
 }
 
 /* Opcional: efecte hover */

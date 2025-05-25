@@ -252,12 +252,12 @@ boardContainer.addEventListener("click", function (event) {
 });
 
 //funció que retorna la fitxa de la casella donat l'index de fila i columna
-function getTileAt(row, col) {
-  if (row < 0 || row >= currentBoard.length || col < 0 || col >= currentBoard[0].length) {
+function getTileAt(row, col,board = currentBoard) {
+  if (row < 0 || row >= board.length || col < 0 || col >= board[0].length) {
     return null; // Fora de límits
   }
   //comprova si és una fitxa escarràs iretorna objecte amb la lletra i si és escarràs o no
-  const tile = currentBoard[row][col];
+  const tile = board[row][col];
   if (tile && tile === tile.toLowerCase()) {
     return { letter: tile.toUpperCase(), isScrap: true };
   }else if (tile) {

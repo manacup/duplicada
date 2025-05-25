@@ -753,4 +753,4 @@ scrapsInput.addEventListener("input", renderScrapTileButtons);
 
 // També pots cridar renderScrapTileButtons() en carregar la pàgina si cal.
 
-export { fillFormDataFromRoundAndPlayer,updateTileButtonsFromForm };
+export { fillFormDataFromRoundAndPlayer,updateTileButtonsFromForm, boardBeforeMasterPlay, validateTiles, previewMasterPlay, renderScrapTileButtons, currentRack, currentRoundId, generateTileButtons, currentWordTiles, updateScrapsInputValue };

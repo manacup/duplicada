@@ -4,8 +4,10 @@ import {
   displayLetter,
   letterValues,
   tileDistribution,
+  getNextCell,
+  normalizeWordInput
 } from "./utilitats.js";
-import { updateTileButtonsFromForm } from "./formulariRespostes.js";
+import { updateTileButtonsFromForm ,boardBeforeMasterPlay,renderScrapTileButtons} from "./formulariRespostes.js";
 import { getTileAt } from "./tauler.js";
 
 const rackTilesDiv = document.getElementById("rackTiles");
@@ -116,8 +118,8 @@ function updateRackTilesPreview(word, scraps) {
         (t) =>
           !t.isBlank &&
           t.letter === tileLetter &&
-          !t.used &&
-          t.el.style.opacity !== "50%"
+          !t.used /* &&
+          t.el.style.opacity !== "50%" */
       );
       if (normalTile) {
         normalTile.el.classList.add("seleccionada");
@@ -136,6 +138,10 @@ const scrapsInput = document.getElementById("scraps");
 // Habilita l'entrada de fitxes del rack
 function enableRackTileInput() {
   rackTilesDiv.addEventListener("click", function (e) {
+    if(coordsInput.value.trim() === "") {
+      alert("Si us plau, omple les coordenades abans de seleccionar una fitxa del rack.");
+      return;
+    }
     const tile = e.target.closest(".rack-tile");
     console.log("tile", tile);
     if (!tile) return;
@@ -158,10 +164,55 @@ function enableRackTileInput() {
 
       wordInput.dispatchEvent(new Event("input")); // Per si hi ha listeners
     }
+
+    escriuSeguentFitxa()
+    renderScrapTileButtons()
+
   });
+
+ 
 }
 // Crida la funció després de renderitzar el rack
 enableRackTileInput();
+
+function escriuSeguentFitxa(){
+      const coordValue = document.getElementById("coords").value.trim().toUpperCase();
+    let selectedRow = -1,
+      selectedCol = -1;
+    if (coordValue) {
+      const letter = coordValue.match(/[A-Z]/)?.[0];
+      const number = parseInt(coordValue.match(/[0-9]+/)?.[0]);
+      if (letter && number) {
+        if (directionInput.value === "horizontal") {
+          selectedRow = letter.charCodeAt(0) - 65;
+          selectedCol = number - 1;
+        } else if (directionInput.value === "vertical") {
+          selectedRow = letter.charCodeAt(0) - 65;
+          selectedCol = number - 1;
+        }
+      }
+      const nextCell = getNextCell(selectedRow, selectedCol, directionInput.value, normalizeWordInput(wordInput.value));
+      console.log("nextCell", nextCell)
+      if (nextCell) {
+        const tileAt = getTileAt(nextCell.row, nextCell.col, boardBeforeMasterPlay);
+        if (tileAt) {
+          console.log( "tileAt", tileAt);
+          wordInput.value += displayLetter(tileAt.letter); // Afegeix la lletra de la cel·la al camp de coordenades
+          wordInput.dispatchEvent(new Event("input")); // Per si hi ha listeners
+
+          //si la cel·la és una fitxa escarràs, afegeix a scraps
+          const currentScraps = JSON.parse(scrapsInput.value || "[]");
+          if (tileAt.isScrap) {
+            currentScraps.push(wordInput.value.length - 1); // Afegeix la posició de la fitxa escarràs
+            scrapsInput.value = JSON.stringify(currentScraps);
+          } 
+        
+        }
+      } else {
+        console.warn("No s'ha pogut trobar la següent cel·la per a les coordenades.");
+      }
+    }
+}
 
 const modal = document.getElementById("lettersModal");
 new bootstrap.Modal(modal); // Assegura't que tens una classe Modal que gestioni el modal
@@ -186,19 +237,7 @@ function ompleModalWithLetters() {
       currentScraps.push(wordInput.value.length - 1); // Afegeix la posició de la fitxa escarràs
       scrapsInput.value = JSON.stringify(currentScraps);
       wordInput.dispatchEvent(new Event("input"));
-      //scrapsInput.dispatchEvent(new Event("input"));
-      //wordInput.dispatchEvent(new Event("input")); // Per si hi ha listeners
-      // Aquí pots afegir la lògica per actualitzar el rack si cal
-      /*  const rackTiles = document.querySelectorAll(".rack-tile");
-      rackTiles.forEach((tile) => {
-        if (tile.dataset.letter === '?') {
-          tile.classList.add("seleccionada"); // Marca la fitxa com seleccionada
-        }
-      });
-      modal.style.display = "none"; // Tanca el modal després de seleccionar */
-      // Actualitza els botons de les fitxes i la vista del rack
-      //generateTileButtons(wordInput.value || "");
-      // Re-apply the scrap visual state based on the loaded scraps
+
       // Marca només el botó corresponent a la nova posició de scrap, sense modificar els altres
       const tileButtonsDiv = document.getElementById("tileButtons");
       const tileButtons = tileButtonsDiv.querySelectorAll('.tile-button');
@@ -220,16 +259,9 @@ function ompleModalWithLetters() {
       });
 
 
-      updateRackTilesPreview(wordInput.value || "", currentScraps);
-      // Dins el click del modal, després d'afegir la lletra i actualitzar scrapsInput:
-      const rackTiles = document.querySelectorAll(".rack-tile.scrap:not(.scrap-fixed)");
-      if (rackTiles.length > 0) {
-        // Només el primer escarràs lliure
-        const rackTile = rackTiles[0];
-        rackTile.classList.add("scrap-fixed");
-        rackTile.removeAttribute("data-bs-toggle");
-        rackTile.removeAttribute("data-bs-target");
-      }
+      updateRackTilesPreview(wordInput.value || "", currentScraps);   
+      escriuSeguentFitxa()
+      renderScrapTileButtons()
     });
     modalContent.appendChild(div);
   });
@@ -237,81 +269,22 @@ function ompleModalWithLetters() {
 
 }
 ompleModalWithLetters();
-// Quan es desselecciona un escarràs (al click del botó de paraula):
-const rackTiles = document.querySelectorAll(".rack-tile");
-rackTiles.forEach((tile) => {
-  if (tile.classList.contains("scrap-fixed")) {
-    tile.classList.remove("scrap-fixed");
-    tile.setAttribute("data-bs-toggle", "modal");
-    tile.setAttribute("data-bs-target", "#lettersModal");
+
+
+//listener al racktilesdiv que si un escarràs té el .seleccionada, elimina el data-bs-toggle i data-bs-target, si no té .seleccionada i no te data-bs-toggle i data-bs-target, afegeix-los
+rackTilesDiv.addEventListener("change", function (e) {
+  this.querySelectorAll(".rack-tile").forEach((tile) => {
+    
+  if (!tile) return;
+  if (tile.classList.contains("seleccionada")) {
+    tile.removeAttribute("data-bs-toggle");
+    tile.removeAttribute("data-bs-target");
+  } else {
+    tile.dataset.bsToggle = "modal";
+    tile.dataset.bsTarget = "#lettersModal";
   }
 });
-
-/* rackTilesDiv.addEventListener("click", function (e) {
-  const tile = e.target.closest(".rack-tile");
-  if (!tile) return;
-
-  // Comprova que hi ha coordenades i direcció
-  const coords = coordsInput.value.trim().toUpperCase();
-  const direction = directionInput.value;
-  if (!coords || !direction) {
-    alert("Has de seleccionar primer la casella inicial i la direcció!");
-    return;
-  }
-
-  // Calcula la posició inicial
-  const letter = coords.match(/[A-Z]/)?.[0];
-  const number = parseInt(coords.match(/[0-9]+/)?.[0]);
-  let row = letter ? letter.charCodeAt(0) - 65 : -1;
-  let col = number ? number - 1 : -1;
-  if (row < 0 || col < 0) return;
-
-  // Obté la paraula ja escrita (potser dels tileButtons o del wordInput)
-  let word = wordInput.value || "";
-  let wordArr = word.split("");
-  let idx = wordArr.length;
-
-  // Busca la primera casella buida a partir de la longitud de la paraula
-  let found = false;
-  let maxTries = 15; // Evita bucles infinits
-  while (!found && idx < 15 && maxTries-- > 0) {
-    let r = row, c = col;
-    if (direction === "horizontal") c += idx;
-    else r += idx;
-
-    const tileInfo = getTileAt(r, c);
-    if (!tileInfo) {
-      // Fora de límits, atura
-      break;
-    }
-    if (!tileInfo.letter) {
-      // Casella buida: posa la fitxa seleccionada
-      const rackLetter = tile.dataset.letter || tile.textContent.trim().charAt(0);
-      wordArr[idx] = rackLetter;
-      // Si és escarràs, afegeix a scrapsInput
-      if (tile.classList.contains("scrap")) {
-        let scraps = JSON.parse(scrapsInput.value || "[]");
-        scraps.push(idx);
-        scrapsInput.value = JSON.stringify(scraps);
-      }
-      found = true;
-    } else {
-      // Casella ocupada: afegeix la lletra de la casella
-      wordArr[idx] = tileInfo.letter;
-      // Si la casella és escarràs, afegeix a scrapsInput
-      if (tileInfo.isScrap) {
-        let scraps = JSON.parse(scrapsInput.value || "[]");
-        scraps.push(idx);
-        scrapsInput.value = JSON.stringify(scraps);
-      }
-      idx++;
-    }
-  } 
-
-  // Actualitza el wordInput i la vista
-  wordInput.value = wordArr.join("");
-  wordInput.dispatchEvent(new Event("input"));
-  updateRackTilesPreview(wordInput.value, JSON.parse(scrapsInput.value || "[]"));
-});*/
+}
+);
 
 export { renderRackTiles, updateRackTilesPreview, renderSacTiles };

@@ -141,10 +141,29 @@ const tileDistribution = {
     '?': 2, // Escarrassos (fitxes en blanc)
 }
 
+/**
+ * Donades les coordenades d'inici, la direcció i la paraula,
+ * retorna la fila i columna de la casella següent.
+ * @param {number} row - Fila inicial (0-indexed)
+ * @param {number} col - Columna inicial (0-indexed)
+ * @param {string} direction - "horizontal" o "vertical"
+ * @param {string} word - Paraula ja escrita
+ * @returns {{row: number, col: number}}
+ */
+function getNextCell(row, col, direction, word) {
+  const offset = word.length;
+  if (direction === "horizontal") {
+    return { row: row, col: col + offset };
+  } else {
+    return { row: row + offset, col: col };
+  }
+}
 
+// Exemple d'ús:
+// const {row: nextRow, col: nextCol} = getNextCell(7, 7, "horizontal", "CASA");
 
 // Centralitza funcions compartides
-export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord };
+export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord,getNextCell };
 
 export {
     DIGRAPH_MAP,
@@ -153,3 +172,4 @@ export {
     multiplierBoard,
     tileDistribution
 };
+
