@@ -2,7 +2,7 @@
 body {
   
   font-family: "Arial", sans-serif;
-  background-color: #e9ecef; /* Un fons gris clar */
+  background-color: #113d080c; /* Un fons gris clar */
   color: #333;
   line-height: 1.6;
 }
@@ -14,8 +14,8 @@ body {
   
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
-  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  background-color: #fff;*/
   max-width: none; !important
 }
 
@@ -198,7 +198,7 @@ h3 {
   margin: 0 auto;
   table-layout: fixed;
   width: 100%;
-  max-width: 576px; /* Límit màxim a pantalles grans */
+  max-width: 800px; /* Límit màxim a pantalles grans */
   aspect-ratio: 1 / 1; /* Manté el tauler quadrat */
 }
 
@@ -398,6 +398,7 @@ h3 {
   justify-content: center; /* o space-between si vols repartir */
   box-sizing: border-box;
 }
+
 .sac-tiles {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
@@ -406,9 +407,18 @@ h3 {
   margin: 10px 0 20px 0;
   width: 100%;  
   justify-content: center; /* o space-between si vols repartir */
-  box-sizing: border-box;
+  box-sizing: border-box;  
+}
 
-  
+#scrapButtons {
+   display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;
+  margin: 10px 0 20px 0;
+  width: 100%;  
+  justify-content: center; /* o space-between si vols repartir */
+  box-sizing: border-box;  
 }
 
 .rack-tile.scrap {
@@ -444,7 +454,11 @@ h3 {
   color: #333;
 }
 
-
+section{
+  border-radius: 20px;
+  background-color: #ffffff; /* Fons gris clar */
+  padding: 20px;
+}
 
 
 #countdown.warning,#countdownSlave.warning {
@@ -479,5 +493,8 @@ h3 {
 #directionLabel{
   padding: 0% ! important ;
 }
-
+.seleccionada{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 /* min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2)); */

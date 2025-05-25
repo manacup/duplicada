@@ -1,9 +1,9 @@
 import { historyRef } from './firebase.js';
 import { displayWord } from './utilitats.js';
-
+import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 const resultatsDiv = document.getElementById('resultats');
 const rondaDisplay = document.getElementById('roundDisplay');
-import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
+
 
 let currentRoundId = null;
 

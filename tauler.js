@@ -223,7 +223,7 @@ gameInfoRef.child('currentBoard').on('value', (snapshot) => {
 
 // Permet clicar sobre una casella del tauler per omplir l'input de coordenades
 
-let lastCoordType = "H"; // Variable global per alternar
+let lastCoordType = "V"; // Variable global per alternar
 
 boardContainer.addEventListener("click", function (event) {
   const cell = event.target.closest("td.board-cell");
@@ -251,4 +251,19 @@ boardContainer.addEventListener("click", function (event) {
   }
 });
 
-export { renderBoard };
+//funció que retorna la fitxa de la casella donat l'index de fila i columna
+function getTileAt(row, col) {
+  if (row < 0 || row >= currentBoard.length || col < 0 || col >= currentBoard[0].length) {
+    return null; // Fora de límits
+  }
+  //comprova si és una fitxa escarràs iretorna objecte amb la lletra i si és escarràs o no
+  const tile = currentBoard[row][col];
+  if (tile && tile === tile.toLowerCase()) {
+    return { letter: tile.toUpperCase(), isScrap: true };
+  }else if (tile) {
+    return { letter: tile.toUpperCase(), isScrap: false };
+  }
+  return null; // No hi ha fitxa
+}
+
+export { renderBoard, getTileAt, selectedRow, selectedCol, currentBoard };

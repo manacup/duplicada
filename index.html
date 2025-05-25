@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ca">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="style.css" rel="stylesheet">
-
-    <style>
+ <style>
         .main-grid {
             display: grid;
             grid-template-columns: 3fr 2fr;
@@ -72,12 +70,11 @@
             
             .main-grid {
                 display: grid;
-                grid-template-columns: 2fr 3fr 2fr;
+                grid-template-columns: 2fr 2fr 2fr;
 
                 grid-template-areas:
                     "titol titol titol"
                     "faristol gestio rellotge"
-                    "faristol tauler rellotge"
                     "faristol tauler respostes"
                     "master tauler respostes"
                     "master tauler respostes"
@@ -267,7 +264,7 @@
             <!-- Faristol visual -->
             <section id="faristol-section">
                 <div id="rackTiles" class="rack-tiles"></div>
-                <div class="row master" id="faristolInput">
+                <div class="row w-100 master" id="faristolInput">
                     <label for="editRackInput" class="form-label">Faristol:</label>
                     <div class="input-group mb-3">
 
@@ -276,7 +273,7 @@
                                 class="bi bi-shuffle"></i></button>
                         <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
                     </div>
-                    <p id="fitxesRestants" class="d-flex flex-wrap fw-medium"></p>
+                    <div id="fitxesRestants" class="d-flex flex-wrap gap-2"></div>
                 </div>
             </section>
             <!-- sac de fitxes -->
@@ -325,7 +322,7 @@
                     <div class="mb-3">
                         <label class="form-label">Marca els escarrassos, si n'has usat algun:</label>
                         <div id="tileButtons"></div>
-                        <input type="hidden" id="scraps" value="[]">
+                        <input type="hidden" id="scraps">
                     </div>
                     <h4 id="score-master" class="master"></h4>
                     <div class="d-grid gap-2 d-md-block mb-3">
@@ -358,7 +355,6 @@
             </div>
         </div>
     </div>
-
     <audio id="pipSound" src="pip.wav" preload="auto"></audio>
     <!-- JS dependències i scripts propis -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -368,21 +364,7 @@
     <script type="text/javascript" src="wdtjs/general.js"></script>
     <script type="text/javascript" src="wdtjs/bits.js"></script>
     <script type="text/javascript" src="dicc/disc.js"></script>
-    <script src="utilitats.js" type="module"></script>
-    <script src="firebase.js" type="module"></script>
-    <script src="tauler.js" type="module"></script>
-    <script src="gestioRondes.js" type="module"></script>
-    <script src="rackTile.js" type="module"></script>
-    <script src="resultats.js" type="module"></script>
-    <script src="formulariRespostes.js" type="module"></script>
-    <script src="rellotge.js" type="module"></script>
-
-    <script src="classificacio.js" type="module"></script>
-    <script src="login.js" type="module"></script>
-
-
-
-
+    <script src="unificat.js" type="module"></script>
+    
 </body>
-
 </html>

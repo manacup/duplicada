@@ -100,6 +100,7 @@ function updateSac() {
     Array(count).fill(tile)
   );
   const sacString = tiles.join("");
+  console.log("Sac de fitxes:", sacString);
   renderSacTiles(sacString);
 }
 

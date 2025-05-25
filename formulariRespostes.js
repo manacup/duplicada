@@ -24,6 +24,7 @@ const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
 const respostaMessage = document.getElementById("respostaMessage");
 let ENABLE_WORD_VALIDATION = document.getElementById("validateWords") ;
+
 console.log("ENABLE_WORD_VALIDATION", ENABLE_WORD_VALIDATION.checked);
 let currentRack = "";
 let currentRoundId = null;
@@ -80,43 +81,7 @@ function validateTiles(newTiles ) {
   return true;
 }
   
-/* function validateTiles(word, scraps) {
-  const rackTiles = splitWordToTiles(currentRack);
-  console.log(word, scraps, rackTiles,currentRack);
-  const rackCounts = {};
-  rackTiles.forEach((tile) => {
-    if (tile !== "?") {
-      rackCounts[tile] = (rackCounts[tile] || 0) + 1;
-    }
-  });
-  const rackScraps = rackTiles.filter((tile) => tile === "?").length;
-
-  let usedScraps = 0;
-  const tiles = splitWordToTiles(word);
-
-  for (let i = 0; i < tiles.length; i++) {
-    const isScrap = scraps.includes(i);
-    const letter = tiles[i].toUpperCase();
-
-    if (isScrap) {
-      if (usedScraps < rackScraps) {
-        usedScraps++;
-      } else {
-        return false;
-      }
-    } else {
-      if (rackCounts[letter]) {
-        rackCounts[letter]--;
-      } else if (rackScraps > usedScraps) {
-        usedScraps++;
-      } else {
-        return false;
-      }
-    }
-  }
-
-  return true;
-} */
+// Omple el formulari amb les dades de la ronda i jugador seleccionats
 
 async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
   respostaMessage.textContent = "";
@@ -158,8 +123,8 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
       coordsInput.value = "";
       wordInput.value = "";
       directionInput.value = "";
-      document.getElementById("scraps").value = "";
-      generateTileButtons("");
+      document.getElementById("scraps").value = "[]";
+      renderScrapTileButtons()//generateTileButtons("");
       updateRackTilesPreview("", []);
       return;
     }
@@ -171,12 +136,12 @@ console.log("resultats del jugador actual",playerResult)
     directionInput.value = playerResult.direction || "";
     const scraps = JSON.parse(playerResult.scraps || "[]");
     document.getElementById("scraps").disabled = false
- document.getElementById("scraps").value = playerResult.scraps //|| "[]";
-console.log(document.getElementById("scraps"),JSON.stringify(scraps))
+ document.getElementById("scraps").value = playerResult.scraps !== undefined ? playerResult.scraps : "[]";
+
     // Actualitza els botons de les fitxes i la vista del rack
-    generateTileButtons(playerResult.word || "");
+    renderScrapTileButtons()//generateTileButtons(playerResult.word || "");
     // Re-apply the scrap visual state based on the loaded scraps
-    const tileButtons = tileButtonsDiv.querySelectorAll('.tile-button');
+  /*   const tileButtons = tileButtonsDiv.querySelectorAll('.tile-button');
     tileButtons.forEach(button => {
       const index = parseInt(button.dataset.index);
       if (scraps.includes(index)) {
@@ -206,7 +171,7 @@ console.log(document.getElementById("scraps"),JSON.stringify(scraps))
         valueSpan.textContent = letterValues[letter] ?? "";
       }
       currentWordTiles[index].isScrap = scraps.includes(index);
-    });
+    }); */
 
 
     updateRackTilesPreview(playerResult.word || "", scraps);
@@ -214,6 +179,7 @@ console.log(document.getElementById("scraps"),JSON.stringify(scraps))
     // Actualitza la previsualització del tauler i la puntuació si hi ha dades
     if (playerResult.coordinates && playerResult.word && playerResult.direction && boardBeforeMasterPlay) {
       previewMasterPlay();
+      coordsInput.dispatchEvent(new Event("input"));
     } else {
       renderBoard(boardBeforeMasterPlay);
       document.getElementById("score-master").textContent = "";
@@ -249,7 +215,7 @@ wordForm.addEventListener("submit", async (e) => {
   const coords = coordsInput.value.trim().toUpperCase();
   const direction = directionInput.value;
   const wordRaw = wordInput.value.trim();
-  const word = normalizeWordInput(wordRaw);
+  //const word = normalizeWordInput(wordRaw);
 
   // Detecta escarrassos (minúscules)
   const tiles = splitWordToTiles(wordRaw);
@@ -524,50 +490,61 @@ function previewMasterPlay() {
   document.getElementById("score-master").textContent = `Puntuació: ${score}`;
 }
 
+const scrapsInput = document.getElementById("scraps");
+const tileButtonsDiv = document.getElementById("tileButtons");
 // Assegura't de cridar previewMasterPlay() a cada canvi:
 coordsInput.addEventListener("input", previewMasterPlay);
 directionInput.addEventListener("input", previewMasterPlay);
 wordInput.addEventListener("input", previewMasterPlay);
-document.getElementById("scraps").addEventListener("input", previewMasterPlay);
+scrapsInput.addEventListener("input", previewMasterPlay);
 // Llegeix l'estat actual dels escarrassos
 
-const scrapsInput = document.getElementById("scraps");
-const tileButtonsDiv = document.getElementById("tileButtons");
+
 
 let currentWordTiles = [];
 
-function generateTileButtons(word) {
+function generateTileButtons(word,scraps) {
   tileButtonsDiv.innerHTML = "";
-  currentWordTiles = [];
-  const scraps =[]
+  currentWordTiles = [];  
+  
+  scraps = JSON.parse(scrapsInput.value || "[]");
   
   const tiles = splitWordToTiles(word);
   for (let i = 0; i < tiles.length; i++) {
-    const letter = displayLetter(tiles[i]).toUpperCase();
+    const isScrap = scraps.includes(i);
+    const letter = displayLetter(isScrap ? tiles[i].toLowerCase() : tiles[i].toUpperCase());
     const button = document.createElement("button");
     button.classList.add("tile-button");
-    button.textContent = displayLetter(tiles[i]);
+    button.textContent = letter;
     button.dataset.index = i;
     button.type = "button";
-    // Afegeix la puntuació a la cantonada inferior dreta
+
+    // Marca visualment si és escarràs
+    if (isScrap) button.classList.add("scrap");
+
+    // Valor de la fitxa
     const valueSpan = document.createElement("span");
     valueSpan.className = "tile-value";
-    // Si és minúscula (escarràs), mostra 0
-    const isScrap = tiles[i] === tiles[i].toLowerCase();
-    if (isScrap) {
-      scraps.push(i)
-    }
-    valueSpan.textContent = isScrap ? "0" : letterValues[letter] ?? "";
+    valueSpan.textContent = isScrap ? "0" : (letterValues[letter.toUpperCase()] ?? "");
     button.appendChild(valueSpan);
-    // Afegeix l'esdeveniment de clic per marcar/desmarcar escarràs
 
-    button.addEventListener("click", toggleScrap);
+    // Click: alterna escarràs i actualitza scrapsInput
+    button.addEventListener("click", () => {
+      let newScraps = JSON.parse(scrapsInput.value || "[]");
+      if (newScraps.includes(i)) {
+        newScraps = newScraps.filter(x => x !== i);
+      } else {
+        newScraps.push(i);
+      }
+      scrapsInput.value = JSON.stringify(newScraps);
+      renderScrapTileButtons();
+      updateRackTilesPreview(wordInput.value, newScraps);
+      previewMasterPlay();
+    });
+
     tileButtonsDiv.appendChild(button);
-    currentWordTiles.push({ letter: tiles[i], isScrap: false });
+    currentWordTiles.push({ letter: tiles[i], isScrap });
   }
-  scrapsInput.value = JSON.stringify(scraps);
-   //JSON.parse(scrapsInput.value || "[]");
-  updateRackTilesPreview(word, scraps)
 }
 
 // Marca/desmarca una lletra com a escarràs
@@ -619,17 +596,20 @@ function updateScrapsInputValue() {
 // Sempre converteix a majúscula abans de processar
 wordInput.addEventListener("input", () => {
   const word = wordInput.value.toUpperCase();
+  
+  console.log('escarrassosInput.value', scrapsInput.value);
   //wordInput.value = word; // Actualitza el valor de l'input
-  generateTileButtons(word);
+  renderScrapTileButtons()//generateTileButtons(word);
+  //updateTileButtonsFromForm()
   previewMasterPlay(); // Call preview after generating buttons
 });
 
 // També actualitza els botons en carregar la pàgina si hi ha valor inicial
 if (wordInput.value) {
-  generateTileButtons(wordInput.value);
+  renderScrapTileButtons()//generateTileButtons(wordInput.value, JSON.parse(scrapsInput.value || "[]"));
 }
 
-// Desa el nom del jugador al localStorage
+/* // Desa el nom del jugador al localStorage
 playerInput.addEventListener("input", () => {
   const playerName = playerInput.value.trim();
   localStorage.setItem("nomJugador", playerName);
@@ -639,7 +619,7 @@ tableInput.addEventListener("input", () => {
   const table = tableInput.value.trim();
   localStorage.setItem('playerTable', table);
   
-});
+}); */
 //
 // Carrega el nom del jugador del localStorage en carregar la pàgina
 window.addEventListener("load", () => {
@@ -704,4 +684,73 @@ tableInput.addEventListener("input", () => {
   });
 });
 
-export { fillFormDataFromRoundAndPlayer };
+//formula per actualitzar el tileButtonsDiv agafant la  paraula del formulari i els scraps desats a scrapsInput
+function updateTileButtonsFromForm() {
+  const word = wordInput.value.toUpperCase();
+  const scraps = JSON.parse(scrapsInput.value || "[]");
+  renderScrapTileButtons()//generateTileButtons(word, scraps);
+}
+
+/**
+ * Genera els botons de fitxes a partir del wordInput i marca els escarrassos segons scrapsInput.
+ * En fer clic a cada botó, es modifica scrapsInput i es torna a marcar visualment.
+ */
+function renderScrapTileButtons() {
+  const word = wordInput.value.toUpperCase();
+  console.log(scrapsInput)
+  const scraps = JSON.parse(scrapsInput.value || "[]");
+  tileButtonsDiv.innerHTML = "";
+  currentWordTiles = [];
+
+  const tiles = splitWordToTiles(word);
+
+  for (let i = 0; i < tiles.length; i++) {
+    const letter = displayLetter(tiles[i]);
+    const button = document.createElement("button");
+    button.classList.add("tile-button");
+    button.textContent = letter;
+    button.dataset.index = i;
+    button.type = "button";
+
+    // Marca visualment si és escarràs
+    if (scraps.includes(i)) {
+      button.classList.add("scrap");
+    }
+
+    // Valor de la fitxa
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "tile-value";
+    valueSpan.textContent = scraps.includes(i) ? "0" : (letterValues[letter.toUpperCase()] ?? "");
+    button.appendChild(valueSpan);
+
+    // Click: alterna escarràs i actualitza scrapsInput
+    button.addEventListener("click", () => {
+      const idx = parseInt(button.dataset.index);
+      let newScraps = JSON.parse(scrapsInput.value || "[]");
+      if (newScraps.includes(idx)) {
+        newScraps = newScraps.filter(x => x !== idx);
+        button.classList.remove("scrap");
+        valueSpan.textContent = letterValues[letter.toUpperCase()] ?? "";
+      } else {
+        newScraps.push(idx);
+        button.classList.add("scrap");
+        valueSpan.textContent = "0";
+      }
+      scrapsInput.value = JSON.stringify(newScraps);
+      updateRackTilesPreview(wordInput.value, newScraps);
+      previewMasterPlay();
+    });
+
+    tileButtonsDiv.appendChild(button);
+    currentWordTiles.push({ letter: tiles[i], isScrap: scraps.includes(i) });
+  }
+  updateRackTilesPreview(wordInput.value, scraps);
+}
+
+// Crida aquesta funció sempre que canvii wordInput o scrapsInput
+wordInput.addEventListener("input", renderScrapTileButtons);
+scrapsInput.addEventListener("input", renderScrapTileButtons);
+
+// També pots cridar renderScrapTileButtons() en carregar la pàgina si cal.
+
+export { fillFormDataFromRoundAndPlayer,updateTileButtonsFromForm };
