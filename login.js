@@ -5,23 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
   const loginSection = document.getElementById('login-section');
   const mainContent = document.getElementById('main-content');
+  const loginName = document.getElementById('loginName');
+  const loginTable = document.getElementById('loginTable');
+  const desaSessio = document.getElementById('desaSessio');
   
   const playerInput = document.getElementById('player');
   const tableInput = document.getElementById('taula');
-  const desaSessio = document.getElementById('desaSessio');
+  
 
   // Si ja hi ha playerName i playerTable al localStorage, carrega dades al formulari
   const storedName = localStorage.getItem('nomJugador');
   const storedTable = localStorage.getItem('playerTable');
   const storedDesaSessio = localStorage.getItem('desaSessio');
+  console.log(storedName,storedTable,storedDesaSessio);
   // Suggested code may be subject to a license. Learn more: ~LicenseLog:3360188146.
-  if (storedName && storedTable && storedDesaSessio) {
+  if (storedDesaSessio) {
 
     // Omple el camp player del formulari principal si existeix
+    loginName.value = storedName;
+    loginTable.value = storedTable;
    
-    if (playerInput) playerInput.value = storedName;
-    // Amaga elements amb class="master" si la taula no
-   
+    if (playerInput) playerInput.value = storedName;    
     if (tableInput) tableInput.value = storedTable;
     if(desaSessio) desaSessio.checked = storedDesaSessio;
 
@@ -51,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('playerTable', table);
       } else {
 // Suggested code may be subject to a license. Learn more: ~LicenseLog:2796808651.
-        if(localStorage.getItem('desaSessio')&&localStorage.getItem('nomJugador')&&localStorage.getItem('playerTable')){
+        if(!localStorage.getItem('desaSessio')){
           localStorage.removeItem('desaSessio');
         localStorage.removeItem('nomJugador');
         localStorage.removeItem('playerTable');}
