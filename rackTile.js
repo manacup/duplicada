@@ -216,6 +216,7 @@ function escriuSeguentFitxa(){
           wordInput.value += displayLetter(tileAt.letter); // Afegeix la lletra de la cel·la al camp de coordenades
           //afegeix una fitxa al rack-tile amb lletra i valor de tileAt
           const div = rederTile(tileAt.letter, true);
+          div.classList.add('d-none')
           //afegir en primera posicio de racktilediv
           rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
           

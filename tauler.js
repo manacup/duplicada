@@ -271,6 +271,7 @@ boardContainer.addEventListener("click", function (event) {
       coordsInput.value = coordH;
       lastCoordType = "H";
     }
+    let tileAt
 
     if (currentBoard[rowIdx][colIdx] && currentBoard[rowIdx][colIdx] !== "") {
       
@@ -282,13 +283,17 @@ boardContainer.addEventListener("click", function (event) {
     scrapsInput.value = '[0]'
     const div = rederTile("?", true);
       //afegir en primera posicio de rackti
+      div.classList.add('d-none')
+      rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
+  }else{
+    const div = rederTile(tileAt.letter, true);
+      //afegir en primera posicio de rackti
+      div.classList.add('d-none')
       rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
   }
     }else{
     scrapsInput.value = ''
-    const div = rederTile(tileAt.letter, true);
-      //afegir en primera posicio de rackti
-      rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
+    
   } 
 
     coordsInput.dispatchEvent(new Event("input"));

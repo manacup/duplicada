@@ -430,9 +430,9 @@ function updateUIForCurrentRound(round, isLastRound) {
       "nextRoundBtn",
       "startBtn",
       "stopBtn",
-      "resetBtn",
+      "resetBtn","novaRondaBtn", "obreRondaBtn", "deleteRondaBtn"
     ];
-    if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
+    //if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
     buttons.forEach((button) => {
       console.log(button.id);
       if (!excludedButtonIds.includes(button.id)) {
