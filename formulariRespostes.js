@@ -10,7 +10,7 @@ import {
 } from "./utilitats.js";
 import { renderBoard } from "./tauler.js";
 import { saveWordsToBoard, findAllNewWords, calculateFullPlayScore } from "./calcul.js";
-import { updateRackTilesPreview } from "./rackTile.js";
+import { updateRackTilesPreview,renderRackTiles } from "./rackTile.js";
 
 
 
@@ -754,6 +754,7 @@ if (deleteFaristolBtn) {
   deleteFaristolBtn.addEventListener('click', () => {
     wordInput.value = "";
     scrapsInput.value = "[]";
+    renderRackTiles(normalizeWordInput(document.getElementById("editRackInput").value))
     renderScrapTileButtons(); // Update the tile buttons display
     previewMasterPlay(); // Update the board preview and score
   });

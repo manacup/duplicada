@@ -1,6 +1,7 @@
 import {  
   displayLetter,
   createEmptyBoard,
+  normalizeWordInput,
   
 } from "./utilitats.js";
 
@@ -8,6 +9,9 @@ import {
   letterValues,
   multiplierBoard,
 } from "./utilitats.js";
+import { rederTile,renderRackTiles } from "./rackTile.js";
+
+
 
 
 // Inicialitzar el tauler (per exemple, 15x15)
@@ -237,7 +241,9 @@ let lastCoordType = "V"; // Variable global per alternar
 boardContainer.addEventListener("click", function (event) {
   const scrapsInput = document.getElementById("scraps")
   const coordsInput = document.getElementById("coords");
-  
+  const rackTilesDiv = document.getElementById("rackTiles");
+  const rack = normalizeWordInput(document.getElementById("editRackInput").value)
+  renderRackTiles(rack);
   coordsInput.value = ""
     wordInput.value = "";
     
@@ -267,17 +273,22 @@ boardContainer.addEventListener("click", function (event) {
     }
 
     if (currentBoard[rowIdx][colIdx] && currentBoard[rowIdx][colIdx] !== "") {
+      
       const tileAt = getTileAt(rowIdx, colIdx,currentBoard)
-      wordInput.value += tileAt.letter
+      wordInput.value += displayLetter(tileAt.letter)
       console.log(tileAt)
-  //si la cel·la seleccionada és scrap, posi value a scrapsInput [0] si no, []
-  
-  
+        
   if (tileAt.isScrap) {
     scrapsInput.value = '[0]'
+    const div = rederTile("?", true);
+      //afegir en primera posicio de rackti
+      rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
   }
     }else{
     scrapsInput.value = ''
+    const div = rederTile(tileAt.letter, true);
+      //afegir en primera posicio de rackti
+      rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
   } 
 
     coordsInput.dispatchEvent(new Event("input"));

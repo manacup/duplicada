@@ -42,7 +42,13 @@ function renderRackTiles(rackString) {
     valueSpan.textContent =
       letter === "?" ? "0" : letterValues[letter.toUpperCase()] ?? "";
     div.appendChild(valueSpan);
+    // es pot afegir en primera posició?
+    if (i === 0) {
+ rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
+    } else {
     rackTilesDiv.appendChild(div);
+    }
+    
   }
 }
 
@@ -208,7 +214,12 @@ function escriuSeguentFitxa(){
         if (tileAt) {
           console.log( "tileAt", tileAt);
           wordInput.value += displayLetter(tileAt.letter); // Afegeix la lletra de la cel·la al camp de coordenades
+          //afegeix una fitxa al rack-tile amb lletra i valor de tileAt
+          const div = rederTile(tileAt.letter, true);
+          //afegir en primera posicio de racktilediv
+          rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
           
+
 
           //si la cel·la és una fitxa escarràs, afegeix a scraps
           const currentScraps = JSON.parse(scrapsInput.value || "[]");
@@ -304,4 +315,4 @@ rackTilesDiv.addEventListener("change", function (e) {
 
 
 
-export { renderRackTiles, updateRackTilesPreview, renderSacTiles };
+export { renderRackTiles, updateRackTilesPreview, renderSacTiles,rederTile };
