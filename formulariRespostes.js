@@ -34,7 +34,7 @@ let currentRoundId = null;
 let boardBeforeMasterPlay = null;
 
 // Escolta els canvis de la ronda actual i actualitza el rackTiles
-gameInfoRef.child('currentRound').on('value', (snapshot) => {
+gameInfoRef.child('currentRound').once('value', (snapshot) => {
   currentRoundId = snapshot.val();
 
   if (!currentRoundId) {
