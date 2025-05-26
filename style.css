@@ -424,6 +424,11 @@ section{
   z-index: 2;        /* Opcional, per sobreposar la columna sticky */
 }
 
+th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  
+}
 .arrow-indicator{
   position: absolute;
   top: 50%;
