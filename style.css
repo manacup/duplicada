@@ -396,16 +396,12 @@ h3 {
   text-align: center;
   
 }
-#countdown {
+#countdown,#countdownSlave {
   font-size: 4em;
   font-weight: bold;
   color: #333;
 }
-#countdownSlave {
-  font-size: 1em;
-  font-weight: bold;
-  color: #333;
-}
+
 
 section{
  /*  border-radius: 20px; */
