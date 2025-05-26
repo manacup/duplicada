@@ -2,7 +2,7 @@
 body {
   
   font-family: "Arial", sans-serif;
-  background-color: #113d080c; /* Un fons gris clar */
+  background-color: #ffffff0c; /* Un fons gris clar */
   color: #333;
   line-height: 1.6;
 }
@@ -81,9 +81,9 @@ h3 {
 
 /* Fitxa seleccionada com escarràs: groc i punt a la cantonada */
 .tile-button.scrap, .rack-tile.scrap {
-  background-color: #ffe082;
+  /* background-color: #ffe082;
   border-color: #d39e00;
-  color: #222;
+  color: #222; */
   text-transform: lowercase;
       font-style: italic;
 }
@@ -325,6 +325,169 @@ h3 {
     font-weight: bold;
 }
 
+
+
+.tile-value {
+    position: absolute;
+    right: 2px;
+    bottom: 0px;
+    font-size: 0.5em;
+    color: #444;
+    opacity: 0.85;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.rack-tiles {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 20px 0;
+  width: 100%;
+  justify-content: center; /* o space-between si vols repartir */
+  box-sizing: border-box;
+}
+
+.sac-tiles {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 4px;
+  margin: 10px 0 20px 0;
+  width: 100%;  
+  justify-content: center; /* o space-between si vols repartir */
+  box-sizing: border-box;  
+}
+
+#scrapButtons {
+   display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;
+  margin: 10px 0 20px 0;
+  width: 100%;  
+  justify-content: center; /* o space-between si vols repartir */
+  box-sizing: border-box;  
+}
+
+/* .rack-tile.scrap {
+  background: #ffe082;
+  border-color: #d39e00;
+} */
+.rack-tile .tile-value {
+  position: absolute;
+  right: 2px;
+  bottom: 0px;
+  font-size: 0.5em;
+  color: #444;
+  opacity: 0.85;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* #rrellotge-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: sans-serif;
+} */
+
+.timer-container {
+  text-align: center;
+  
+}
+#countdown {
+  font-size: 4em;
+  font-weight: bold;
+  color: #333;
+}
+#countdownSlave {
+  font-size: 1em;
+  font-weight: bold;
+  color: #333;
+}
+
+section{
+ /*  border-radius: 20px; */
+  background-color: #ffffff; /* Fons gris clar */
+  /* padding: 20px; */
+}
+
+
+#countdown.warning,#countdownSlave.warning {
+  color: red;
+}
+#countdown.paused,#countdownSlave.paused {
+  color: rgb(128, 128, 128);
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: white; /* Recomanat per evitar que es solapi el contingut */
+  z-index: 2;        /* Opcional, per sobreposar la columna sticky */
+}
+
+.arrow-indicator{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  color: #000000;
+  pointer-events: none; /* Evita que l'usuari pugui interactuar amb l'índex */
+  z-index: 10000; /* Assegura que l'índex estigui per sobre de la cel·la */
+  
+}
+/* Estils per a l'input group */
+#coords,#taula{
+  max-width: 25%;
+}
+#directionLabel{
+  padding: 0% ! important ;
+}
+.seleccionada{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.board-cell.selected-coord-hor {
+  outline: 3px solid #ffb300 !important; /* contorn taronja */
+  z-index: 2;
+  
+}
+.board-cell.selected-coord-hor::after {
+  content: '';
+  position: absolute;
+  top: 50% !important;
+  left: -30% !important;
+  transform: translate(calc(-50% + 5px), -50%); /* Ajustar la posició per centrar la fletxa */
+  width: 0; /* L'amplada és zero per a una fletxa triangular */
+  height: 0; /* L'alçada és zero per a una fletxa triangular */
+  border-top: 8px solid transparent; /* Més alt per a una fletxa més gran */
+  border-bottom: 8px solid transparent; /* Més alt per a una fletxa més gran */
+  border-left: 15px solid rgb(0, 0, 0); /* Més ample per a una fletxa més gran */
+  z-index: 3; /* Assegura que la fletxa estigui per sobre del contorn */
+
+}
+.board-cell.selected-coord-ver {
+  outline: 3px solid #ffb300 !important; /* contorn taronja */
+  z-index: 2;
+  
+}
+.board-cell.selected-coord-ver::after {
+  content: '';
+  position: absolute;
+  top: -30% !important; /* Posicionar per sobre de la cel·la */
+  left: 50% !important;
+  transform: translate(-50%, calc(-50% + 5px)); /* Centrar horitzontalment i girar per apuntar avall */
+  width: 0; /* L'amplada és zero per a una fletxa triangular */
+  height: 0; /* L'alçada és zero per a una fletxa triangular */
+  border-top: 15px solid rgb(0, 0, 0); 
+  border-right: 8px solid transparent; 
+  border-left: 8px solid transparent; 
+  z-index: 3; /* Assegura que la fletxa estigui per sobre del contorn */
+
+}
 /* Paraula x3 */
 .board-cell.tw:not(.filled)::after {
   content: "3P";
@@ -379,124 +542,5 @@ h3 {
   font-weight: bold;
   opacity: 0.9;
   pointer-events: none;
-}
-
-.tile-value {
-    position: absolute;
-    right: 2px;
-    bottom: 0px;
-    font-size: 0.5em;
-    color: #444;
-    opacity: 0.85;
-    font-weight: bold;
-    pointer-events: none;
-}
-
-.rack-tiles {
-  display: flex;
-  gap: 4px;
-  margin: 10px 0 20px 0;
-  width: 100%;
-  justify-content: center; /* o space-between si vols repartir */
-  box-sizing: border-box;
-}
-
-.sac-tiles {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  gap: 4px;
-  margin: 10px 0 20px 0;
-  width: 100%;  
-  justify-content: center; /* o space-between si vols repartir */
-  box-sizing: border-box;  
-}
-
-#scrapButtons {
-   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(6, 1fr);
-  gap: 4px;
-  margin: 10px 0 20px 0;
-  width: 100%;  
-  justify-content: center; /* o space-between si vols repartir */
-  box-sizing: border-box;  
-}
-
-.rack-tile.scrap {
-  background: #ffe082;
-  border-color: #d39e00;
-}
-.rack-tile .tile-value {
-  position: absolute;
-  right: 2px;
-  bottom: 0px;
-  font-size: 0.5em;
-  color: #444;
-  opacity: 0.85;
-  font-weight: bold;
-  pointer-events: none;
-}
-
-/* #rrellotge-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-family: sans-serif;
-} */
-
-.timer-container {
-  text-align: center;
-  
-}
-#countdown, #countdownSlave {
-  font-size: 4em;
-  font-weight: bold;
-  color: #333;
-}
-
-section{
-  border-radius: 20px;
-  background-color: #ffffff; /* Fons gris clar */
-  padding: 20px;
-}
-
-
-#countdown.warning,#countdownSlave.warning {
-  color: red;
-}
-#countdown.paused,#countdownSlave.paused {
-  color: rgb(128, 128, 128);
-}
-
-.sticky-col {
-  position: sticky;
-  left: 0;
-  background: white; /* Recomanat per evitar que es solapi el contingut */
-  z-index: 2;        /* Opcional, per sobreposar la columna sticky */
-}
-
-.arrow-indicator{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5em;
-  color: #000000;
-  pointer-events: none; /* Evita que l'usuari pugui interactuar amb l'índex */
-  z-index: 10000; /* Assegura que l'índex estigui per sobre de la cel·la */
-  
-}
-/* Estils per a l'input group */
-#coords,#taula{
-  max-width: 25%;
-}
-#directionLabel{
-  padding: 0% ! important ;
-}
-.seleccionada{
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 /* min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2)); */

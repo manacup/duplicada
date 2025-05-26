@@ -1,12 +1,17 @@
 import {  
   displayLetter,
   createEmptyBoard,
+  
 } from "./utilitats.js";
 
 import {
   letterValues,
   multiplierBoard,
 } from "./utilitats.js";
+
+
+// Inicialitzar el tauler (per exemple, 15x15)
+let currentBoard = createEmptyBoard(15);
 
 
 // Funció per renderitzar el tauler a l'HTML
@@ -18,6 +23,7 @@ function renderBoard(board, newTiles = []) {
   if (!Array.isArray(board) || !Array.isArray(board[0])) {
     board = Array.from({ length: 15 }, () => Array(15).fill(""));
   }
+  currentBoard = board;
   // Comprova que totes les files són arrays de mida 15
   for (let i = 0; i < 15; i++) {
     if (!Array.isArray(board[i])) {
@@ -116,13 +122,18 @@ function renderBoard(board, newTiles = []) {
       if (
         i === highlightRow &&
         j === highlightCol &&
-        board[i][j] === "" &&
+        //board[i][j] === "" &&
         highlightDir
       ) {
-        cell.innerHTML =
+        highlightDir === "horizontal"?
+        cell.classList.add("selected-coord-hor"):
+        cell.classList.add("selected-coord-ver");
+        ;
+        /* cell.innerHTML =
           highlightDir === "horizontal"
             ? '<span class="arrow-indicator" title="Horitzontal"><i class="bi bi-arrow-right-square-fill"></i></span>'
             : '<span class="arrow-indicator" title="Vertical"><i class="bi bi-arrow-down-square-fill"></i></span>';
+             */
       }
 
       row.appendChild(cell);
@@ -134,8 +145,6 @@ function renderBoard(board, newTiles = []) {
   boardContainer.appendChild(table);
 }
 
-// Inicialitzar el tauler (per exemple, 15x15)
-let currentBoard = createEmptyBoard(15);
 renderBoard(currentBoard);
 
 // Gestionar la selecció de la direcció
@@ -226,6 +235,15 @@ gameInfoRef.child('currentBoard').on('value', (snapshot) => {
 let lastCoordType = "V"; // Variable global per alternar
 
 boardContainer.addEventListener("click", function (event) {
+  const scrapsInput = document.getElementById("scraps")
+  const coordsInput = document.getElementById("coords");
+  
+  coordsInput.value = ""
+    wordInput.value = "";
+    
+   
+    wordInput.dispatchEvent(new Event("input"))
+    coordsInput.dispatchEvent(new Event("input"))
   const cell = event.target.closest("td.board-cell");
   if (!cell) return;
 
@@ -237,7 +255,8 @@ boardContainer.addEventListener("click", function (event) {
   if (rowIdx >= 0 && colIdx >= 0) {
     const coordH = `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
     const coordV = `${colIdx + 1}${String.fromCharCode(65 + rowIdx)}`;
-    const coordsInput = document.getElementById("coords");
+   
+    
 
     if (lastCoordType === "H") {
       coordsInput.value = coordV;
@@ -246,6 +265,20 @@ boardContainer.addEventListener("click", function (event) {
       coordsInput.value = coordH;
       lastCoordType = "H";
     }
+
+    if (currentBoard[rowIdx][colIdx] && currentBoard[rowIdx][colIdx] !== "") {
+      const tileAt = getTileAt(rowIdx, colIdx,currentBoard)
+      wordInput.value += tileAt.letter
+      console.log(tileAt)
+  //si la cel·la seleccionada és scrap, posi value a scrapsInput [0] si no, []
+  
+  
+  if (tileAt.isScrap) {
+    scrapsInput.value = '[0]'
+  }
+    }else{
+    scrapsInput.value = ''
+  } 
 
     coordsInput.dispatchEvent(new Event("input"));
   }
@@ -266,4 +299,4 @@ function getTileAt(row, col,board = currentBoard) {
   return null; // No hi ha fitxa
 }
 
-export { renderBoard, getTileAt, selectedRow, selectedCol, currentBoard };
+export { renderBoard, getTileAt, selectedRow, selectedCol };

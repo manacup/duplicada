@@ -30,6 +30,7 @@ const coordsInput = document.getElementById("coords");
 const playerInput = document.getElementById("player");
 const fitxesRestants = document.getElementById("fitxesRestants");
 
+
 let actualPlayer = "Jugada mestra";
 
 // Estat local
@@ -306,7 +307,7 @@ function openNewRoundWithRandomTiles() {
 }
 
 // Carrega l'historial de rondes al carregar la pàgina
-document.addEventListener("DOMContentLoaded", loadRoundsHistory);
+//document.addEventListener("DOMContentLoaded", loadRoundsHistory);
 
 // Actualitza el faristol manualment i desa a la base de dades
 // Normalize the rack before saving to the database

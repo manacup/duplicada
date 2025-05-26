@@ -172,6 +172,16 @@ function enableRackTileInput() {
 
  
 }
+
+function shuffleRackTiles() {
+  const tiles = Array.from(rackTilesDiv.children);
+  for (let i = tiles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    rackTilesDiv.insertBefore(tiles[j], tiles[i]);
+  }
+}
+document.getElementById("shuffleFaristolBtn").addEventListener("click", shuffleRackTiles);
+
 // Crida la funció després de renderitzar el rack
 enableRackTileInput();
 
@@ -198,7 +208,7 @@ function escriuSeguentFitxa(){
         if (tileAt) {
           console.log( "tileAt", tileAt);
           wordInput.value += displayLetter(tileAt.letter); // Afegeix la lletra de la cel·la al camp de coordenades
-          wordInput.dispatchEvent(new Event("input")); // Per si hi ha listeners
+          
 
           //si la cel·la és una fitxa escarràs, afegeix a scraps
           const currentScraps = JSON.parse(scrapsInput.value || "[]");
@@ -206,6 +216,8 @@ function escriuSeguentFitxa(){
             currentScraps.push(wordInput.value.length - 1); // Afegeix la posició de la fitxa escarràs
             scrapsInput.value = JSON.stringify(currentScraps);
           } 
+        wordInput.dispatchEvent(new Event("input")); // Per si hi ha listeners
+        scrapsInput.dispatchEvent(new Event("input")); // Per si hi ha listeners
         
         }
       } else {
@@ -231,10 +243,13 @@ function ompleModalWithLetters() {
     const div = rederTile(letter, false);
     div.dataset.bsDismiss = "modal"; // Classe per estilitzar al modal
     div.addEventListener("click", () => {
+      //const totalLetres = normalizeWordInput(wordInput.value).length;
+      const currentScraps = JSON.parse(scrapsInput.value || "[]");
       wordInput.value += displayLetter(letter.toLowerCase()); // Afegeix la lletra al camp de paraula
-      wordInput.dispatchEvent(new Event("input"));
+      
 
-      currentScraps.push(wordInput.value.length - 1); // Afegeix la posició de la fitxa escarràs
+      currentScraps.push(normalizeWordInput(wordInput.value).length-1); // Afegeix la posició de la fitxa escarràs
+      console.log("currentScraps", currentScraps,normalizeWordInput(wordInput.value).length);
       scrapsInput.value = JSON.stringify(currentScraps);
       wordInput.dispatchEvent(new Event("input"));
 
@@ -259,8 +274,8 @@ function ompleModalWithLetters() {
       });
 
 
-      updateRackTilesPreview(wordInput.value || "", currentScraps);   
-      escriuSeguentFitxa()
+      //updateRackTilesPreview(wordInput.value || "", currentScraps);   
+      //escriuSeguentFitxa()
       renderScrapTileButtons()
     });
     modalContent.appendChild(div);
@@ -286,5 +301,7 @@ rackTilesDiv.addEventListener("change", function (e) {
 });
 }
 );
+
+
 
 export { renderRackTiles, updateRackTilesPreview, renderSacTiles };

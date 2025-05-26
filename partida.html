@@ -174,7 +174,7 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="desaSessio">
                         <label class="form-check-label" for="desaSessio">
-                          Entra directament amb l'usuari.
+                          Recorda'm en aquest dispositiu
                         </label>
                       </div>
                     <div class="mb-3">
@@ -266,7 +266,14 @@
 
             <!-- Faristol visual -->
             <section id="faristol-section">
+                <div class="d-flex flex-column align-items-center gap-2">
                 <div id="rackTiles" class="rack-tiles"></div>
+                <div class="d-flex flex-row align-items-center gap-2" id="faristolBtn">
+                    <button class="btn btn-outline-primary" id="deleteFaristolBtn"><i class="bi bi-chevron-double-down"></i></button>
+                    
+                    <button class="btn btn-outline-primary" id="shuffleFaristolBtn"><i
+                            class="bi bi-shuffle"></i></button>
+                </div></div>
                 <div class="row master" id="faristolInput">
                     <label for="editRackInput" class="form-label">Faristol:</label>
                     <div class="input-group mb-3">

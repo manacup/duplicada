@@ -22,6 +22,7 @@ const tableInput = document.getElementById('taula');
 const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
+const deleteFaristolBtn = document.getElementById("deleteFaristolBtn");
 const respostaMessage = document.getElementById("respostaMessage");
 let ENABLE_WORD_VALIDATION = document.getElementById("validateWords") ;
 
@@ -477,7 +478,7 @@ function previewMasterPlay() {
 
   renderBoard(testBoard, newTiles);
 
-   const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
+  const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
   const jugadaValida = window.validateAllWords(allWords)
 
   // Calcula i mostra la puntuació en temps real
@@ -495,8 +496,9 @@ const tileButtonsDiv = document.getElementById("tileButtons");
 // Assegura't de cridar previewMasterPlay() a cada canvi:
 coordsInput.addEventListener("input", previewMasterPlay);
 directionInput.addEventListener("input", previewMasterPlay);
-wordInput.addEventListener("input", previewMasterPlay);
 scrapsInput.addEventListener("input", previewMasterPlay);
+wordInput.addEventListener("input", previewMasterPlay);
+
 // Llegeix l'estat actual dels escarrassos
 
 
@@ -622,7 +624,7 @@ tableInput.addEventListener("input", () => {
 }); */
 //
 // Carrega el nom del jugador del localStorage en carregar la pàgina
-window.addEventListener("load", () => {
+/* window.addEventListener("load", () => {
   const savedPlayerName = localStorage.getItem("nomJugador");
   if (savedPlayerName) {
     playerInput.value = savedPlayerName;
@@ -635,7 +637,7 @@ window.addEventListener("load", () => {
   if (savedTable) {
     tableInput.value = savedTable;
   }
-});
+}); */
 
 //escolta el db.formEnabled i desabilita el formulari si és false i la taula no és "administrador"
 
@@ -745,6 +747,16 @@ function renderScrapTileButtons() {
     currentWordTiles.push({ letter: tiles[i], isScrap: scraps.includes(i) });
   }
   updateRackTilesPreview(wordInput.value, scraps);
+}
+
+// Add event listener to the delete button
+if (deleteFaristolBtn) {
+  deleteFaristolBtn.addEventListener('click', () => {
+    wordInput.value = "";
+    scrapsInput.value = "[]";
+    renderScrapTileButtons(); // Update the tile buttons display
+    previewMasterPlay(); // Update the board preview and score
+  });
 }
 
 // Crida aquesta funció sempre que canvii wordInput o scrapsInput
