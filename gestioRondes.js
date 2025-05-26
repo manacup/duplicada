@@ -1,4 +1,4 @@
-import { gameInfoRef, historyRef } from "./firebase.js";
+import { gameInfoRef, historyRef,jugadorsRef } from "./firebase.js";
 import {
   createEmptyBoard,
   normalizeWordInput,
@@ -28,10 +28,13 @@ const updateRackBtn = document.getElementById("updateRackBtn");
 const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const playerInput = document.getElementById("player");
+const tableInput = document.getElementById("loginTable");
 const fitxesRestants = document.getElementById("fitxesRestants");
 
 
 let actualPlayer = "Jugada mestra";
+
+
 
 // Estat local
 let roundsList = [];
@@ -70,6 +73,7 @@ function showRound(idx) {
     if (round?.board) {
       renderBoard(round.board);
     }
+    carregaLlistaJugador ()
     console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
     updateSac()
@@ -413,8 +417,9 @@ function updateUIForCurrentRound(round, isLastRound) {
   //console.log(buttons)
 
   const inputs = mainContent.querySelectorAll("input");
-
-  if (round.closed) {
+  let administrador = tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
+  if (round.closed && !administrador) {
+    console.log('admin' ,administrador)
     // Si la ronda està tancada
     if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
 
@@ -484,5 +489,19 @@ if (novaRondaBtn) {
     }
   });
 }
+function carregaLlistaJugador () {
+  jugadorsRef.on("value", (snapshot) => {
+    const llistaJugadors = document.getElementById("jugadorslistOptions")
+    llistaJugadors.innerHTML = "";
+    
+    snapshot.forEach((childSnapshot) => {
+      const jugador = childSnapshot.val().name;
+      const option = document.createElement("option");
+      option.value = jugador;
+      option.textContent = jugador;
+      llistaJugadors.appendChild(option);
+    });
+  })
 
+}
 export { loadRoundsHistory, showRound, addNewRound };

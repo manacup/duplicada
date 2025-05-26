@@ -1,4 +1,4 @@
-import { jugadors } from './firebase.js';
+import { jugadorsRef } from './firebase.js';
 import {loadRoundsHistory} from "./gestioRondes.js"
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('playerTable');}
       }
       // Desa a Firebase
-      jugadors.child(`${table}-${name}`).set({ name, email, table, timestamp: Date.now() });
+      jugadorsRef.child(`${table}-${name}`).set({ name, email, table, timestamp: Date.now() });
       // Omple el camp player del formulari principal si existeix
       if (playerInput) playerInput.value = name;
       if (tableInput) tableInput.value = storedTable;

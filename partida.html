@@ -21,7 +21,7 @@
                 "tauler master"
                 "respostes respostes"
                 "classificacio classificacio"
-                "sac sac";            
+                "sac sac";
             gap: 2rem;
         }
 
@@ -69,7 +69,7 @@
         }
 
         @media (min-width: 1400px) {
-            
+
             .main-grid {
                 display: grid;
                 grid-template-columns: 2fr 3fr 2fr;
@@ -86,22 +86,23 @@
                 ;
                 gap: 2rem;
             }
-            .main-grid.mode-pantalla{
+
+            .main-grid.mode-pantalla {
                 display: grid;
                 grid-template-columns: 2fr 2fr;
                 grid-template-areas:
                     "titol titol"
-                "tauler rellotge"
-                "tauler faristol"
-                "tauler faristol"
-                "tauler faristol"
-                "respostes respostes"
-                "classificacio classificacio"
-                "sac sac";
+                    "tauler rellotge"
+                    "tauler faristol"
+                    "tauler faristol"
+                    "tauler faristol"
+                    "respostes respostes"
+                    "classificacio classificacio"
+                    "sac sac";
                 ;
                 gap: 2rem;
             }
-           
+
         }
 
         #titol {
@@ -174,9 +175,9 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="desaSessio">
                         <label class="form-check-label" for="desaSessio">
-                          Recorda'm en aquest dispositiu
+                            Recorda'm en aquest dispositiu
                         </label>
-                      </div>
+                    </div>
                     <div class="mb-3">
                         <label for="loginTable" class="form-label">Vols rebre informació sobre el món del
                             Scrabble?</label>
@@ -267,13 +268,16 @@
             <!-- Faristol visual -->
             <section id="faristol-section">
                 <div class="d-flex flex-column align-items-center gap-2">
-                <div id="rackTiles" class="rack-tiles"></div>
-                <div class="d-flex flex-row align-items-center gap-2" id="faristolBtn">
-                    <button class="btn btn-outline-primary" id="deleteFaristolBtn"><i class="bi bi-chevron-double-down"></i></button>
-                    
-                    <button class="btn btn-outline-primary" id="shuffleFaristolBtn"><i
-                            class="bi bi-shuffle"></i></button>
-                </div></div>
+                    <div id="rackTiles" class="rack-tiles"></div>
+                    <div class="d-flex flex-row align-items-center gap-2" id="faristolBtn">
+                        <button class="btn btn-outline-primary" id="deleteFaristolBtn"><i
+                                class="bi bi-chevron-double-down"></i></button>
+
+                        <button class="btn btn-outline-primary" id="shuffleFaristolBtn"><i
+                                class="bi bi-shuffle"></i></button>
+                               <!--  <button class="btn btn-outline-primary" id="enviaFaristolBtn"><i class="bi bi-send-check"></i></button> -->
+                    </div>
+                </div>
                 <div class="row master" id="faristolInput">
                     <label for="editRackInput" class="form-label">Faristol:</label>
                     <div class="input-group mb-3">
@@ -282,8 +286,17 @@
                         <button id="randomRackBtn" class="btn btn-outline-secondary"><i
                                 class="bi bi-shuffle"></i></button>
                         <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseFitxes" aria-expanded="false" aria-controls="collapseExample">
+                            <i class="bi bi-caret-down"></i>
+                        </button>
                     </div>
-                    <p id="fitxesRestants" class="d-flex flex-wrap fw-medium"></p>
+                    <div class="collapse" id="collapseFitxes">
+                        <div class="card card-body">
+                            <p id="fitxesRestants" class="d-flex flex-wrap fw-medium"></p>
+                        </div>
+                    </div>
+
                 </div>
             </section>
             <!-- sac de fitxes -->
@@ -298,12 +311,16 @@
                     <h3 class="
                     master">Jugador</h3>
                     <div class="input-group mb-3 master">
-                        <input type="text" id="player" value="" class="form-control form-control-lg">
+                        <input type="text" list="jugadorslistOptions" id="player" value="" class="form-control form-control-lg">
 
                         <span class="input-group-text">Taula:</span>
                         <input type="text" id="taula" value="" class="form-control form-control-lg">
+                   
                     </div>
-                    <h3>Jugada</h3>
+                    <datalist id="jugadorslistOptions">
+                        
+                      </datalist>
+                    <h3>Coordenades / Direcció / Paraula</h3>
                     <div class="input-group  input-group-lg mb-3 ">
                         <input type="text" class="form-control " id="coords" required placeholder="Coord.">
                         <span class="input-group-text " id="directionLabel">
@@ -345,7 +362,7 @@
         </div>
     </div>
     <!-- modal per triar escarràs   -->
-   
+
     <div class="modal fade" id="lettersModal" tabindex="-1" aria-labelledby="scrapModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
