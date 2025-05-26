@@ -1,4 +1,4 @@
-import { gameInfoRef, historyRef,jugadorsRef } from "./firebase.js";
+import { gameInfoRef, historyRef, jugadorsRef } from "./firebase.js";
 import {
   createEmptyBoard,
   normalizeWordInput,
@@ -63,7 +63,7 @@ function showRound(idx) {
   historyRef.child(roundId).on("value", (snapshot) => {
     const round = snapshot.val();
     actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
-    
+
     //updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
     console.log(roundId, idx === roundsList.length - 1)
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
@@ -73,7 +73,7 @@ function showRound(idx) {
     if (round?.board) {
       renderBoard(round.board);
     }
-    carregaLlistaJugador ()
+    carregaLlistaJugador()
     console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
     updateSac()
@@ -114,7 +114,7 @@ const prevRoundBtn = document.getElementById("prevRoundBtn");
 const nextRoundBtn = document.getElementById("nextRoundBtn");
 if (prevRoundBtn) {
   prevRoundBtn.addEventListener("click", () => {
-    if (currentRoundIndex > 0) 
+    if (currentRoundIndex > 0)
       showRound(currentRoundIndex - 1);
   });
 }
@@ -215,13 +215,13 @@ function calculateRemainingTiles() {
       const round = snapshot.val();
       if (round && round.closed && round.results) {
         const resultats = round.results//Object.values(round.results)
-        if (modalitat === "duplicada") {   
-          console.log("TONI: calcul de fitxers restants",resultats)       
+        if (modalitat === "duplicada") {
+          console.log("TONI: calcul de fitxers restants", resultats)
           if (resultats["Jugada mestra"].usedtiles) {
             resultats["Jugada mestra"].usedtiles.forEach((tile) => {
               usedTiles[tile] = (usedTiles[tile] || 0) + 1;
-            });            
-          }   
+            });
+          }
 
         } else {
           resultats.forEach((result) => {
@@ -418,8 +418,8 @@ function updateUIForCurrentRound(round, isLastRound) {
 
   const inputs = mainContent.querySelectorAll("input");
   let administrador = tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
-  if (round.closed && !administrador) {
-    console.log('admin' ,administrador)
+  if (round.closed) {
+    console.log('admin', administrador)
     // Si la ronda està tancada
     if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
 
@@ -435,16 +435,18 @@ function updateUIForCurrentRound(round, isLastRound) {
       "nextRoundBtn",
       "startBtn",
       "stopBtn",
-      "resetBtn","novaRondaBtn", "obreRondaBtn", "deleteRondaBtn"
+      "resetBtn", "novaRondaBtn", "obreRondaBtn", "deleteRondaBtn"
     ];
     //if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
-    buttons.forEach((button) => {
+
+
+    if (!administrador) buttons.forEach((button) => {
       console.log(button.id);
       if (!excludedButtonIds.includes(button.id)) {
         button.disabled = true;
       }
     });
-    inputs.forEach((input) => {
+    if (!administrador) inputs.forEach((input) => {
       input.disabled = true;
     });
   } else {
@@ -489,11 +491,11 @@ if (novaRondaBtn) {
     }
   });
 }
-function carregaLlistaJugador () {
+function carregaLlistaJugador() {
   jugadorsRef.on("value", (snapshot) => {
     const llistaJugadors = document.getElementById("jugadorslistOptions")
     llistaJugadors.innerHTML = "";
-    
+
     snapshot.forEach((childSnapshot) => {
       const jugador = childSnapshot.val().name;
       const option = document.createElement("option");
