@@ -1,10 +1,15 @@
-import { gameInfoRef, historyRef, jugadorsRef } from "./firebase.js";
+import {
+  gameInfoRef,
+  historyRef,
+  jugadorsRef,
+  formEnabled,
+} from "./firebase.js";
 import {
   createEmptyBoard,
   normalizeWordInput,
   displayWord,
   tileDistribution,
-  displayLetter
+  displayLetter,
 } from "./utilitats.js";
 import { showResultats } from "./resultats.js";
 import { renderBoard } from "./tauler.js";
@@ -14,7 +19,7 @@ import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 import { saveWordsToBoard, findWordInfo } from "./calcul.js";
 import { generateRankingTable, displayRanking } from "./classificacio.js";
 
-const modalitat = "duplicada"
+const modalitat = "duplicada";
 
 // Elements UI
 const novaRondaBtn = document.getElementById("novaRondaBtn");
@@ -31,15 +36,11 @@ const playerInput = document.getElementById("player");
 const tableInput = document.getElementById("loginTable");
 const fitxesRestants = document.getElementById("fitxesRestants");
 
-
 let actualPlayer = "Jugada mestra";
-
-
 
 // Estat local
 let roundsList = [];
 let currentRoundIndex = -1;
-
 
 // Carrega l'historial de rondes
 function loadRoundsHistory() {
@@ -53,8 +54,37 @@ function loadRoundsHistory() {
       showRound(currentRoundIndex);
     }
   });
+
+  // <-- Close the loadRoundsHistory function
+
+  /* gameInfoRef.on("value", (snapshot) => {
+  const data = snapshot.val() || {};
+  console.log("gameInfoRef", data)
+  if (data.currentRound) {
+    roundsList = [];
+    for (let i = Number(data.currentRound); i >= 1; i--) {
+      roundsList.push(String(i));
+    }
+    roundsList.reverse(); // Inverteix l'ordre per mostrar les rondes de l'última a la primera
+    currentRoundIndex = data.currentRound-1; // Mostra l'última ronda
+    showRound(currentRoundIndex);
+    console.log(roundsList)
+  } else if (data.lastRound !== undefined && data.lastRound !== "") {
+    roundsList = [];
+     for (let i = Number(data.lastRound); i >= 1; i--) {
+      roundsList.push(String(i));
+    }
+    roundsList.reverse(); // Inverteix l'ordre per mostrar les rondes de l'última a la primera
+    console.log("lastRound", data.lastRound)
+    currentRoundIndex = data.lastRound-1; // Mostra l'última ronda
+    showRound(currentRoundIndex);
+  } else {
+    addNewRound();
+  }
+}); */
 }
 
+let openRound = false; // Variable per controlar si la ronda està oberta
 // Mostra una ronda específica
 function showRound(idx) {
   if (idx < 0 || idx >= roundsList.length) return;
@@ -63,9 +93,9 @@ function showRound(idx) {
   historyRef.child(roundId).on("value", (snapshot) => {
     const round = snapshot.val();
     actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
-
+    openRound = !round.closed; // Actualitza l'estat de la ronda oberta
     //updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
-    console.log(roundId, idx === roundsList.length - 1)
+
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
     //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
@@ -73,11 +103,11 @@ function showRound(idx) {
     if (round?.board) {
       renderBoard(round.board);
     }
-    carregaLlistaJugador()
+    carregaLlistaJugador();
     console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
-    updateSac()
-    updateRemainingTiles()
+    updateSac();
+    updateRemainingTiles();
     showResultats(roundId);
     displayRanking(roundId);
     updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
@@ -114,8 +144,7 @@ const prevRoundBtn = document.getElementById("prevRoundBtn");
 const nextRoundBtn = document.getElementById("nextRoundBtn");
 if (prevRoundBtn) {
   prevRoundBtn.addEventListener("click", () => {
-    if (currentRoundIndex > 0)
-      showRound(currentRoundIndex - 1);
+    if (currentRoundIndex > 0) showRound(currentRoundIndex - 1);
   });
 }
 if (nextRoundBtn) {
@@ -158,10 +187,10 @@ function addNewRound() {
     const lastDirection =
       data[lastClosedRoundId]?.results[actualPlayer].direction || "";
     const lastWordInfo = findWordInfo(lastWord, lastCoordinates, lastDirection);
-    if (data[lastClosedRoundId])
-      saveWordsToBoard(boardToCopy, [lastWordInfo]);
+    if (data[lastClosedRoundId]) saveWordsToBoard(boardToCopy, [lastWordInfo]);
     const lastRack = data[lastClosedRoundId]?.rack.split("") || []; // Converteix a array
-    const playerdup = modalitat === "duplicada" ? "Jugada mestra" : actualPlayer
+    const playerdup =
+      modalitat === "duplicada" ? "Jugada mestra" : actualPlayer;
     const lastUsedTiles =
       data[lastClosedRoundId]?.results[playerdup].usedtiles || []; // Fitxes usades
 
@@ -214,15 +243,14 @@ function calculateRemainingTiles() {
     historyRef.child(roundId).once("value", (snapshot) => {
       const round = snapshot.val();
       if (round && round.closed && round.results) {
-        const resultats = round.results//Object.values(round.results)
+        const resultats = round.results; //Object.values(round.results)
         if (modalitat === "duplicada") {
-          console.log("TONI: calcul de fitxers restants", resultats)
+          //console.log("TONI: calcul de fitxers restants", resultats)
           if (resultats["Jugada mestra"].usedtiles) {
             resultats["Jugada mestra"].usedtiles.forEach((tile) => {
               usedTiles[tile] = (usedTiles[tile] || 0) + 1;
             });
           }
-
         } else {
           resultats.forEach((result) => {
             if (result.usedtiles) {
@@ -251,7 +279,6 @@ function calculateRemainingTiles() {
   });
   console.log("Fitxes usades:", usedTiles);
   console.log("Fitxes restants:", remainingTiles);
-
 
   return remainingTiles;
 }
@@ -373,13 +400,15 @@ function closeCurrentRound() {
   }
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
-    gameInfoRef
-      .child("currentRound")
-      .set("")
+    gameInfoRef.set({
+      currentRound: "",
+      lastRound: currentRoundIndex + 1,
+    });
+
     historyRef
       .child(`${roundId}/closed`)
       .set(true)
-      .then(() => { });
+      .then(() => {});
   } else {
     alert("No hi ha cap ronda actual per tancar.");
   }
@@ -393,13 +422,11 @@ function openCurrentRound() {
   //afegeix validació
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
-    gameInfoRef
-      .child("currentRound")
-      .set(roundId)
+    gameInfoRef.child("currentRound").set(roundId);
     historyRef
       .child(`${roundId}/closed`)
       .set(false)
-      .then(() => { });
+      .then(() => {});
   } else {
     alert("No hi ha cap ronda actual per tancar.");
   }
@@ -417,10 +444,15 @@ function updateUIForCurrentRound(round, isLastRound) {
   //console.log(buttons)
 
   const inputs = mainContent.querySelectorAll("input");
-  let administrador = tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
-  if (round.closed) {
-    console.log('admin', administrador)
-    // Si la ronda està tancada
+  let administrador =
+    tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
+  formEnabled.on("value", (snapshot) => {
+    const enabled = snapshot.val();
+    if (!enabled) {
+      blocaFormulari();
+    } else if (round.closed) {
+      blocaFormulari();
+      /* // Si la ronda està tancada
     if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
 
     if (novaRondaBtn)
@@ -448,29 +480,69 @@ function updateUIForCurrentRound(round, isLastRound) {
     });
     if (!administrador) inputs.forEach((input) => {
       input.disabled = true;
-    });
-  } else {
-    // Si la ronda està oberta
-    if (tancaRondaBtn) tancaRondaBtn.style.display = "block";
-    if (novaRondaBtn) novaRondaBtn.style.display = "none";
-    if (obreRondaBtn) obreRondaBtn.style.display = "none";
-    if (deleteRondaBtn) deleteRondaBtn.style.display = "none";
+    }); */
+    } else {
+      // Si la ronda està oberta
+      if (tancaRondaBtn) tancaRondaBtn.style.display = "block";
+      if (novaRondaBtn) novaRondaBtn.style.display = "none";
+      if (obreRondaBtn) obreRondaBtn.style.display = "none";
+      if (deleteRondaBtn) deleteRondaBtn.style.display = "none";
 
-    // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
-    const buttons = document.querySelectorAll("button");
-    buttons.forEach((button) => {
-      button.disabled = false;
-    });
-    const inputs = document.querySelectorAll("input");
-    inputs.forEach((input) => {
-      input.disabled = false;
-    });
+      // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
+      const buttons = document.querySelectorAll("button");
+      buttons.forEach((button) => {
+        button.disabled = false;
+      });
+      const inputs = document.querySelectorAll("input");
+      inputs.forEach((input) => {
+        input.disabled = false;
+      });
+    }
+  });
+
+  function blocaFormulari() {
+    // Si la ronda està tancada
+    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
+
+    if (novaRondaBtn)
+      novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
+    if (obreRondaBtn)
+      obreRondaBtn.style.display = isLastRound ? "block" : "none";
+    if (deleteRondaBtn)
+      deleteRondaBtn.style.display = isLastRound ? "block" : "none";
+    // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
+    const excludedButtonIds = [
+      "prevRoundBtn",
+      "nextRoundBtn",
+      "startBtn",
+      "stopBtn",
+      "resetBtn",
+      "novaRondaBtn",
+      "obreRondaBtn",
+      "deleteRondaBtn",
+    ];
+    //if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
+
+    if (!administrador)
+      buttons.forEach((button) => {
+        console.log(button.id);
+        if (!excludedButtonIds.includes(button.id)) {
+          button.disabled = true;
+        }
+      });
+    if (!administrador)
+      inputs.forEach((input) => {
+        input.disabled = true;
+      });
   }
 }
+
 if (deleteRondaBtn)
   deleteRondaBtn.addEventListener("click", () => {
     if (confirm("Esteu segur que voleu esborrar la ronda actual?")) {
       const roundId = roundsList[currentRoundIndex];
+      gameInfoRef.child("currentRound").set(""); // Neteja la ronda actual
+      gameInfoRef.child("lastRound").set(currentRoundIndex); // Desa l'última ronda tancada
       historyRef
         .child(roundId)
         .remove()
@@ -493,7 +565,7 @@ if (novaRondaBtn) {
 }
 function carregaLlistaJugador() {
   jugadorsRef.on("value", (snapshot) => {
-    const llistaJugadors = document.getElementById("jugadorslistOptions")
+    const llistaJugadors = document.getElementById("jugadorslistOptions");
     llistaJugadors.innerHTML = "";
 
     snapshot.forEach((childSnapshot) => {
@@ -503,7 +575,6 @@ function carregaLlistaJugador() {
       option.textContent = jugador;
       llistaJugadors.appendChild(option);
     });
-  })
-
+  });
 }
 export { loadRoundsHistory, showRound, addNewRound };

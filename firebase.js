@@ -20,9 +20,10 @@ if (!window.firebase?.apps?.length) {
 const db = firebase.database();
 const gameInfoRef = db.ref('gameInfo');
 const historyRef = db.ref('rounds');
+const resultsRef = db.ref('results');
 const clockRef = db.ref('clock');
 const jugadorsRef = db.ref('jugadors');
 const formEnabled = db.ref('formEnabled');
 
 
-export { db, gameInfoRef, historyRef, clockRef, jugadorsRef,formEnabled };
+export { db, gameInfoRef, historyRef, clockRef, jugadorsRef,formEnabled,resultsRef };

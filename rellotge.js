@@ -1,6 +1,4 @@
-import { clockRef, db } from './firebase.js';
-
-
+import { clockRef,db } from './firebase.js';
 
 const countdownElement = document.getElementById('countdown');
 const startBtn = document.getElementById('startBtn');
@@ -8,138 +6,106 @@ const stopBtn = document.getElementById('stopBtn');
 const resetBtn = document.getElementById('resetBtn');
 const pipSound = document.getElementById('pipSound');
 const storedTable = localStorage.getItem('playerTable');
+const TEMPS_TOTAL = 300; // segons
+
 function isAdmin() {
-    return storedTable && storedTable.toLowerCase() === 'administrador';
+  return storedTable && storedTable.toLowerCase() === 'administrador';
+}
+if(!isAdmin()) countdownElement.classList.add('countdownSlave');
+// --- FUNCIONS MASTER (ADMIN) ---
+
+function startTimer() {
+  // Si ja estava pausat, calcula la nova startTime segons el temps restant
+  clockRef.once('value', snap => {
+    const data = snap.val();
+    let duration = TEMPS_TOTAL;
+    if (data && data.timeLeft !== undefined && data.timeLeft !== null) {
+      duration = data.timeLeft;
+    }
+    clockRef.set({
+      running: true,
+      startTime: Date.now(),
+      duration: duration,
+      timeLeft: duration
+    });
+    db.ref('formEnabled').set(true); // Activa el formulari
+    //if (pipSound) pipSound.play();
+  });
 }
 
-let timer;
-let timeLeft = 300; // 5 minutes in seconds
+function stopTimer() {
+  // Desa el temps restant i posa running a false
+  clockRef.once('value', snap => {
+    const data = snap.val();
+    if (!data || !data.running) return;
+    const now = Date.now();
+    const timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
+    clockRef.update({
+      running: false,
+      timeLeft: timeLeft
+    });
+    db.ref('formEnabled').set(false); // Activa el formulari
+  });
+}
 
-function updateTimerDisplay() {
-    
+function resetTimer() {
+  clockRef.set({
+    running: false,
+    startTime: null,
+    duration: TEMPS_TOTAL,
+    timeLeft: TEMPS_TOTAL
+  });
+}
+
+if (isAdmin()) {
+  if (startBtn) startBtn.addEventListener('click', startTimer);
+  if (stopBtn) stopBtn.addEventListener('click', stopTimer);
+  if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+}
+
+// --- FUNCIONS ESCLAU I MASTER (VISUALITZACIÓ) ---
+
+let interval;
+clockRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (!data || (!data.startTime && !data.timeLeft)) return;
+
+  clearInterval(interval);
+
+  function updateDisplay() {
+    let timeLeft;
+    if (data.running && data.startTime) {
+      const now = Date.now();
+      timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
+    } else {
+      timeLeft = data.timeLeft !== undefined ? data.timeLeft : TEMPS_TOTAL;
+    }
+
+    // Format
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     const displayMinutes = String(minutes).padStart(2, '0');
     const displaySeconds = String(seconds).padStart(2, '0');
     countdownElement.textContent = `${displayMinutes}:${displaySeconds}`;
 
-    clockRef.child('time').set(`${displayMinutes}:${displaySeconds}`)
-    clockRef.child('timeLeft').set(timeLeft)
-    
+    // Estils i sons
+    countdownElement.classList.toggle('paused', !data.running || timeLeft === 0);
+    countdownElement.classList.toggle('warning', timeLeft <= 30 && timeLeft > 0);
 
-    if (timeLeft <= 30) {
-        clockRef.child('warning').set(true)
-        countdownElement.classList.add('warning');
-        if (timeLeft > 0 && timeLeft <= 30 && timeLeft % 10 === 0) { // Play pip sound every 10 seconds in the last 30
-            pipSound.play();
-             
-        } else if (timeLeft === 0) {
-            
-            //repeteix el so 3 vegades
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    pipSound.play();
-                }, i * 200); // Play every second
-            }
-            countdownElement.classList.add('paused');
-            clockRef.child('running').set(false)
-        }
-    } else {
-        countdownElement.classList.remove('warning');
+    if (timeLeft <= 30 && timeLeft > 0 && timeLeft % 10 === 0) {
+      pipSound?.play();
     }
-}
-
-function startTimer() {
-    countdownElement.classList.remove('paused');
-    if (!timer) {
-        db.ref('formEnabled').set(true);
-        clockRef.child('running').set(true)
-        timeLeft===0? timeLeft = 300 : timeLeft;
-        timer = setInterval(() => {
-            timeLeft--;
-            updateTimerDisplay();
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                timer = null;
-                // Optionally, add actions when the timer reaches zero
-                db.ref('formEnabled').set(false);
-                clockRef.child('running').set(false)
-                clockRef.child('timeLeft').set(300)
-
-            }
-        }, 1000); // Update every 1 second
+    if (timeLeft === 0) {
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => { pipSound?.play(); }, i * 200);
+      }
+      clearInterval(interval);
+      stopTimer()
     }
-}
+  }
 
-function stopTimer() {
-    countdownElement.classList.add('paused');
- if (timer) {
- clearInterval(timer);
- timer = null;
-    db.ref('formEnabled').set(false); // Assuming form is disabled when timer stops
-    clockRef.child('running').set(false); // Update running status in Firebase
- }
-}
-
-function resetTimer() {
-    countdownElement.classList.add('paused');
-    clockRef.child('running').set(false)
-    clockRef.child('warning').set(false)
-    stopTimer();
-    timeLeft = 300; // Reset to 5 minutes
-    clockRef.child('timeLeft').set(timeLeft)
-    updateTimerDisplay();
-    countdownElement.classList.remove('warning'); // Remove warning class on reset
-}
-
-if(startBtn) startBtn.addEventListener('click', startTimer);
-if(stopBtn) stopBtn.addEventListener('click', stopTimer);
-if(resetBtn) resetBtn.addEventListener('click', resetTimer);
-
-// Load saved time and state from Firebase on page load
-if (isAdmin()) {
-clockRef.once('value', (snapshot) => {
- const savedData = snapshot.val();
- if (savedData && savedData.timeLeft !== undefined) {
-        timeLeft = savedData.timeLeft;
-        updateTimerDisplay();
- if (savedData.running) {
- startTimer();
- }
- } else {
- // If no data in Firebase, initialize with default time and update display
-        updateTimerDisplay();
- }
+  updateDisplay();
+  if (data.running && data.startTime) {
+    interval = setInterval(updateDisplay, 1000);
+  }
 });
-}
-
-const rellotgeEsclau = document.getElementById("countdown")
-
-    
-    if (!isAdmin()) {
-        rellotgeEsclau.id = "countdownSlave"
-        clockRef.on('value', (snapshot) => {
-            rellotgeEsclau.textContent = snapshot.val().time
-            if (snapshot.val().warning) {
-                rellotgeEsclau.classList.add('warning');
-            }
-            else {
-                rellotgeEsclau.classList.remove('warning');
-            }
-            if (snapshot.val().running) {
-                rellotgeEsclau.classList.remove('paused');
-            } else {
-                rellotgeEsclau.classList.add('paused');
-            }
-            if (snapshot.val().timeLeft <= 0) {
-                rellotgeEsclau.classList.add('paused');
-                //repeteix el so 3 vegades
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => {
-                        pipSound.play();
-                    }, i * 200); // Play every second
-                }
-            }
-
-        })
-    }

@@ -396,7 +396,7 @@ h3 {
   text-align: center;
   
 }
-#countdown,#countdownSlave {
+#countdown {
   font-size: 4em;
   font-weight: bold;
   color: #333;
@@ -410,10 +410,10 @@ section{
 }
 
 
-#countdown.warning,#countdownSlave.warning {
+#countdown.warning {
   color: red;
 }
-#countdown.paused,#countdownSlave.paused {
+#countdown.paused {
   color: rgb(128, 128, 128);
 }
 
@@ -425,7 +425,8 @@ section{
 }
 
 th {
-  background-color: #f5f5f5;
+  background-color: #1d81a8;
+  color: #ffffff;
   font-weight: bold;
   
 }

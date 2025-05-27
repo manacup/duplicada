@@ -1,30 +1,30 @@
-import { gameInfoRef, historyRef ,formEnabled} from "./firebase.js";
+import { gameInfoRef, historyRef, formEnabled } from "./firebase.js";
 import {
   splitWordToTiles,
-  displayLetter, createEmptyBoard,
+  displayLetter,
+  createEmptyBoard,
   letterValues,
   normalizeWordInput,
   multiplierBoard,
   displayWord,
-
 } from "./utilitats.js";
 import { renderBoard } from "./tauler.js";
-import { saveWordsToBoard, findAllNewWords, calculateFullPlayScore } from "./calcul.js";
-import { updateRackTilesPreview,renderRackTiles } from "./rackTile.js";
-
-
-
-
+import {
+  saveWordsToBoard,
+  findAllNewWords,
+  calculateFullPlayScore,
+} from "./calcul.js";
+import { updateRackTilesPreview, renderRackTiles } from "./rackTile.js";
 
 const wordForm = document.getElementById("wordForm");
 const playerInput = document.getElementById("player");
-const tableInput = document.getElementById('taula');
+const tableInput = document.getElementById("taula");
 const wordInput = document.getElementById("word");
 const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
 const deleteFaristolBtn = document.getElementById("deleteFaristolBtn");
 const respostaMessage = document.getElementById("respostaMessage");
-let ENABLE_WORD_VALIDATION = document.getElementById("validateWords") ;
+let ENABLE_WORD_VALIDATION = document.getElementById("validateWords");
 
 console.log("ENABLE_WORD_VALIDATION", ENABLE_WORD_VALIDATION.checked);
 let currentRack = "";
@@ -34,28 +34,27 @@ let currentRoundId = null;
 let boardBeforeMasterPlay = null;
 
 // Escolta els canvis de la ronda actual i actualitza el rackTiles
-gameInfoRef.child('currentRound').once('value', (snapshot) => {
+gameInfoRef.child("currentRound").once("value", (snapshot) => {
   currentRoundId = snapshot.val();
 
   if (!currentRoundId) {
-    console.warn('No hi ha cap ronda actual.');
+    console.warn("No hi ha cap ronda actual.");
     return;
   }
 
-  historyRef.child(currentRoundId).on('value', (roundSnapshot) => {
-    console.log(currentRoundId,"roundSnapshot", roundSnapshot.val());
+  historyRef.child(currentRoundId).on("value", (roundSnapshot) => {
+    console.log(currentRoundId, "roundSnapshot", roundSnapshot.val());
     const round = roundSnapshot.val();
     if (round && round.rack) {
       currentRack = round.rack;
     } else {
-      console.warn('No hi ha rack disponible per a la ronda actual.');
+      console.warn("No hi ha rack disponible per a la ronda actual.");
     }
   });
 });
 
 // Updated validateTiles function to validate against the rack from the database
-function validateTiles(newTiles ) {
-
+function validateTiles(newTiles) {
   const rackTiles = splitWordToTiles(currentRack);
   console.log("rackTiles", rackTiles, currentRack);
   //compara si racktiles conté totes les fitxes de newTiles
@@ -81,7 +80,7 @@ function validateTiles(newTiles ) {
   }
   return true;
 }
-  
+
 // Omple el formulari amb les dades de la ronda i jugador seleccionats
 
 async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
@@ -89,7 +88,7 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
   const roundRef = historyRef.child(roundNumber);
 
   try {
-    const snapshot = await roundRef.once('value');
+    const snapshot = await roundRef.once("value");
     const roundData = snapshot.val();
 
     if (!roundData) {
@@ -105,96 +104,66 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
     if (!roundData.board) {
       boardBeforeMasterPlay = createEmptyBoard(15);
     } else {
-      boardBeforeMasterPlay = roundData.board.map((row) => row.slice())
+      boardBeforeMasterPlay = roundData.board.map((row) => row.slice());
     }
 
     const playerResult = roundData.results?.[playerId];
+    if (roundData.closed) {
+      if (!playerResult) {
+        console.warn(
+          `No es troben dades de joc per al jugador ${playerId} a la ronda ${roundNumber}.`
+        );
+        // Actualitza el missatge d'error durant 5 segons
 
-    if (!playerResult) {
-      console.warn(`No es troben dades de joc per al jugador ${playerId} a la ronda ${roundNumber}.`);
-      // Actualitza el missatge d'error durant 5 segons     
-      
-      respostaMessage.textContent = `No hi ha dades per al jugador ${playerId} a la ronda ${roundNumber}!`;
-      respostaMessage.className = "alert alert-warning";
-      setTimeout(() => {
-        respostaMessage.textContent = "";
-        respostaMessage.className = "";
-      }, 5000);
-      // Optionally clear form fields if no data found
-      coordsInput.value = "";
-      wordInput.value = "";
-      directionInput.value = "";
-      document.getElementById("scraps").value = "[]";
-      renderScrapTileButtons()//generateTileButtons("");
-      updateRackTilesPreview("", []);
-      return;
-    }
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3200668774.
-console.log("resultats del jugador actual",playerResult)
-    // Omple els camps del formulari
-    coordsInput.value = playerResult.coordinates || "";
-    wordInput.value = displayWord(playerResult.word, playerResult.scraps) || "";    
-    directionInput.value = playerResult.direction || "";
-    const scraps = JSON.parse(playerResult.scraps || "[]");
-    document.getElementById("scraps").disabled = false
- document.getElementById("scraps").value = playerResult.scraps !== undefined ? playerResult.scraps : "[]";
-
-    // Actualitza els botons de les fitxes i la vista del rack
-    renderScrapTileButtons()//generateTileButtons(playerResult.word || "");
-    // Re-apply the scrap visual state based on the loaded scraps
-  /*   const tileButtons = tileButtonsDiv.querySelectorAll('.tile-button');
-    tileButtons.forEach(button => {
-      const index = parseInt(button.dataset.index);
-      if (scraps.includes(index)) {
-
-        button.classList.add("scrap");
-        // Update letter case and value for scraps
-        const letter = currentWordTiles[index].letter.toLowerCase();
-        button.textContent = displayLetter(letter);
-        let valueSpan = button.querySelector(".tile-value");
-        if (!valueSpan) {
-          valueSpan = document.createElement("span");
-          valueSpan.className = "tile-value";
-          button.appendChild(valueSpan);
-        }
-        valueSpan.textContent = "0";
-
-      } else {
-        button.classList.remove("scrap");
-        const letter = currentWordTiles[index].letter.toUpperCase();
-        button.textContent = displayLetter(letter);
-        let valueSpan = button.querySelector(".tile-value");
-        if (!valueSpan) {
-          valueSpan = document.createElement("span");
-          valueSpan.className = "tile-value";
-          button.appendChild(valueSpan);
-        }
-        valueSpan.textContent = letterValues[letter] ?? "";
+        respostaMessage.textContent = `No hi ha dades per al jugador ${playerId} a la ronda ${roundNumber}!`;
+        respostaMessage.className = "alert alert-warning";
+        setTimeout(() => {
+          respostaMessage.textContent = "";
+          respostaMessage.className = "";
+        }, 5000);
+        // Optionally clear form fields if no data found
+        return;
       }
-      currentWordTiles[index].isScrap = scraps.includes(index);
-    }); */
+      // Suggested code may be subject to a license. Learn more: ~LicenseLog:3200668774.
+      console.log("resultats del jugador actual", playerResult);
+      // Omple els camps del formulari
 
+      coordsInput.value = playerResult.coordinates || "";
+      wordInput.value =
+        displayWord(playerResult.word, playerResult.scraps) || "";
+      directionInput.value = playerResult.direction || "";
+      const scraps = JSON.parse(playerResult.scraps || "[]");
+      document.getElementById("scraps").disabled = false;
+      document.getElementById("scraps").value =
+        playerResult.scraps !== undefined ? playerResult.scraps : "[]";
 
-    updateRackTilesPreview(playerResult.word || "", scraps);
+      // Actualitza els botons de les fitxes i la vista del rack
+      renderScrapTileButtons(); //generateTileButtons(playerResult.word || "");
+      updateRackTilesPreview(playerResult.word || "", scraps);
+    }
+    updateRackTilesPreview(wordInput.value, JSON.parse(document.getElementById("scraps").value || "[]"));
 
     // Actualitza la previsualització del tauler i la puntuació si hi ha dades
-    if (playerResult.coordinates && playerResult.word && playerResult.direction && boardBeforeMasterPlay) {
+    if (
+      playerResult.coordinates &&
+      playerResult.word &&
+      playerResult.direction &&
+      boardBeforeMasterPlay
+    ) {
       previewMasterPlay();
       coordsInput.dispatchEvent(new Event("input"));
     } else {
       renderBoard(boardBeforeMasterPlay);
       document.getElementById("score-master").textContent = "";
     }
-
-
   } catch (error) {
-    console.error("Error omplint el formulari de resposta:", error);
-    respostaMessage.textContent = "Error carregant les dades de la jugada!";
+    console.error("No hi ha dades desades:", error);
+    /* respostaMessage.textContent = "Error carregant les dades de la jugada!";
     respostaMessage.className = "alert alert-danger";
     setTimeout(() => {
-        respostaMessage.textContent = "";
-        respostaMessage.className = "";
-      }, 5000);
+      respostaMessage.textContent = "";
+      respostaMessage.className = "";
+    }, 5000); */
   }
 }
 
@@ -222,8 +191,6 @@ wordForm.addEventListener("submit", async (e) => {
   const tiles = splitWordToTiles(wordRaw);
   const scraps = document.getElementById("scraps").value;
 
- 
-
   // Comprova que encaixa amb el tauler (no sobreescriu lletres diferents)
   const rowLetter = coords.match(/[A-Za-z]/)?.[0];
   const colNumber = parseInt(coords.match(/[0-9]+/)?.[0]) - 1;
@@ -244,18 +211,16 @@ wordForm.addEventListener("submit", async (e) => {
       ? tiles[i].toLowerCase()
       : tiles[i].toUpperCase();
   }
-  let usedTiles = []
+  let usedTiles = [];
   for (let i = 0; i < formattedWord.length; i++) {
     const row = startRow + (direction === "vertical" ? i : 0);
     const col = startCol + (direction === "horizontal" ? i : 0);
-    if (
-      boardBeforeMasterPlay[row][col] == ""
-    ) {
+    if (boardBeforeMasterPlay[row][col] == "") {
       const letter = formattedWord[i];
       const isScrap = letter === letter.toLowerCase();
       if (isScrap) {
         // Aquesta lletra era un escarràs del faristol
-        usedTiles.push('?');
+        usedTiles.push("?");
         // Aquí pots fer alguna cosa més amb els escarrassos si cal
       } else {
         // Aquesta lletra no era un escarràs (era una lletra normal del faristol o una lletra sobre el tauler)
@@ -267,7 +232,11 @@ wordForm.addEventListener("submit", async (e) => {
       boardBeforeMasterPlay[row][col] !== "" &&
       boardBeforeMasterPlay[row][col] !== formattedWord[i]
     ) {
-      respostaMessage.textContent = `La lletra "${displayLetter(formattedWord[i])}" no coincideix amb la lletra "${displayLetter(boardBeforeMasterPlay[row][col])}" a la posició ${String.fromCharCode(65 + row)}${col + 1}.`;
+      respostaMessage.textContent = `La lletra "${displayLetter(
+        formattedWord[i]
+      )}" no coincideix amb la lletra "${displayLetter(
+        boardBeforeMasterPlay[row][col]
+      )}" a la posició ${String.fromCharCode(65 + row)}${col + 1}.`;
       respostaMessage.className = "alert alert-danger";
       setTimeout(() => {
         respostaMessage.textContent = "";
@@ -276,8 +245,8 @@ wordForm.addEventListener("submit", async (e) => {
       return;
     }
   }
-   // Validació: comprova que les fitxes noves són al faristol
-   const usedTilesWord = usedTiles;
+  // Validació: comprova que les fitxes noves són al faristol
+  const usedTilesWord = usedTiles;
   if (!validateTiles(usedTilesWord, scraps)) {
     respostaMessage.textContent = "Les fitxes no coincideixen amb el faristol!";
     respostaMessage.className = "alert alert-danger";
@@ -288,7 +257,9 @@ wordForm.addEventListener("submit", async (e) => {
     return;
   }
   // Comprova si el tauler està buit
-  const isBoardEmpty = boardBeforeMasterPlay.flat().every((cell) => cell === "");
+  const isBoardEmpty = boardBeforeMasterPlay
+    .flat()
+    .every((cell) => cell === "");
 
   const boardSize = boardBeforeMasterPlay.length;
   const center = Math.floor(boardSize / 2);
@@ -305,8 +276,8 @@ wordForm.addEventListener("submit", async (e) => {
       }
     }
     if (!passesThroughCenter) {
-
-      respostaMessage.textContent = "La primera paraula ha de passar per la casella central!";
+      respostaMessage.textContent =
+        "La primera paraula ha de passar per la casella central!";
       respostaMessage.className = "alert alert-danger";
       setTimeout(() => {
         respostaMessage.textContent = "";
@@ -347,8 +318,8 @@ wordForm.addEventListener("submit", async (e) => {
       if (touchesExisting) break;
     }
     if (!touchesExisting) {
-
-      respostaMessage.textContent = "La paraula ha de tocar almenys una fitxa existent al tauler!";
+      respostaMessage.textContent =
+        "La paraula ha de tocar almenys una fitxa existent al tauler!";
       respostaMessage.className = "alert alert-danger";
       setTimeout(() => {
         respostaMessage.textContent = "";
@@ -365,13 +336,16 @@ wordForm.addEventListener("submit", async (e) => {
     direction: directionInput.value,
   };
   const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
-  const jugadaValida = window.validateAllWords(allWords)
+  const jugadaValida = window.validateAllWords(allWords);
   //afegeig una variable global per si s'han de validar o no les paraules
-  if (typeof ENABLE_WORD_VALIDATION !== "undefined" && ENABLE_WORD_VALIDATION.checked) {
-    // Comprova si totes les paraules formades són vàlides          
+  if (
+    typeof ENABLE_WORD_VALIDATION !== "undefined" &&
+    ENABLE_WORD_VALIDATION.checked
+  ) {
+    // Comprova si totes les paraules formades són vàlides
     if (!jugadaValida) {
-
-      respostaMessage.textContent = "Alguna de les paraules formades no és vàlida!";
+      respostaMessage.textContent =
+        "Alguna de les paraules formades no és vàlida!";
       respostaMessage.className = "alert alert-danger";
       setTimeout(() => {
         respostaMessage.textContent = "";
@@ -382,7 +356,14 @@ wordForm.addEventListener("submit", async (e) => {
   }
   //await historyRef.child(`${currentRoundId}/results/${player}/newWordInfo`).set(newWordInfo)
   // Calcula la puntuació de la jugada mestra
-  const score = jugadaValida? calculateFullPlayScore(boardBeforeMasterPlay, newWordInfo, letterValues, multiplierBoard):0;
+  const score = jugadaValida
+    ? calculateFullPlayScore(
+        boardBeforeMasterPlay,
+        newWordInfo,
+        letterValues,
+        multiplierBoard
+      )
+    : 0;
   const player = playerInput.value;
   // Desa la jugada a l'apartat de resultats amb key=player
   const resposta = {
@@ -402,7 +383,6 @@ wordForm.addEventListener("submit", async (e) => {
     respostaMessage.textContent = "";
     respostaMessage.className = "";
   }, 3000);
-
 });
 
 coordsInput.addEventListener("input", () => {
@@ -430,7 +410,6 @@ document.getElementById("verticalBtn")?.addEventListener("click", () => {
   const number = value.match(/[0-9]+/);
   if (letter && number) coordsInput.value = `${number[0]}${letter[0]}`;
 });
-
 
 // Guarda la jugada mestra anterior per a la previsualització
 function previewMasterPlay() {
@@ -472,22 +451,23 @@ function previewMasterPlay() {
     const col = startCol + (direction === "horizontal" ? k : 0);
     if (boardBeforeMasterPlay[row][col] === "") {
       newTiles.push([row, col]);
-
     }
   }
 
   renderBoard(testBoard, newTiles);
 
   const allWords = findAllNewWords(boardBeforeMasterPlay, newWordInfo);
-  const jugadaValida = window.validateAllWords(allWords)
+  const jugadaValida = window.validateAllWords(allWords);
 
   // Calcula i mostra la puntuació en temps real
-  const score = jugadaValida? calculateFullPlayScore(
-    boardBeforeMasterPlay,
-    newWordInfo,
-    letterValues,
-    multiplierBoard
-  ):0;
+  const score = jugadaValida
+    ? calculateFullPlayScore(
+        boardBeforeMasterPlay,
+        newWordInfo,
+        letterValues,
+        multiplierBoard
+      )
+    : 0;
   document.getElementById("score-master").textContent = `Puntuació: ${score}`;
 }
 
@@ -501,20 +481,20 @@ wordInput.addEventListener("input", previewMasterPlay);
 
 // Llegeix l'estat actual dels escarrassos
 
-
-
 let currentWordTiles = [];
 
-function generateTileButtons(word,scraps) {
+function generateTileButtons(word, scraps) {
   tileButtonsDiv.innerHTML = "";
-  currentWordTiles = [];  
-  
+  currentWordTiles = [];
+
   scraps = JSON.parse(scrapsInput.value || "[]");
-  
+
   const tiles = splitWordToTiles(word);
   for (let i = 0; i < tiles.length; i++) {
     const isScrap = scraps.includes(i);
-    const letter = displayLetter(isScrap ? tiles[i].toLowerCase() : tiles[i].toUpperCase());
+    const letter = displayLetter(
+      isScrap ? tiles[i].toLowerCase() : tiles[i].toUpperCase()
+    );
     const button = document.createElement("button");
     button.classList.add("tile-button");
     button.textContent = letter;
@@ -527,14 +507,16 @@ function generateTileButtons(word,scraps) {
     // Valor de la fitxa
     const valueSpan = document.createElement("span");
     valueSpan.className = "tile-value";
-    valueSpan.textContent = isScrap ? "0" : (letterValues[letter.toUpperCase()] ?? "");
+    valueSpan.textContent = isScrap
+      ? "0"
+      : letterValues[letter.toUpperCase()] ?? "";
     button.appendChild(valueSpan);
 
     // Click: alterna escarràs i actualitza scrapsInput
     button.addEventListener("click", () => {
       let newScraps = JSON.parse(scrapsInput.value || "[]");
       if (newScraps.includes(i)) {
-        newScraps = newScraps.filter(x => x !== i);
+        newScraps = newScraps.filter((x) => x !== i);
       } else {
         newScraps.push(i);
       }
@@ -598,82 +580,57 @@ function updateScrapsInputValue() {
 // Sempre converteix a majúscula abans de processar
 wordInput.addEventListener("input", () => {
   const word = wordInput.value.toUpperCase();
-  
-  console.log('escarrassosInput.value', scrapsInput.value);
+
+  console.log("escarrassosInput.value", scrapsInput.value);
   //wordInput.value = word; // Actualitza el valor de l'input
-  renderScrapTileButtons()//generateTileButtons(word);
+  renderScrapTileButtons(); //generateTileButtons(word);
   //updateTileButtonsFromForm()
   previewMasterPlay(); // Call preview after generating buttons
 });
 
 // També actualitza els botons en carregar la pàgina si hi ha valor inicial
 if (wordInput.value) {
-  renderScrapTileButtons()//generateTileButtons(wordInput.value, JSON.parse(scrapsInput.value || "[]"));
+  renderScrapTileButtons(); //generateTileButtons(wordInput.value, JSON.parse(scrapsInput.value || "[]"));
 }
-
-/* // Desa el nom del jugador al localStorage
-playerInput.addEventListener("input", () => {
-  const playerName = playerInput.value.trim();
-  localStorage.setItem("nomJugador", playerName);
-});
-// Desa el taula del jugador al localStorage
-tableInput.addEventListener("input", () => {
-  const table = tableInput.value.trim();
-  localStorage.setItem('playerTable', table);
-  
-}); */
-//
-// Carrega el nom del jugador del localStorage en carregar la pàgina
-/* window.addEventListener("load", () => {
-  const savedPlayerName = localStorage.getItem("nomJugador");
-  if (savedPlayerName) {
-    playerInput.value = savedPlayerName;
-  }
-});
-
-// Carrega el taula del jugador del localStorage en carregar la pàgina
-window.addEventListener("load", () => {
-  const savedTable = localStorage.getItem("playerTable");
-  if (savedTable) {
-    tableInput.value = savedTable;
-  }
-}); */
 
 //escolta el db.formEnabled i desabilita el formulari si és false i la taula no és "administrador"
 
-formEnabled.on('value', (snapshot) => {
+/* formEnabled.on("value", (snapshot) => {
   const enabled = snapshot.val();
   const table = tableInput.value.trim();
   const isAdmin = table.toLowerCase() === "administrador";
-  wordForm.querySelectorAll("input, button, select, textarea").forEach(el => {
+  wordForm.querySelectorAll("input, button, select, textarea").forEach((el) => {
     el.disabled = !enabled && !isAdmin;
   });
   // Opcional: mostra un missatge si està deshabilitat
   if (!enabled && !isAdmin) {
-    respostaMessage.textContent = "El formulari està deshabilitat per l'administrador.";
+    respostaMessage.textContent =
+      "El formulari està deshabilitat per l'administrador.";
     respostaMessage.className = "alert alert-warning";
     setTimeout(() => {
-        respostaMessage.textContent = "";
-        respostaMessage.className = "";
-      }, 5000);
+      respostaMessage.textContent = "";
+      respostaMessage.className = "";
+    }, 5000);
   } else {
     respostaMessage.textContent = "";
     respostaMessage.className = "";
-    
   }
-});
+}); */
 
 // Si l'usuari canvia la taula, torna a aplicar la lògica
-tableInput.addEventListener("input", () => {
-  formEnabled.once('value').then(snapshot => {
+/* tableInput.addEventListener("input", () => {
+  formEnabled.once("value").then((snapshot) => {
     const enabled = snapshot.val();
     const table = tableInput.value.trim();
     const isAdmin = table.toLowerCase() === "administrador";
-    wordForm.querySelectorAll("input, button, select, textarea").forEach(el => {
-      el.disabled = !enabled && !isAdmin;
-    });
+    wordForm
+      .querySelectorAll("input, button, select, textarea")
+      .forEach((el) => {
+        el.disabled = !enabled && !isAdmin;
+      });
     if (!enabled && !isAdmin) {
-      respostaMessage.textContent = "El formulari està deshabilitat per l'administrador.";
+      respostaMessage.textContent =
+        "El formulari està deshabilitat per l'administrador.";
       respostaMessage.className = "alert alert-warning";
       setTimeout(() => {
         respostaMessage.textContent = "";
@@ -684,13 +641,13 @@ tableInput.addEventListener("input", () => {
       respostaMessage.className = "";
     }
   });
-});
+}); */
 
 //formula per actualitzar el tileButtonsDiv agafant la  paraula del formulari i els scraps desats a scrapsInput
 function updateTileButtonsFromForm() {
   const word = wordInput.value.toUpperCase();
   const scraps = JSON.parse(scrapsInput.value || "[]");
-  renderScrapTileButtons()//generateTileButtons(word, scraps);
+  renderScrapTileButtons(); //generateTileButtons(word, scraps);
 }
 
 /**
@@ -699,7 +656,7 @@ function updateTileButtonsFromForm() {
  */
 function renderScrapTileButtons() {
   const word = wordInput.value.toUpperCase();
-  console.log(scrapsInput)
+  console.log(scrapsInput);
   const scraps = JSON.parse(scrapsInput.value || "[]");
   tileButtonsDiv.innerHTML = "";
   currentWordTiles = [];
@@ -722,7 +679,9 @@ function renderScrapTileButtons() {
     // Valor de la fitxa
     const valueSpan = document.createElement("span");
     valueSpan.className = "tile-value";
-    valueSpan.textContent = scraps.includes(i) ? "0" : (letterValues[letter.toUpperCase()] ?? "");
+    valueSpan.textContent = scraps.includes(i)
+      ? "0"
+      : letterValues[letter.toUpperCase()] ?? "";
     button.appendChild(valueSpan);
 
     // Click: alterna escarràs i actualitza scrapsInput
@@ -730,7 +689,7 @@ function renderScrapTileButtons() {
       const idx = parseInt(button.dataset.index);
       let newScraps = JSON.parse(scrapsInput.value || "[]");
       if (newScraps.includes(idx)) {
-        newScraps = newScraps.filter(x => x !== idx);
+        newScraps = newScraps.filter((x) => x !== idx);
         button.classList.remove("scrap");
         valueSpan.textContent = letterValues[letter.toUpperCase()] ?? "";
       } else {
@@ -751,10 +710,12 @@ function renderScrapTileButtons() {
 
 // Add event listener to the delete button
 if (deleteFaristolBtn) {
-  deleteFaristolBtn.addEventListener('click', () => {
+  deleteFaristolBtn.addEventListener("click", () => {
     wordInput.value = "";
     scrapsInput.value = "[]";
-    renderRackTiles(normalizeWordInput(document.getElementById("editRackInput").value))
+    renderRackTiles(
+      normalizeWordInput(document.getElementById("editRackInput").value)
+    );
     renderScrapTileButtons(); // Update the tile buttons display
     previewMasterPlay(); // Update the board preview and score
   });
@@ -766,4 +727,16 @@ scrapsInput.addEventListener("input", renderScrapTileButtons);
 
 // També pots cridar renderScrapTileButtons() en carregar la pàgina si cal.
 
-export { fillFormDataFromRoundAndPlayer,updateTileButtonsFromForm, boardBeforeMasterPlay, validateTiles, previewMasterPlay, renderScrapTileButtons, currentRack, currentRoundId, generateTileButtons, currentWordTiles, updateScrapsInputValue };
+export {
+  fillFormDataFromRoundAndPlayer,
+  updateTileButtonsFromForm,
+  boardBeforeMasterPlay,
+  validateTiles,
+  previewMasterPlay,
+  renderScrapTileButtons,
+  currentRack,
+  currentRoundId,
+  generateTileButtons,
+  currentWordTiles,
+  updateScrapsInputValue,
+};

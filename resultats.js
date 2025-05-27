@@ -82,7 +82,13 @@ function renderResultats(round) {
                 const player = row.getAttribute('data-player');
                 
                 //setCoordinatesAndWord(coords, displayWord(word,scraps),scraps);
-                fillFormDataFromRoundAndPlayer(currentRoundId, player);
+                document.getElementById('coords').value = coords;
+                document.getElementById('coords').dispatchEvent(new Event('input')); // Trigger input event to update display
+                document.getElementById('word').value = displayWord(word,scraps);   
+                document.getElementById('scraps').value = scraps || '';
+                document.getElementById('word').dispatchEvent(new Event('input')); // Trigger input event to update display
+                // Omple el formulari amb les dades de la ronda i el jugador    
+                //fillFormDataFromRoundAndPlayer(currentRoundId, player);
                 //deixar la fila seleccionada activa fins que es faci clic a una altra
                 rows.forEach((r) => r.classList.remove('table-active'));
                 row.classList.add('table-active');
@@ -95,27 +101,6 @@ function renderResultats(round) {
         resultatsDiv.innerHTML += '<p>No hi ha respostes de jugadors per aquesta ronda.</p>';
     }
 }
-/* // funció per posar coordenades i paraula al formulari
-function setCoordinatesAndWord(coords, word,scraps) {
-    console.log("coords",coords,"word",word,"scraps",scraps)
-    const coordinatesInput = document.getElementById('coords'); 
-    const wordInput = document.getElementById('word');
-    const scrapsInput = document.getElementById('scraps');
-    if (coordinatesInput && wordInput) {
-        
-        coordinatesInput.value = coords;
-        wordInput.value = word;
-        scrapsInput.value = JSON.stringify(scraps) //|| '';
-        //scrapsInput.value = scraps;
-    }
-    // aplica dispatch a l'input de coordenades
-    const event = new Event('input', { bubbles: true });
-    coordinatesInput.dispatchEvent(event);
-    // aplica dispatch a l'input de paraula
-    const eventWord = new Event('input', { bubbles: true });
-    wordInput.dispatchEvent(eventWord);
-    const eventScraps = new Event('input', { bubbles: true });
-    scrapsInput.dispatchEvent(eventScraps);
-} */
+
 
 export { showResultats };
