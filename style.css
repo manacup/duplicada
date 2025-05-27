@@ -202,8 +202,11 @@ h3 {
   margin: 0 auto;
   table-layout: fixed;
   width: 100%;
-  max-width: 800px; /* Límit màxim a pantalles grans */
-  aspect-ratio: 1 / 1; /* Manté el tauler quadrat */
+  max-width: 100vw;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: auto;
 }
 
 .board-table th,
@@ -223,21 +226,18 @@ h3 {
   box-sizing: border-box;
 }
 
-@media (max-width: 575px) {
-  .container {
-    padding: 5px !important;
-  }
+/*  @media (max-width: 575px) {
   .board-table {
-    width: 95vw;
-    max-width: 95vw;
+    width: 100vw;
+    max-width: 100vw;
     aspect-ratio: 1 / 1;
+    font-size: 2.5vw; 
   }
-  .board-table th,
-  .board-table td {
-    width: calc(95vw / 16);
-    font-size: 0.9em;
-  }
-}
+   .container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  } 
+}  */
 
 /* Colors per a multiplicadors */
 .board-cell.tw {
@@ -408,7 +408,7 @@ h3 {
 section{
   
   background-color: #ffffff; /* Fons gris clar */
-  padding: 10px;
+  padding: 10px 0 10px 0; /* Espaiat superior i inferior */
   border-color: #ffffff;
  border-bottom: #e4e4e4;
   border-style: solid;
@@ -559,4 +559,12 @@ body {
   padding: 0;
   box-sizing: border-box;
   background-color: #ffffff0c;
+}
+.board-table-wrapper {
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: auto;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0;
 }
