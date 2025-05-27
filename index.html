@@ -53,18 +53,16 @@
 
             .countdownSlave {
                 position: fixed;
-                top: 0px;
-                right: 0px;
+                top: 10px;
+                right: 2rem;
                 font-size: 1em !important;
-
                 background: #ffffff;
                 z-index: 10000;
-                padding: 5px;
+                padding: 5px 12px;
                 border-radius: 5px;
-                margin: 10px;
-                border-color: black;
-
-                border: solid;
+                border: 1px solid black;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                pointer-events: none;
             }
         }
 
@@ -233,13 +231,13 @@
                         <div class="btn-group  btn-group-sm" role="group">
                             <button id="deleteRondaBtn" class="btn btn-outline-danger"><i
                                     class="bi bi-trash me-2"></i>Esborra la ronda</button>
-                                    <button type="button" class="btn btn-outline-success " id="tancaRondaBtn"><i
+                            <button type="button" class="btn btn-outline-success " id="tancaRondaBtn"><i
                                     class="bi bi-lock-fill me-2"></i>Tanca la ronda</button>
                             <button id="obreRondaBtn" class="btn btn-outline-secondary"><i
                                     class="bi bi-unlock-fill me-2"></i>Obre la ronda</button>
 
                             <button id="novaRondaBtn" class="btn btn-outline-success">+ Nova ronda</button>
-                        </div>                        
+                        </div>
                     </div>
                     <!-- Dins #gestio-section, sota els botons -->
 
@@ -265,19 +263,21 @@
 
             <!-- Faristol visual -->
             <section id="faristol-section">
+                <h3>Faristol</h3>
                 <div class="d-flex flex-column align-items-center gap-2">
                     <div id="rackTiles" class="rack-tiles"></div>
                     <div class="d-flex flex-row align-items-center gap-2" id="faristolBtn">
                         <button class="btn btn-outline-primary" id="deleteFaristolBtn"><i
-                                class="bi bi-chevron-double-down"></i></button>
+                                class="bi bi-chevron-double-down me-2"></i>Recull</button>
 
                         <button class="btn btn-outline-primary" id="shuffleFaristolBtn"><i
-                                class="bi bi-shuffle"></i></button>
-                               <!--  <button class="btn btn-outline-primary" id="enviaFaristolBtn"><i class="bi bi-send-check"></i></button> -->
+                                class="bi bi-shuffle me-2"></i>Remena</button>
+                        <button class="btn btn-outline-primary" id="enviaFaristolBtn"><i
+                                class="bi bi-send-check me-2"></i>Desa</button>
                     </div>
                 </div>
                 <div class="row master" id="faristolInput">
-                    <label for="editRackInput" class="form-label">Faristol:</label>
+                    <label for="editRackInput" class="form-label">Edita el faristol:</label>
                     <div class="input-group mb-3">
 
                         <input type="text" id="editRackInput" class="form-control" maxlength="15" autocomplete="off">
@@ -306,36 +306,48 @@
             <section id="masterForm-section">
 
                 <form id="wordForm">
-                    <h3 class="
-                    master">Jugador</h3>
-                    <div class="input-group mb-3 master">
-                        <input type="text" list="jugadorslistOptions" id="player" value="" class="form-control form-control-lg">
+                    <h3>Formulari</h3>
+                    <div class="form-label master" id="playerLabel">
+                        <label for="player" class="form-label">Jugador:</label>
 
-                        <span class="input-group-text">Taula:</span>
-                        <input type="text" id="taula" value="" class="form-control form-control-lg">
-                   
+                        <div class="input-group mb-3 master">
+
+                            <input type="text" list="jugadorslistOptions" id="player" value=""
+                                class="form-control form-control-lg">
+
+                            <span class="input-group-text">Taula:</span>
+                            <input type="text" id="taula" value="" class="form-control form-control-lg">
+
+                        </div>
+                        <datalist id="jugadorslistOptions">
+
+                        </datalist>
                     </div>
-                    <datalist id="jugadorslistOptions">
-                        
-                      </datalist>
-                    <h3>Coordenades / Direcció / Paraula</h3>
-                    <div class="input-group  input-group-lg mb-3 ">
-                        <input type="text" class="form-control " id="coords" required placeholder="Coord.">
-                        <span class="input-group-text " id="directionLabel">
-                            <div class="btn-group-vertical" role="group">
-                                <button type="button" class="btn d-none"></button>
-                                <button type="button" class="btn btn-outline-primary" id="horizontalBtn"><i
-                                        class="bi bi-arrow-right"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-primary" id="verticalBtn"><i
-                                        class="bi bi-arrow-down"></i>
-                                </button>
-                                <button type="button" class="btn d-none"></button>
-                            </div>
-                            <input type="hidden" id="direction" required>
-                        </span>
+                    <div class="form-label">
+                        <div class="d-flex flex-row align-items-center">
 
-                        <input type="text" class="form-control " id="word" required placeholder="Paraula jugada">
+                            <label for="coords" class="form-label col-3">Coordenades:</label>
+                            <label for="word" class="form-label col-9 " style="margin-left:50px;">Paraula:</label>
+                        </div>
+
+                        <div class="input-group  input-group-lg mb-3 ">
+                            <input type="text" class="form-control " id="coords" required placeholder="Coord.">
+                            <span class="input-group-text " id="directionLabel">
+                                <div class="btn-group-vertical" role="group">
+                                    <button type="button" class="btn d-none"></button>
+                                    <button type="button" class="btn btn-outline-primary" id="horizontalBtn"><i
+                                            class="bi bi-arrow-right"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" id="verticalBtn"><i
+                                            class="bi bi-arrow-down"></i>
+                                    </button>
+                                    <button type="button" class="btn d-none"></button>
+                                </div>
+                                <input type="hidden" id="direction" required>
+                            </span>
+
+                            <input type="text" class="form-control " id="word" required placeholder="Paraula jugada">
+                        </div>
                     </div>
                     <div class="master">
                         <div class="form-check form-switch">
@@ -344,14 +356,19 @@
                                 desar.</label>
                         </div>
                     </div>
+                    <span class="border-bottom"></span>
+                    <h3>Jugada a enviar</h3>
+                    <p>S'anirà formant la jugada a mesura que triis fitxes dels faristol o escriguis la paraula al formulari.</p>
                     <div class="mb-3">
-                        <label class="form-label">Marca els escarrassos, si n'has usat algun:</label>
+                        
                         <div id="tileButtons"></div>
                         <input type="hidden" id="scraps" value="[]">
+                        <label class="form-label">Pitja sobre la fitxa que és un escarràs, si n'has usat algun.</label>
                     </div>
                     <h4 id="score-master" class="master"></h4>
-                    <div class="d-grid gap-2 d-md-block mb-3">
-                        <button type="submit" class="btn btn-success mb-3 ">Desa la jugada</button>
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-outline-primary"><i
+                                class="bi bi-send-check me-2"></i>Desa</button>
                     </div>
 
                 </form>
