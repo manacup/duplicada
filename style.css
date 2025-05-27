@@ -127,8 +127,18 @@ h3 {
   border-color: #ffeeba;
   color: #85640a;
 }
-.alert{
-  display: block;
+.alert {
+  position: fixed;
+  left: 50%;
+  bottom: 50px;
+  transform: translateX(-50%);
+  z-index: 9999;
+  /* min-width: 300px; */
+  width: 95vw;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  opacity: 1;
+  transition: opacity 0.4s;
+  pointer-events: auto;
 }
 
 /* Estils per a l'acordió de respostes a dades.html */
