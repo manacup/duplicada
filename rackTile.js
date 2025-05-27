@@ -145,7 +145,7 @@ const scrapsInput = document.getElementById("scraps");
 function enableRackTileInput() {
   rackTilesDiv.addEventListener("click", function (e) {
     if(coordsInput.value.trim() === "") {
-      alert("Si us plau, omple les coordenades abans de seleccionar una fitxa del rack.");
+      alert("Si us plau, omple les coordenades abans de seleccionar una fitxa del faristol.");
       return;
     }
     const tile = e.target.closest(".rack-tile");

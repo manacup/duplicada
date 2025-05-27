@@ -34,13 +34,22 @@ let currentRoundId = null;
 let boardBeforeMasterPlay = null;
 
 // Escolta els canvis de la ronda actual i actualitza el rackTiles
-gameInfoRef.child("currentRound").once("value", (snapshot) => {
+gameInfoRef.child("currentRound").on("value", (snapshot) => {
   currentRoundId = snapshot.val();
 
   if (!currentRoundId) {
     console.warn("No hi ha cap ronda actual.");
     return;
   }
+  wordInput.value = ""
+  coordsInput.value = "";
+  directionInput.value = "horizontal"; // Reinicia la direcció a horitzontal
+  scrapsInput.value = "[]"; // Reinicia els escarrassos
+  wordInput.dispatchEvent(new Event("input")); // Actualitza els botons de les fitxes
+  coordsInput.dispatchEvent(new Event("input")); // Actualitza la direcció
+  respostaMessage.textContent = "";
+  respostaMessage.className = "";
+
 
   historyRef.child(currentRoundId).on("value", (roundSnapshot) => {
     console.log(currentRoundId, "roundSnapshot", roundSnapshot.val());

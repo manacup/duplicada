@@ -448,9 +448,8 @@ function updateUIForCurrentRound(round, isLastRound) {
     tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
   formEnabled.on("value", (snapshot) => {
     const enabled = snapshot.val();
-    if (!enabled) {
-      blocaFormulari();
-    } else if (round.closed) {
+    
+    if (round.closed) {
       blocaFormulari();
       /* // Si la ronda està tancada
     if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
@@ -481,12 +480,21 @@ function updateUIForCurrentRound(round, isLastRound) {
     if (!administrador) inputs.forEach((input) => {
       input.disabled = true;
     }); */
+     // Si la ronda està tancada
+    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
+
+    if (novaRondaBtn)
+      novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
+    if (obreRondaBtn)
+      obreRondaBtn.style.display = isLastRound ? "block" : "none";
+    if (deleteRondaBtn)
+      deleteRondaBtn.style.display = isLastRound ? "block" : "none";
     } else {
       // Si la ronda està oberta
       if (tancaRondaBtn) tancaRondaBtn.style.display = "block";
       if (novaRondaBtn) novaRondaBtn.style.display = "none";
       if (obreRondaBtn) obreRondaBtn.style.display = "none";
-      if (deleteRondaBtn) deleteRondaBtn.style.display = "none";
+      if (deleteRondaBtn) deleteRondaBtn.style.display = "block";
 
       // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
       const buttons = document.querySelectorAll("button");
@@ -498,18 +506,12 @@ function updateUIForCurrentRound(round, isLastRound) {
         input.disabled = false;
       });
     }
+     if (!enabled) {
+      blocaFormulari(); } 
   });
 
   function blocaFormulari() {
-    // Si la ronda està tancada
-    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
-
-    if (novaRondaBtn)
-      novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
-    if (obreRondaBtn)
-      obreRondaBtn.style.display = isLastRound ? "block" : "none";
-    if (deleteRondaBtn)
-      deleteRondaBtn.style.display = isLastRound ? "block" : "none";
+   
     // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
     const excludedButtonIds = [
       "prevRoundBtn",

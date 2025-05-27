@@ -7,6 +7,8 @@ body {
   line-height: 1.6;
 }
 
+
+
 .container {
   margin-bottom: 20px;
   /* margin-top: 20px;
@@ -14,9 +16,9 @@ body {
   
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-  background-color: #fff;*/
-  max-width: none; !important
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  background-color: #fff;
+  max-width: none !important;
 }
 
 h1,
@@ -404,9 +406,15 @@ h3 {
 
 
 section{
- /*  border-radius: 20px; */
+  
   background-color: #ffffff; /* Fons gris clar */
-  /* padding: 20px; */
+  padding: 10px;
+  border-color: #ffffff;
+ border-bottom: #e4e4e4;
+  border-style: solid;
+  border-width: 0 0  2px 0 ; /* Només la part superior */
+  
+
 }
 
 
@@ -546,3 +554,9 @@ th {
   pointer-events: none;
 }
 /* min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2)); */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #ffffff0c;
+}
