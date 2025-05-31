@@ -101,6 +101,7 @@ clockRef.onSnapshot((snapshot) => {
       }
       clearInterval(interval);
       stopTimer()
+      resetTimer()
     }
   }
 

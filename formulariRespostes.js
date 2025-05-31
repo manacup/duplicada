@@ -239,7 +239,8 @@ async function fillFormDataFromRoundAndPlayer(roundId, player) {
      if(coordsInput) coordsInput.dispatchEvent(new Event("input"));
 
      // Renderitzar el tauler carregat/reconstruït
-     renderBoard(boardBeforeMasterPlay);
+     //renderBoard(boardBeforeMasterPlay);
+     
 
 
   } catch (error) {
@@ -456,6 +457,8 @@ wordForm.addEventListener("submit", async (e) => {
       )
     : 0;
   const player = playerInput.value;
+  const taula = tableInput.value==="administrador" ? "" : tableInput.value;
+ 
   // Desa la jugada a l'apartat de resultats amb key=player
   const resposta = {
     coordinates: coords,
@@ -465,11 +468,13 @@ wordForm.addEventListener("submit", async (e) => {
     score: score,
     timestamp: Date.now(),
     usedtiles: usedTiles,
+    table: taula,
   };
   try {
     await roundsCollectionRef.doc(currentRoundId).update({
       [`results.${player}`]: resposta,
     });
+    previewMasterPlay()
     //mostra missatge durant 5 segons
     respostaMessage.textContent = `Jugada desada!`;
     respostaMessage.className = "alert alert-success";

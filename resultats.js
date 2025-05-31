@@ -56,6 +56,7 @@ function renderResultats(round) {
         //Si Jugada mestra existeix, posa'l al primer
         const masterPlay = sortedResults.find(([player]) => player.toLowerCase() === 'jugada mestra');
         if (masterPlay) {
+            masterPlay[1].table = '';
             sortedResults.unshift(sortedResults.splice(sortedResults.indexOf(masterPlay), 1)[0]);
         }
        
@@ -63,13 +64,14 @@ function renderResultats(round) {
         const table = document.createElement('table');
         table.className = 'table';            
         table.classList.add('table-hover');
-        table.innerHTML = '<thead><tr><th>Jugador</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
+        table.innerHTML = '<thead><tr><th>Taula</th><th>Jugador</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
 
         sortedResults.forEach(([player, data]) => {
+            const tableDisplay = data.table || '';
             const coordinatesDisplay = data.coordinates || '';
             const wordDisplay = data.word ? displayWord(data.word,data.scraps) : '';
             const scoreDisplay = data.score !== undefined ? data.score : '';
-            table.innerHTML += `<tr data-coords="${coordinatesDisplay}" data-word="${data.word}" data-scraps="${data.scraps}"  data-player="${player}"><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
+            table.innerHTML += `<tr data-coords="${coordinatesDisplay}" data-word="${data.word}" data-scraps="${data.scraps}"  data-player="${player}"><td>${tableDisplay}</td><td>${player}</td><td>${coordinatesDisplay}</td><td>${wordDisplay}</td><td>${scoreDisplay}</td></tr>`;
         });
         resultatsDiv.appendChild(table);
         // Afegir event listener per a cada fila
