@@ -78,6 +78,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loginSection.style.display = 'none';
     mainContent.style.display = 'block';
     mainContent.classList.remove('d-none')
+    if(table.toLowerCase() !== 'administrador'){
+     document.querySelectorAll('.master').forEach(el => el.style.display = 'none');
+     document.getElementById('validateWords').checked = false;
+     document.getElementById('countdown').id = 'countdownSlave';
+    }
+    
 
     // Omple el camp player del formulari principal si existeix
     if (playerInput) playerInput.value = name;    
