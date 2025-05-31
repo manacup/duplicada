@@ -1,4 +1,3 @@
-import { gameInfoRef, historyRef } from "./firebase.js";
 import {
   splitWordToTiles,
   displayLetter,

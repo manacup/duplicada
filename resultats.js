@@ -1,4 +1,4 @@
-import { historyRef } from './firebase.js';
+import { roundsCollectionRef } from './firebase.js';
 import { displayWord } from './utilitats.js';
 import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 const resultatsDiv = document.getElementById('resultats');
@@ -10,8 +10,8 @@ let currentRoundId = null;
 // Escolta canvis a la ronda actual i mostra resultats
 function showResultats(roundId) {
     currentRoundId = roundId;
-    historyRef.child(roundId).on('value', (snapshot) => {
-        const round = snapshot.val();
+    roundsCollectionRef.doc(roundId).onSnapshot((doc) => {
+        const round = doc.data();
         renderResultats(round);
     });
 }

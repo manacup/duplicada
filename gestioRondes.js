@@ -1,8 +1,8 @@
 import {
   gameInfoRef,
-  historyRef,
-  jugadorsRef,
-  formEnabled,
+  roundsCollectionRef,
+  jugadorsCollectionRef,
+  formEnabledRef,
 } from "./firebase.js";
 import {
   createEmptyBoard,
@@ -44,45 +44,24 @@ let currentRoundIndex = -1;
 
 // Carrega l'historial de rondes
 function loadRoundsHistory() {
-  historyRef.on("value", (snapshot) => {
-    const data = snapshot.val() || {};
-    roundsList = Object.keys(data).sort((a, b) => Number(a) - Number(b));
+  // Order by 'roundNumber' assuming you will add this field when creating a round
+  roundsCollectionRef.orderBy('roundNumber').onSnapshot((snapshot) => {
+    roundsList = [];
+    snapshot.docs.forEach(doc => {
+      roundsList.push(doc.id); // Use document ID as round ID
+    });
+
     if (roundsList.length === 0) {
       addNewRound();
     } else {
       currentRoundIndex = roundsList.length - 1;
       showRound(currentRoundIndex);
     }
+  }, (error) => {
+    console.error("Error loading rounds history:", error);
   });
-
-  // <-- Close the loadRoundsHistory function
-
-  /* gameInfoRef.on("value", (snapshot) => {
-  const data = snapshot.val() || {};
-  console.log("gameInfoRef", data)
-  if (data.currentRound) {
-    roundsList = [];
-    for (let i = Number(data.currentRound); i >= 1; i--) {
-      roundsList.push(String(i));
-    }
-    roundsList.reverse(); // Inverteix l'ordre per mostrar les rondes de l'última a la primera
-    currentRoundIndex = data.currentRound-1; // Mostra l'última ronda
-    showRound(currentRoundIndex);
-    console.log(roundsList)
-  } else if (data.lastRound !== undefined && data.lastRound !== "") {
-    roundsList = [];
-     for (let i = Number(data.lastRound); i >= 1; i--) {
-      roundsList.push(String(i));
-    }
-    roundsList.reverse(); // Inverteix l'ordre per mostrar les rondes de l'última a la primera
-    console.log("lastRound", data.lastRound)
-    currentRoundIndex = data.lastRound-1; // Mostra l'última ronda
-    showRound(currentRoundIndex);
-  } else {
-    addNewRound();
-  }
-}); */
 }
+
 
 let openRound = false; // Variable per controlar si la ronda està oberta
 // Mostra una ronda específica
@@ -90,29 +69,46 @@ function showRound(idx) {
   if (idx < 0 || idx >= roundsList.length) return;
   currentRoundIndex = idx;
   const roundId = roundsList[idx];
-  historyRef.child(roundId).on("value", (snapshot) => {
-    const round = snapshot.val();
+
+  roundsCollectionRef.doc(roundId).onSnapshot((doc) => {
+    if (!doc.exists) {
+      console.log("No such round exists!");
+      return;
+    }
+    const round = doc.data();
+
     actualPlayer = playerInput ? playerInput.value : "Jugada mestra";
     openRound = !round.closed; // Actualitza l'estat de la ronda oberta
-    //updateUIForCurrentRound(roundId, idx === roundsList.length - 1); ///desmarcar en funcionar
 
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
-    //mostra la jugada mestra als inputs de la seccio de jugada mestra tenint en compte que el jugador actual es el que ha de fer la jugada mestra
     renderRackTiles(round?.rack || "");
     if (round?.board) {
-      renderBoard(round.board);
+      // Assuming round.board is a flattened 1D array, reconstruct the 2D array (15x15)
+      const reconstructedBoard = reconstructBoard(round.board, 15, 15);
+      renderBoard(reconstructedBoard);
     }
     carregaLlistaJugador();
     console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
     updateSac();
     updateRemainingTiles();
-    showResultats(roundId);
-    displayRanking(roundId);
+    showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well
+    displayRanking(roundId); // Assuming displayRanking uses the new Firestore structure as well
     updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
+  }, (error) => {
+    console.error("Error showing round:", error);
   });
 }
+// Function to reconstruct a 2D board from a flattened 1D array
+function reconstructBoard(flattenedBoard, rows, cols) {
+  const board = [];
+  for (let i = 0; i < rows; i++) {
+    board.push(flattenedBoard.slice(i * cols, (i + 1) * cols));
+  }
+  return board;
+    console.error("Error showing round:", error);
+  }
 //actualitza informació de fitxes restants
 function updateRemainingTiles() {
   const remainingTiles = calculateRemainingTiles();
@@ -155,116 +151,131 @@ if (nextRoundBtn) {
 }
 
 // Afegir una nova ronda
-function addNewRound() {
+async function addNewRound() { // Made async to handle promises from Firestore reads
   // Comprova si ja hi ha una ronda oberta
-  historyRef.once("value", async (snapshot) => {
-    const data = snapshot.val() || {};
-    const openRounds = Object.keys(data).filter((key) => !data[key].closed);
-    if (openRounds.length > 0) {
-      alert(
-        "Ja hi ha una ronda oberta. Tanca-la abans d'obrir-ne una de nova."
-      );
-      return;
-    }
-    //trobar les dades de la darrera ronda tancada per copiar el tauler a la nova ronda
-    const lastClosedRoundId = roundsList.findLast(
-      (roundId) => data[roundId].closed
+  const snapshot = await roundsCollectionRef.where('closed', '==', false).get();
+  if (!snapshot.empty) {
+    alert(
+      "Ja hi ha una ronda oberta. Tanca-la abans d'obrir-ne una de nova."
     );
-    let boardToCopy = createEmptyBoard(15); // Tauler buit per defecte
-    if (lastClosedRoundId && data[lastClosedRoundId]?.board) {
-      boardToCopy = data[lastClosedRoundId].board;
+    return;
+  }
+
+  //trobar les dades de la darrera ronda tancada per copiar el tauler a la nova ronda
+  const lastClosedRoundSnapshot = await roundsCollectionRef.where('closed', '==', true).orderBy('roundNumber', 'desc').limit(1).get();
+  let boardToCopy = createEmptyBoard(15); // Tauler buit per defecte
+  let lastRoundData = null;
+  if (!lastClosedRoundSnapshot.empty) {
+    lastRoundData = lastClosedRoundSnapshot.docs[0].data();
+    if (lastRoundData?.board) {
+      boardToCopy = reconstructBoard(lastRoundData.board,15,15);
     }
+  }
 
-    // Genera un nou ID de ronda
-    const newRoundId =
-      roundsList.length > 0
-        ? String(Number(roundsList[roundsList.length - 1]) + 1)
-        : "1";
+  // Genera un nou ID de ronda i número de ronda
+  const newRoundNumber = roundsList.length > 0
+    ? Number(roundsList[roundsList.length - 1]) + 1
+    : 1;
+  const newRoundId = String(newRoundNumber); // Use string number as document ID
 
-    const lastWord = data[lastClosedRoundId]?.results[actualPlayer].word || "";
-    const lastCoordinates =
-      data[lastClosedRoundId]?.results[actualPlayer].coordinates || "";
-    const lastDirection =
-      data[lastClosedRoundId]?.results[actualPlayer].direction || "";
-    const lastWordInfo = findWordInfo(lastWord, lastCoordinates, lastDirection);
-    if (data[lastClosedRoundId]) saveWordsToBoard(boardToCopy, [lastWordInfo]);
-    const lastRack = data[lastClosedRoundId]?.rack.split("") || []; // Converteix a array
-    const playerdup =
-      modalitat === "duplicada" ? "Jugada mestra" : actualPlayer;
-    const lastUsedTiles =
-      data[lastClosedRoundId]?.results[playerdup].usedtiles || []; // Fitxes usades
+  const lastWord = lastRoundData?.results?.[actualPlayer]?.word || "";
+  const lastCoordinates = lastRoundData?.results?.[actualPlayer]?.coordinates || "";
+  const lastDirection = lastRoundData?.results?.[actualPlayer]?.direction || "";
+  const lastWordInfo = findWordInfo(lastWord, lastCoordinates, lastDirection);
+  if (lastRoundData) saveWordsToBoard(boardToCopy, [lastWordInfo]);
+  const lastRack = lastRoundData?.rack?.split("") || []; // Converteix a array
+  const playerdup =
+    modalitat === "duplicada" ? "Jugada mestra" : actualPlayer;
+  const lastUsedTiles =
+    lastRoundData?.results?.[playerdup]?.usedtiles || []; // Fitxes usades
 
-    const remainingTilesArray = [...lastRack]; // Copia el rack anterior
-    // Resta les fitxes usades del rack anterior
-    lastUsedTiles.forEach((usedTile) => {
-      const index = remainingTilesArray.indexOf(usedTile);
-      if (index > -1) {
-        remainingTilesArray.splice(index, 1); // Elimina una instància de la fitxa usada
-      }
-    });
-    const remainingTiles = remainingTilesArray.join("");
-    const newRound = {
-      rack: remainingTiles, // o cridar a openNewRoundWithRandomTiles() si voleu generar el rack aquí
-      board: boardToCopy,
-      closed: false,
-      results: {
-        [actualPlayer]: {
-          word: "",
-          coordinates: "",
-          direction: "",
-          score: 0,
-          usedtiles: [],
-        },
-      },
-    };
-    gameInfoRef.child("currentRound").set(newRoundId);
-    //gameInfoRef.child('currentRack').set(remainingTiles)
-    historyRef
-      .child(newRoundId)
-      .set(newRound)
-      .then(() => {
-        roundsList.push(newRoundId);
-        showRound(roundsList.length - 1);
-        // Actualitza la interfície
-        //if (rondaDisplay) rondaDisplay.textContent = `Ronda ${newRoundId}`;
-
-        //updateUIForClosedRound(newRoundId)
-        //console.log(`Nova ronda afegida: ${newRoundId}`);
-      });
+  const remainingTilesArray = [...lastRack]; // Copia el rack anterior
+  // Resta les fitxes usades del rack anterior
+  lastUsedTiles.forEach((usedTile) => {
+    const index = remainingTilesArray.indexOf(usedTile);
+    if (index > -1) {
+      remainingTilesArray.splice(index, 1); // Elimina una instància de la fitxa usada
+    }
   });
+  const remainingTiles = remainingTilesArray.join("");
+  const newRound = {
+    roundNumber: newRoundNumber, // Store round number as a number
+    rack: remainingTiles, // o cridar a openNewRoundWithRandomTiles() si voleu generar el rack aquí
+    board: boardToCopy,
+    closed: false,
+    results: {
+      [actualPlayer]: {
+        word: "",
+        coordinates: "",
+        direction: "",
+        score: 0,
+        usedtiles: [],
+      },
+    },
+  };
+
+  // Flatten the 2D board array into a 1D array for Firestore
+  const flattenedBoard = boardToCopy.flat();
+
+  // Update the newRound object with the flattened board
+  newRound.board = flattenedBoard;
+
+  // Check if the gameInfo document exists and create it if it doesn't
+  const gameInfoSnapshot = await gameInfoRef.get();
+  if (!gameInfoSnapshot.exists) {
+    await gameInfoRef.set({ currentRound: '', lastRound: '' }, { merge: true });
+  }
+
+  try {
+    await gameInfoRef.update({ currentRound: newRoundId });
+    await roundsCollectionRef.doc(newRoundId).set(newRound);
+
+    // The onSnapshot listener in loadRoundsHistory will update roundsList and show the new round
+    // No need to manually push and call showRound here
+    // roundsList.push(newRoundId);
+    // showRound(roundsList.length - 1);
+
+  } catch (error) {
+    console.error("Error adding new round:", error);
+    alert("Error afegint nova ronda. Consulta la consola per a més detalls.");
+  }
+  console.log("lastRoundData:", lastRoundData);
+    console.log("actualPlayer:", actualPlayer);
+    console.log("lastWord:", lastWord);
+    console.log("lastCoordinates:", lastCoordinates);
+    console.log("lastDirection:", lastDirection);
 }
 
+
 // Funció per calcular les fitxes restants al sac
-function calculateRemainingTiles() {
+async function calculateRemainingTiles() { // Made async to handle Firestore read
   const usedTiles = {};
 
   // Recorre totes les rondes tancades i suma les fitxes usades
-  roundsList.forEach((roundId) => {
-    historyRef.child(roundId).once("value", (snapshot) => {
-      const round = snapshot.val();
-      if (round && round.closed && round.results) {
-        const resultats = round.results; //Object.values(round.results)
-        if (modalitat === "duplicada") {
-          //console.log("TONI: calcul de fitxers restants", resultats)
-          if (resultats["Jugada mestra"].usedtiles) {
-            resultats["Jugada mestra"].usedtiles.forEach((tile) => {
-              usedTiles[tile] = (usedTiles[tile] || 0) + 1;
-            });
-          }
-        } else {
-          resultats.forEach((result) => {
-            if (result.usedtiles) {
-              result.usedtiles.forEach((tile) => {
-                usedTiles[tile] = (usedTiles[tile] || 0) + 1;
-              });
-            }
+  const closedRoundsSnapshot = await roundsCollectionRef.where('closed', '==', true).get();
+
+  closedRoundsSnapshot.docs.forEach((doc) => {
+    const round = doc.data();
+    if (round && round.results) {
+      const resultats = round.results;
+      if (modalitat === "duplicada") {
+        if (resultats["Jugada mestra"]?.usedtiles) {
+          resultats["Jugada mestra"].usedtiles.forEach((tile) => {
+            usedTiles[tile] = (usedTiles[tile] || 0) + 1;
           });
         }
-      }
-    });
+      } else {
+         // This part might need adjustment based on how non-duplicada results are structured in Firestore
+         // Assuming results is an object where keys are player IDs
+         console.log(resultats)
+         Object.values(resultats).forEach((result) => {
+           result?.usedtiles?.forEach((tile) => usedTiles[tile] = (usedTiles[tile] || 0) + 1);
+         }); // Corrected placement of closing parenthesis and brace
+      }}
   });
+
   //s'han de tenir en compte les fitxes que hi ha al faristol actual
-  const currentRack = editRackInput.value.split("");
+  const currentRack = normalizeWordInput(editRackInput.value).split("");
   currentRack.forEach((tile) => {
     usedTiles[tile] = (usedTiles[tile] || 0) + 1;
   });
@@ -283,9 +294,10 @@ function calculateRemainingTiles() {
   return remainingTiles;
 }
 
+
 // Funció per seleccionar fitxes aleatòriament del sac
-function selectRandomTiles(count) {
-  const remainingTiles = calculateRemainingTiles();
+async function selectRandomTiles(count) { // Made async
+  const remainingTiles = await calculateRemainingTiles(); // Await the async function
   const tilePool = [];
 
   // Crea un array amb totes les fitxes restants
@@ -305,13 +317,14 @@ function selectRandomTiles(count) {
 
   return selectedTiles;
 }
-randomRackBtn.addEventListener("click", () => {
+
+randomRackBtn.addEventListener("click", async () => { // Made async
   //compta quantes fitxes hi ha al editRackInput
   const remainingRack = normalizeWordInput(editRackInput.value).split("");
   //console.log(remainingRack)
   const currentRackLength = remainingRack.length;
 
-  const newTiles = selectRandomTiles(7 - currentRackLength);
+  const newTiles = await selectRandomTiles(7 - currentRackLength); // Await the async function
   const selectedTiles = [...remainingRack, ...newTiles];
   //console.log(newTiles);
 
@@ -320,22 +333,25 @@ randomRackBtn.addEventListener("click", () => {
   editRackInput.value = displayWord(selectedTiles.join("")); // Mostra les fitxes seleccionades
 });
 // Exemple d'ús: Seleccionar fitxes quan s'obre una nova ronda
-function openNewRoundWithRandomTiles() {
-  const newRack = selectRandomTiles(7).join(""); // Selecciona 7 fitxes
+async function openNewRoundWithRandomTiles() { // Made async
+  const newRack = (await selectRandomTiles(7)).join(""); // Select 7 tiles and await
+
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
-    historyRef
-      .child(`${roundId}/rack`)
-      .set(newRack)
-      .then(() => {
-        //console.log(`Faristol inicial assignat per la ronda ${roundId}: ${newRack}`);
-      });
-  } else {
+    try {
+      await roundsCollectionRef.doc(roundId).update({ rack: newRack });
+      //console.log(`Faristol inicial assignat per la ronda ${roundId}: ${newRack}`);
+    } catch (error) {
+      console.error("Error updating rack:", error);
+    }
+  }
+ else {
     console.error(
       "No hi ha cap ronda actual per assignar el faristol inicial."
     );
   }
 }
+
 
 // Carrega l'historial de rondes al carregar la pàgina
 //document.addEventListener("DOMContentLoaded", loadRoundsHistory);
@@ -343,7 +359,7 @@ function openNewRoundWithRandomTiles() {
 // Actualitza el faristol manualment i desa a la base de dades
 // Normalize the rack before saving to the database
 if (updateRackBtn) {
-  updateRackBtn.addEventListener("click", () => {
+  updateRackBtn.addEventListener("click", async () => { // Made async
     //demana confirmació indicant que s'esborraran els resultats de la ronda actual
     if (
       !confirm(
@@ -358,32 +374,29 @@ if (updateRackBtn) {
     ); // Normalize the rack using normalizeWordInput
     if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
       const roundId = roundsList[currentRoundIndex];
-      historyRef
-        .child(`${roundId}/rack`)
-        .set(newRack)
-        .then(() => {
-          //console.log(`Faristol actualitzat per la ronda ${roundId}`);
+      try {
+        await roundsCollectionRef.doc(roundId).update({ rack: newRack });
+        //console.log(`Faristol actualitzat per la ronda ${roundId}`);
+
+        //eliminar resultats de la ronda actual
+        await roundsCollectionRef.doc(roundId).update({ results: {} }); // Set to empty object to remove all results
+        //console.log(`Resultats eliminats per la ronda ${roundId}`);
+
+        //genera Jugador mestre en blanc
+        const masterPlay = {
+          word: "",
+          coordinates: "",
+          direction: "",
+          score: 0,
+        };
+        await roundsCollectionRef.doc(roundId).update({
+          [`results.${actualPlayer}`]: masterPlay, // Use dot notation with backticks for nested update
         });
-      //eliminar resultats de la ronda actual
-      historyRef
-        .child(`${roundId}/results`)
-        .remove()
-        .then(() => {
-          //console.log(`Resultats eliminats per la ronda ${roundId}`);
-        });
-      //genera Jugador mestre en blanc
-      const masterPlay = {
-        word: "",
-        coordinates: "",
-        direction: "",
-        score: 0,
-      };
-      historyRef
-        .child(`${roundId}/results/${actualPlayer}`)
-        .set(masterPlay)
-        .then(() => {
-          //console.log(`Jugada mestra generada per la ronda ${roundId}`);
-        });
+        //console.log(`Jugada mestra generada per la ronda ${roundId}`);
+      } catch (error) {
+        console.error("Error updating round data:", error);
+        alert("Error actualitzant dades de la ronda. Consulta la consola.");
+      }
     } else {
       console.error("No hi ha cap ronda actual per actualitzar el faristol.");
     }
@@ -391,8 +404,7 @@ if (updateRackBtn) {
 }
 
 // Funció per tancar la ronda actual
-
-function closeCurrentRound() {
+async function closeCurrentRound() { // Made async
   //afegeix validació
   if (wordInput.value == "" && coordsInput.value == "") {
     alert("No hi ha cap jugada mestra per tancar la ronda actual.");
@@ -400,15 +412,17 @@ function closeCurrentRound() {
   }
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
-    gameInfoRef.set({
-      currentRound: "",
-      lastRound: currentRoundIndex + 1,
-    });
+    try {
+      await gameInfoRef.update({
+        currentRound: "",
+        lastRound: currentRoundIndex + 1,
+      });
 
-    historyRef
-      .child(`${roundId}/closed`)
-      .set(true)
-      .then(() => {});
+      await roundsCollectionRef.doc(roundId).update({ closed: true });
+    } catch (error) {
+      console.error("Error closing round:", error);
+      alert("Error tancant ronda. Consulta la consola.");
+    }
   } else {
     alert("No hi ha cap ronda actual per tancar.");
   }
@@ -418,16 +432,19 @@ if (tancaRondaBtn) {
     closeCurrentRound();
   });
 }
-function openCurrentRound() {
+async function openCurrentRound() { // Made async
   //afegeix validació
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
-    gameInfoRef.child("currentRound").set(roundId);
-    historyRef
-      .child(`${roundId}/closed`)
-      .set(false)
-      .then(() => {});
-  } else {
+    try {
+      await gameInfoRef.update({ currentRound: roundId });
+      await roundsCollectionRef.doc(roundId).update({ closed: false });
+    } catch (error) {
+      console.error("Error opening round:", error);
+      alert("Error obrint ronda. Consulta la consola.");
+    }
+  }
+ else {
     alert("No hi ha cap ronda actual per tancar.");
   }
 }
@@ -441,54 +458,24 @@ if (obreRondaBtn) {
 function updateUIForCurrentRound(round, isLastRound) {
   const mainContent = document.getElementById("main-content");
   const buttons = mainContent.querySelectorAll("button");
-  //console.log(buttons)
 
   const inputs = mainContent.querySelectorAll("input");
   let administrador =
     tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
-  formEnabled.on("value", (snapshot) => {
-    const enabled = snapshot.val();
-    
+
+  formEnabledRef.onSnapshot((doc) => { // Use onSnapshot for formEnabledRef
+    const enabled = doc.data()?.enabled; // Assuming 'enabled' field in the document
+
     if (round.closed) {
       blocaFormulari();
-      /* // Si la ronda està tancada
-    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
+      if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
 
-    if (novaRondaBtn)
-      novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
-    if (obreRondaBtn)
-      obreRondaBtn.style.display = isLastRound ? "block" : "none";
-    if (deleteRondaBtn)
-      deleteRondaBtn.style.display = isLastRound ? "block" : "none";
-    // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
-    const excludedButtonIds = [
-      "prevRoundBtn",
-      "nextRoundBtn",
-      "startBtn",
-      "stopBtn",
-      "resetBtn", "novaRondaBtn", "obreRondaBtn", "deleteRondaBtn"
-    ];
-    //if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
-
-
-    if (!administrador) buttons.forEach((button) => {
-      console.log(button.id);
-      if (!excludedButtonIds.includes(button.id)) {
-        button.disabled = true;
-      }
-    });
-    if (!administrador) inputs.forEach((input) => {
-      input.disabled = true;
-    }); */
-     // Si la ronda està tancada
-    if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
-
-    if (novaRondaBtn)
-      novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
-    if (obreRondaBtn)
-      obreRondaBtn.style.display = isLastRound ? "block" : "none";
-    if (deleteRondaBtn)
-      deleteRondaBtn.style.display = isLastRound ? "block" : "none";
+      if (novaRondaBtn)
+        novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
+      if (obreRondaBtn)
+        obreRondaBtn.style.display = isLastRound ? "block" : "none";
+      if (deleteRondaBtn)
+        deleteRondaBtn.style.display = isLastRound ? "block" : "none";
     } else {
       // Si la ronda està oberta
       if (tancaRondaBtn) tancaRondaBtn.style.display = "block";
@@ -506,12 +493,16 @@ function updateUIForCurrentRound(round, isLastRound) {
         input.disabled = false;
       });
     }
-     if (!enabled) {
-      blocaFormulari(); } 
+     if (!enabled) { // Check the 'enabled' field
+      blocaFormulari();
+     }
+  }, (error) => {
+    console.error("Error listening to formEnabled:", error);
   });
 
+
   function blocaFormulari() {
-   
+
     // Desactiva tots els botons excepte els de navegació i (si escau) nova ronda
     const excludedButtonIds = [
       "prevRoundBtn",
@@ -523,7 +514,6 @@ function updateUIForCurrentRound(round, isLastRound) {
       "obreRondaBtn",
       "deleteRondaBtn",
     ];
-    //if (isLastRound) excludedButtonIds.push("novaRondaBtn", "obreRondaBtn", "deleteRondaBtn");
 
     if (!administrador)
       buttons.forEach((button) => {
@@ -540,21 +530,23 @@ function updateUIForCurrentRound(round, isLastRound) {
 }
 
 if (deleteRondaBtn)
-  deleteRondaBtn.addEventListener("click", () => {
+  deleteRondaBtn.addEventListener("click", async () => { // Made async
     if (confirm("Esteu segur que voleu esborrar la ronda actual?")) {
       const roundId = roundsList[currentRoundIndex];
-      gameInfoRef.child("currentRound").set(""); // Neteja la ronda actual
-      gameInfoRef.child("lastRound").set(currentRoundIndex); // Desa l'última ronda tancada
-      historyRef
-        .child(roundId)
-        .remove()
-        .then(() => {
-          alert("Ronda esborrada correctament.");
-          loadRoundsHistory(); // Torna a carregar l'historial de rondes
-        })
-        .catch((error) => {
-          console.error("Error al esborrar la ronda:", error);
+      try {
+        await gameInfoRef.update({
+           currentRound: "", // Neteja la ronda actual
+           lastRound: currentRoundIndex > 0 ? roundsList[currentRoundIndex - 1] : "", // Set lastRound to the previous round's ID or empty if deleting the first round
         });
+
+        await roundsCollectionRef.doc(roundId).delete();
+        alert("Ronda esborrada correctament.");
+        // loadRoundsHistory will be triggered by the onSnapshot listener
+        //loadRoundsHistory(); // Torna a carregar l'historial de rondes
+      } catch (error) {
+        console.error("Error al esborrar la ronda:", error);
+        alert("Error esborrant ronda. Consulta la consola.");
+      }
     }
   });
 // Afegir esdeveniments als botons
@@ -566,17 +558,19 @@ if (novaRondaBtn) {
   });
 }
 function carregaLlistaJugador() {
-  jugadorsRef.on("value", (snapshot) => {
+  jugadorsCollectionRef.onSnapshot((snapshot) => { // Use onSnapshot for jugadorsCollectionRef
     const llistaJugadors = document.getElementById("jugadorslistOptions");
     llistaJugadors.innerHTML = "";
 
-    snapshot.forEach((childSnapshot) => {
-      const jugador = childSnapshot.val().name;
+    snapshot.docs.forEach((doc) => { // Iterate through docs
+      const jugador = doc.data().name; // Get data from doc
       const option = document.createElement("option");
       option.value = jugador;
       option.textContent = jugador;
       llistaJugadors.appendChild(option);
     });
+  }, (error) => {
+    console.error("Error loading players:", error);
   });
 }
 export { loadRoundsHistory, showRound, addNewRound };

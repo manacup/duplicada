@@ -4,7 +4,7 @@
 const firebaseConfig = {
     apiKey: "AIzaSyAwsV6cBafAt6OQRNUEFXCoRT-D5Fzvqbk",
     authDomain: "duplicadascrabble.firebaseapp.com",
-    databaseURL: "https://duplicadascrabble-default-rtdb.europe-west1.firebasedatabase.app", // Corrected URL            
+    databaseURL: "https://duplicadascrabble-default-rtdb.europe-west1.firebasedatabase.app", // Keep Realtime DB URL for now, but won't be used directly here
     projectId: "duplicadascrabble",
     storageBucket: "duplicadascrabble.firebasestorage.app",
     messagingSenderId: "115691804214",
@@ -16,14 +16,15 @@ if (!window.firebase?.apps?.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Referències a la base de dades
-const db = firebase.database();
-const gameInfoRef = db.ref('gameInfo');
-const historyRef = db.ref('rounds');
-const resultsRef = db.ref('results');
-const clockRef = db.ref('clock');
-const jugadorsRef = db.ref('jugadors');
-const formEnabled = db.ref('formEnabled');
+// Initialize Cloud Firestore
+const firestore = firebase.firestore();
+
+// Define Firestore references (using collection/doc structure)
+const gameInfoRef = firestore.collection('gameInfo').doc('info'); // Assuming 'gameInfo' is a collection with a single document 'info'
+const roundsCollectionRef = firestore.collection('rounds'); // Collection for rounds
+const jugadorsCollectionRef = firestore.collection('jugadors'); // Collection for players
+const formEnabledRef = firestore.collection('appStatus').doc('form'); // Assuming 'formEnabled' is a document in 'appStatus'
+const clockRef = firestore.collection('appStatus').doc('clock');
 
 
-export { db, gameInfoRef, historyRef, clockRef, jugadorsRef,formEnabled,resultsRef };
+export { firestore, gameInfoRef, roundsCollectionRef, jugadorsCollectionRef, formEnabledRef, clockRef };

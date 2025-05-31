@@ -136,7 +136,7 @@ function renderBoard(board, newTiles = []) {
         /* cell.innerHTML =
           highlightDir === "horizontal"
             ? '<span class="arrow-indicator" title="Horitzontal"><i class="bi bi-arrow-right-square-fill"></i></span>'
-            : '<span class="arrow-indicator" title="Vertical"><i class="bi bi-arrow-down-square-fill"></i></span>';
+            : '<span class="arrow-down-indicator" title="Vertical"><i class="bi bi-arrow-down-square-fill"></i></span>';
              */
       }
 
@@ -228,12 +228,6 @@ if (coordValue) {
   }
 }
 
-/* // Escolta canvis al tauler a la base de dades i renderitza
-gameInfoRef.child('currentBoard').on('value', (snapshot) => {
-    const board = snapshot.val();
-    if (board) renderBoard(board);
-}); */
-
 // Permet clicar sobre una casella del tauler per omplir l'input de coordenades
 
 let lastCoordType = "V"; // Variable global per alternar
@@ -246,8 +240,7 @@ boardContainer.addEventListener("click", function (event) {
   renderRackTiles(rack);
   coordsInput.value = ""
     wordInput.value = "";
-    
-   
+
     wordInput.dispatchEvent(new Event("input"))
     coordsInput.dispatchEvent(new Event("input"))
   const cell = event.target.closest("td.board-cell");
@@ -261,8 +254,7 @@ boardContainer.addEventListener("click", function (event) {
   if (rowIdx >= 0 && colIdx >= 0) {
     const coordH = `${String.fromCharCode(65 + rowIdx)}${colIdx + 1}`;
     const coordV = `${colIdx + 1}${String.fromCharCode(65 + rowIdx)}`;
-   
-    
+
 
     if (lastCoordType === "H") {
       coordsInput.value = coordV;
@@ -274,11 +266,11 @@ boardContainer.addEventListener("click", function (event) {
     let tileAt
 
     if (currentBoard[rowIdx][colIdx] && currentBoard[rowIdx][colIdx] !== "") {
-      
+
       const tileAt = getTileAt(rowIdx, colIdx,currentBoard)
       wordInput.value += displayLetter(tileAt.letter)
       console.log(tileAt)
-        
+
   if (tileAt.isScrap) {
     scrapsInput.value = '[0]'
     const div = rederTile("?", true);
@@ -293,7 +285,7 @@ boardContainer.addEventListener("click", function (event) {
   }
     }else{
     scrapsInput.value = ''
-    
+
   } 
 
     coordsInput.dispatchEvent(new Event("input"));

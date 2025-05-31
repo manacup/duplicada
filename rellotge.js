@@ -1,4 +1,4 @@
-import { clockRef,db } from './firebase.js';
+import { clockRef, formEnabledRef } from './firebase.js';
 
 const countdownElement = document.getElementById('countdown');
 const startBtn = document.getElementById('startBtn');
@@ -16,42 +16,40 @@ console.log("isAdmin",isAdmin());
 if(!isAdmin()) countdownElement.classList.add('countdownSlave');
 // --- FUNCIONS MASTER (ADMIN) ---
 
-function startTimer() {
+async function startTimer() {
   // Si ja estava pausat, calcula la nova startTime segons el temps restant
-  clockRef.once('value', snap => {
-    const data = snap.val();
-    let duration = TEMPS_TOTAL;
-    if (data && data.timeLeft !== undefined && data.timeLeft !== null) {
-      duration = data.timeLeft;
-    }
-    clockRef.set({
-      running: true,
-      startTime: Date.now(),
-      duration: duration,
-      timeLeft: duration
-    });
-    db.ref('formEnabled').set(true); // Activa el formulari
-    //if (pipSound) pipSound.play();
+  const snap = await clockRef.get();
+  const data = snap.data();
+  let duration = TEMPS_TOTAL;
+  if (data && data.timeLeft !== undefined && data.timeLeft !== null) {
+    duration = data.timeLeft;
+  }
+  await clockRef.set({
+    running: true,
+    startTime: Date.now(),
+    duration: duration,
+    timeLeft: duration
   });
+  await formEnabledRef.set({ enabled: true }); // Activa el formulari
+  //if (pipSound) pipSound.play();
 }
 
-function stopTimer() {
+async function stopTimer() {
   // Desa el temps restant i posa running a false
-  clockRef.once('value', snap => {
-    const data = snap.val();
-    if (!data || !data.running) return;
-    const now = Date.now();
-    const timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
-    clockRef.update({
-      running: false,
-      timeLeft: timeLeft
-    });
-    db.ref('formEnabled').set(false); // Activa el formulari
+  const snap = await clockRef.get();
+  const data = snap.data();
+  if (!data || !data.running) return;
+  const now = Date.now();
+  const timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
+  await clockRef.update({
+    running: false,
+    timeLeft: timeLeft
   });
+  await formEnabledRef.set({ enabled: false }); // Activa el formulari
 }
 
-function resetTimer() {
-  clockRef.set({
+async function resetTimer() {
+  await clockRef.set({
     running: false,
     startTime: null,
     duration: TEMPS_TOTAL,
@@ -68,8 +66,8 @@ if (isAdmin()) {
 // --- FUNCIONS ESCLAU I MASTER (VISUALITZACIÓ) ---
 
 let interval;
-clockRef.on('value', (snapshot) => {
-  const data = snapshot.val();
+clockRef.onSnapshot((snapshot) => {
+  const data = snapshot.data();
   if (!data || (!data.startTime && !data.timeLeft)) return;
 
   clearInterval(interval);

@@ -1,4 +1,4 @@
-import { gameInfoRef, historyRef, formEnabled } from "./firebase.js";
+import { gameInfoRef, roundsCollectionRef, formEnabledRef } from "./firebase.js";
 import {
   splitWordToTiles,
   displayLetter,
@@ -7,6 +7,7 @@ import {
   normalizeWordInput,
   multiplierBoard,
   displayWord,
+  reconstructBoard
 } from "./utilitats.js";
 import { renderBoard } from "./tauler.js";
 import {
@@ -15,6 +16,7 @@ import {
   calculateFullPlayScore,
 } from "./calcul.js";
 import { updateRackTilesPreview, renderRackTiles } from "./rackTile.js";
+
 
 const wordForm = document.getElementById("wordForm");
 const playerInput = document.getElementById("player");
@@ -34,8 +36,8 @@ let currentRoundId = null;
 let boardBeforeMasterPlay = null;
 
 // Escolta els canvis de la ronda actual i actualitza el rackTiles
-gameInfoRef.child("currentRound").on("value", (snapshot) => {
-  currentRoundId = snapshot.val();
+gameInfoRef.onSnapshot((doc) => {
+  currentRoundId = doc.data()?.currentRound;
 
   if (!currentRoundId) {
     console.warn("No hi ha cap ronda actual.");
@@ -51,9 +53,9 @@ gameInfoRef.child("currentRound").on("value", (snapshot) => {
   respostaMessage.className = "";
 
 
-  historyRef.child(currentRoundId).on("value", (roundSnapshot) => {
-    console.log(currentRoundId, "roundSnapshot", roundSnapshot.val());
-    const round = roundSnapshot.val();
+  roundsCollectionRef.doc(currentRoundId).onSnapshot((roundSnapshot) => {
+    console.log(currentRoundId, "roundSnapshot", roundSnapshot.data());
+    const round = roundSnapshot.data();
     if (round && round.rack) {
       currentRack = round.rack;
     } else {
@@ -92,13 +94,13 @@ function validateTiles(newTiles) {
 
 // Omple el formulari amb les dades de la ronda i jugador seleccionats
 
-async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
+async function fillFormDataFromRoundAndPlayer2(roundNumber, playerId) {
   respostaMessage.textContent = "";
-  const roundRef = historyRef.child(roundNumber);
+  const roundRef = roundsCollectionRef.doc(roundNumber);
 
   try {
-    const snapshot = await roundRef.once("value");
-    const roundData = snapshot.val();
+    const doc = await roundRef.get();
+    const roundData = doc.data();
 
     if (!roundData) {
       console.warn(`No es troba la ronda amb número: ${roundNumber}`);
@@ -175,6 +177,84 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
     }, 5000); */
   }
 }
+async function fillFormDataFromRoundAndPlayer(roundId, player) {
+  try {
+    const roundDoc = await roundsCollectionRef.doc(roundId).get();
+    if (!roundDoc.exists) {
+      console.warn("Round document not found:", roundId);
+      // Netejar el formulari i el tauler si la ronda no existeix
+      if (wordInput) wordInput.value = "";
+      if (coordsInput) coordsInput.value = "";
+      if (directionInput) directionInput.value = "horizontal";
+      if (scrapsInput) scrapsInput.value = "[]";
+      if (wordInput) wordInput.dispatchEvent(new Event("input"));
+      if (coordsInput) coordsInput.dispatchEvent(new Event("input"));
+      boardBeforeMasterPlay = createEmptyBoard(15); // Reinicia boardBeforeMasterPlay
+      renderBoard(boardBeforeMasterPlay); // Renderitza un tauler buit
+      return;
+    }
+    const roundData = roundDoc.data();
+
+    // *** Lògica de reconstrucció del tauler aquí ***
+    if (roundData?.board && Array.isArray(roundData.board)) {
+         if (roundData.board.length === 225) {
+             // Si el tauler de la ronda està aplanat (225 elements), el reconstruïm
+            boardBeforeMasterPlay = reconstructBoard(roundData.board, 15, 15);
+         } else if (roundData.board.length === 15 && Array.isArray(roundData.board[0])) {
+            // Si el tauler de la ronda ja està en format 2D (15 arrays), el copiem
+            boardBeforeMasterPlay = roundData.board.map(row => row.slice());
+         } else {
+             console.warn("Dades de tauler amb format inesperat. Creant tauler buit.", roundData.board);
+             boardBeforeMasterPlay = createEmptyBoard(15);
+         }
+    } else {
+       // Si no hi ha dades de tauler vàlides o no és un array, creem un tauler buit
+       console.warn("No hi ha dades de tauler vàlides a la ronda. Creant tauler buit.");
+       boardBeforeMasterPlay = createEmptyBoard(15);
+    }
+    // *** Fi de la lògica de reconstrucció ***
+
+
+    const playerResult = roundData?.results?.[player];
+
+    // Omplir els camps del formulari amb les dades de la jugada del jugador
+    if (playerResult) {
+      if (wordInput) wordInput.value = playerResult.word || "";
+      if (coordsInput) coordsInput.value = playerResult.coordinates || "";
+      if (directionInput) directionInput.value = playerResult.direction || "horizontal";
+      // Assegura't que scraps és un array abans de stringify, o guarda'l ja com a array a Firestore
+      if (scrapsInput) scrapsInput.value = JSON.stringify(Array.isArray(playerResult.scraps) ? playerResult.scraps : []);
+      // No omplim el score automàticament, es recalcularà si cal
+    } else {
+      // Si no hi ha resultats per a aquest jugador, netejar el formulari
+      if (wordInput) wordInput.value = "";
+      if (coordsInput) coordsInput.value = "";
+      if (directionInput) directionInput.value = "horizontal";
+      if (scrapsInput) scrapsInput.value = "[]";
+    }
+
+     // Disparar esdeveniments 'input' per assegurar que la UI s'actualitza (per exemple, previsualització)
+     // només si els elements existeixen
+     if(wordInput) wordInput.dispatchEvent(new Event("input"));
+     if(coordsInput) coordsInput.dispatchEvent(new Event("input"));
+
+     // Renderitzar el tauler carregat/reconstruït
+     renderBoard(boardBeforeMasterPlay);
+
+
+  } catch (error) {
+    console.error("Error filling form data:", error);
+    // Gestionar l'error, netejant el formulari i el tauler
+    if (wordInput) wordInput.value = "";
+    if (coordsInput) coordsInput.value = "";
+    if (directionInput) directionInput.value = "horizontal";
+    if (scrapsInput) scrapsInput.value = "[]";
+    if (wordInput) wordInput.dispatchEvent(new Event("input"));
+    if (coordsInput) coordsInput.dispatchEvent(new Event("input"));
+     boardBeforeMasterPlay = createEmptyBoard(15); // Reinicia boardBeforeMasterPlay
+     renderBoard(boardBeforeMasterPlay); // Renderitza un tauler buit en cas d'error
+  }
+}
 
 // Envia la resposta
 wordForm.addEventListener("submit", async (e) => {
@@ -205,6 +285,7 @@ wordForm.addEventListener("submit", async (e) => {
   const colNumber = parseInt(coords.match(/[0-9]+/)?.[0]) - 1;
   const startRow = rowLetter ? rowLetter.toUpperCase().charCodeAt(0) - 65 : -1;
   const startCol = colNumber;
+  console.log(startCol,startRow)
   if (startRow < 0 || startCol < 0) {
     respostaMessage.textContent = "Coordenades invàlides!";
     respostaMessage.className = "alert alert-danger";
@@ -241,6 +322,7 @@ wordForm.addEventListener("submit", async (e) => {
       boardBeforeMasterPlay[row][col] !== "" &&
       boardBeforeMasterPlay[row][col] !== formattedWord[i]
     ) {
+      console.log("lletra", boardBeforeMasterPlay,[row],[col])
       respostaMessage.textContent = `La lletra "${displayLetter(
         formattedWord[i]
       )}" no coincideix amb la lletra "${displayLetter(
@@ -384,14 +466,26 @@ wordForm.addEventListener("submit", async (e) => {
     timestamp: Date.now(),
     usedtiles: usedTiles,
   };
-  await historyRef.child(`${currentRoundId}/results/${player}`).set(resposta);
-  //mostra missatge durant 5 segons
-  respostaMessage.textContent = `Jugada desada!`;
-  respostaMessage.className = "alert alert-success";
-  setTimeout(() => {
-    respostaMessage.textContent = "";
-    respostaMessage.className = "";
-  }, 3000);
+  try {
+    await roundsCollectionRef.doc(currentRoundId).update({
+      [`results.${player}`]: resposta,
+    });
+    //mostra missatge durant 5 segons
+    respostaMessage.textContent = `Jugada desada!`;
+    respostaMessage.className = "alert alert-success";
+    setTimeout(() => {
+      respostaMessage.textContent = "";
+      respostaMessage.className = "";
+    }, 3000);
+  } catch (error) {
+    console.error("Error saving play:", error);
+    respostaMessage.textContent = "Error desant la jugada!";
+    respostaMessage.className = "alert alert-danger";
+    setTimeout(() => {
+      respostaMessage.textContent = "";
+      respostaMessage.className = "";
+    }, 3000);
+  }
 });
 
 coordsInput.addEventListener("input", () => {
@@ -422,6 +516,7 @@ document.getElementById("verticalBtn")?.addEventListener("click", () => {
 
 // Guarda la jugada mestra anterior per a la previsualització
 function previewMasterPlay() {
+  console.log("previewMasterPlay",boardBeforeMasterPlay);
   if (!boardBeforeMasterPlay) return;
   const coords = coordsInput.value.trim().toUpperCase();
   const word = wordInput.value.trim();
