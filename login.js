@@ -73,16 +73,25 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
      console.log(`Player ${name} already exists in the database.`);
     }
+   
 
     // Amaga la secció de login i mostra el contingut principal
     loginSection.style.display = 'none';
     mainContent.style.display = 'block';
     mainContent.classList.remove('d-none')
+    
+    if(table.toLowerCase() === 'pantalla'){
+      document.querySelector('.main-grid').classList.add("mode-pantalla")
+      loadRoundsHistory()
+      return
+     }
+
     if(table.toLowerCase() !== 'administrador'){
      document.querySelectorAll('.master').forEach(el => el.style.display = 'none');
      document.getElementById('validateWords').checked = false;
      document.getElementById('countdown').id = 'countdownSlave';
     }
+    
     
 
     // Omple el camp player del formulari principal si existeix
