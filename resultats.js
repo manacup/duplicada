@@ -47,8 +47,13 @@ function renderResultats(round) {
     if (round.results) {
         //ordena per punts descentents
         const resultats = Object.entries(round.results)
+        const rsOrdreAlfabetic = resultats.sort((a, b) => {
+            const playerA = a[1].word.toLowerCase();
+            const playerB = b[1].word.toLowerCase();
+            return playerA.localeCompare(playerB);
+        });
        
-        const sortedResults = resultats.sort((a, b) => {
+        const sortedResults = rsOrdreAlfabetic.sort((a, b) => {
             const scoreA = a[1].score || 0;
             const scoreB = b[1].score || 0;
             return scoreB - scoreA;

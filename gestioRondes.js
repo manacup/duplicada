@@ -88,6 +88,7 @@ function showRound(idx) {
       const reconstructedBoard = reconstructBoard(round.board, 15, 15);
       renderBoard(reconstructedBoard);
     }
+
     carregaLlistaJugador();
     console.log("actualPlayer", actualPlayer);
     fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
@@ -110,8 +111,8 @@ function reconstructBoard(flattenedBoard, rows, cols) {
     console.error("Error showing round:", error);
   }
 //actualitza informació de fitxes restants
-function updateRemainingTiles() {
-  const remainingTiles = calculateRemainingTiles();
+async function updateRemainingTiles() {
+  const remainingTiles =  await calculateRemainingTiles();
   const remainingTilesCount = Object.values(remainingTiles).reduce(
     (acc, count) => acc + count,
     0
@@ -124,8 +125,9 @@ function updateRemainingTiles() {
   }
 }
 //actualitza el sac de fitxes
-function updateSac() {
-  const remainingTiles = calculateRemainingTiles();
+async function updateSac() {
+  const remainingTiles = await calculateRemainingTiles();
+  console.log(remainingTiles)
 
   const tiles = Object.entries(remainingTiles).flatMap(([tile, count]) =>
     Array(count).fill(tile)
