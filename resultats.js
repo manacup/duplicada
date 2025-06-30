@@ -27,7 +27,7 @@ function renderResultats(round) {
 
     // Mostra jugada mestra si existeix
     if (round.masterPlay) {
-        console.log("hi ha masterPlay")
+        //console.log("hi ha masterPlay")
         const master = round.masterPlay;
         const masterDiv = document.createElement('div');
         masterDiv.className = 'master-play-result';

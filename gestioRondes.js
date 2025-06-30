@@ -45,17 +45,20 @@ let currentRoundIndex = -1;
 // Carrega l'historial de rondes
 function loadRoundsHistory() {
   // Order by 'roundNumber' assuming you will add this field when creating a round
-  roundsCollectionRef.orderBy('roundNumber').onSnapshot((snapshot) => {
+  roundsCollectionRef.orderBy('roundNumber').onSnapshot((snapshot) => { // Changed from onSnapshot to get()
     roundsList = [];
     snapshot.docs.forEach(doc => {
       roundsList.push(doc.id); // Use document ID as round ID
     });
 
     if (roundsList.length === 0) {
-      addNewRound();
+      addNewRound(); // This will be async, but loadRoundsHistory itself doesn't need to await it
     } else {
       currentRoundIndex = roundsList.length - 1;
-      showRound(currentRoundIndex);
+      
+      showRound(currentRoundIndex); // This will trigger an onSnapshot listener inside showRound
+     
+      
     }
   }, (error) => {
     console.error("Error loading rounds history:", error);
@@ -64,6 +67,8 @@ function loadRoundsHistory() {
 
 
 let openRound = false; // Variable per controlar si la ronda està oberta
+
+
 // Mostra una ronda específica
 function showRound(idx) {
   if (idx < 0 || idx >= roundsList.length) return;
@@ -72,7 +77,7 @@ function showRound(idx) {
 
   roundsCollectionRef.doc(roundId).onSnapshot((doc) => {
     if (!doc.exists) {
-      console.log("No such round exists!");
+      //console.log("No such round exists!");
       return;
     }
     const round = doc.data();
@@ -84,14 +89,17 @@ function showRound(idx) {
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
     renderRackTiles(round?.rack || "");
     if (round?.board) {
+      console.log("recarrega tauler")
       // Assuming round.board is a flattened 1D array, reconstruct the 2D array (15x15)
       const reconstructedBoard = reconstructBoard(round.board, 15, 15);
       renderBoard(reconstructedBoard);
     }
 
     carregaLlistaJugador();
-    console.log("actualPlayer", actualPlayer);
-    fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
+    //console.log("actualPlayer", actualPlayer);
+    
+      fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
+    
     updateSac();
     updateRemainingTiles();
     showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well
@@ -127,13 +135,13 @@ async function updateRemainingTiles() {
 //actualitza el sac de fitxes
 async function updateSac() {
   const remainingTiles = await calculateRemainingTiles();
-  console.log(remainingTiles)
+  //console.log(remainingTiles)
 
   const tiles = Object.entries(remainingTiles).flatMap(([tile, count]) =>
     Array(count).fill(tile)
   );
   const sacString = tiles.join("");
-  console.log("Sac de fitxes:", sacString);
+  //console.log("Sac de fitxes:", sacString);
   renderSacTiles(sacString);
 }
 
@@ -241,11 +249,11 @@ async function addNewRound() { // Made async to handle promises from Firestore r
     console.error("Error adding new round:", error);
     alert("Error afegint nova ronda. Consulta la consola per a més detalls.");
   }
-  console.log("lastRoundData:", lastRoundData);
-    console.log("actualPlayer:", actualPlayer);
-    console.log("lastWord:", lastWord);
-    console.log("lastCoordinates:", lastCoordinates);
-    console.log("lastDirection:", lastDirection);
+  //console.log("lastRoundData:", lastRoundData);
+    //console.log("actualPlayer:", actualPlayer);
+    //console.log("lastWord:", lastWord);
+    //console.log("lastCoordinates:", lastCoordinates);
+    //console.log("lastDirection:", lastDirection);
 }
 
 
@@ -269,7 +277,7 @@ async function calculateRemainingTiles() { // Made async to handle Firestore rea
       } else {
          // This part might need adjustment based on how non-duplicada results are structured in Firestore
          // Assuming results is an object where keys are player IDs
-         console.log(resultats)
+         //console.log(resultats)
          Object.values(resultats).forEach((result) => {
            result?.usedtiles?.forEach((tile) => usedTiles[tile] = (usedTiles[tile] || 0) + 1);
          }); // Corrected placement of closing parenthesis and brace
@@ -281,7 +289,7 @@ async function calculateRemainingTiles() { // Made async to handle Firestore rea
   currentRack.forEach((tile) => {
     usedTiles[tile] = (usedTiles[tile] || 0) + 1;
   });
-  //console.log(usedTiles)
+  ////console.log(usedTiles)
 
   // Calcula les fitxes restants basant-se en la distribució inicial
   const remainingTiles = { ...tileDistribution };
@@ -290,8 +298,8 @@ async function calculateRemainingTiles() { // Made async to handle Firestore rea
       remainingTiles[tile] = Math.max(0, remainingTiles[tile] - count);
     }
   });
-  console.log("Fitxes usades:", usedTiles);
-  console.log("Fitxes restants:", remainingTiles);
+  //console.log("Fitxes usades:", usedTiles);
+  //console.log("Fitxes restants:", remainingTiles);
 
   return remainingTiles;
 }
@@ -323,14 +331,14 @@ async function selectRandomTiles(count) { // Made async
 randomRackBtn.addEventListener("click", async () => { // Made async
   //compta quantes fitxes hi ha al editRackInput
   const remainingRack = normalizeWordInput(editRackInput.value).split("");
-  //console.log(remainingRack)
+  ////console.log(remainingRack)
   const currentRackLength = remainingRack.length;
 
   const newTiles = await selectRandomTiles(7 - currentRackLength); // Await the async function
   const selectedTiles = [...remainingRack, ...newTiles];
-  //console.log(newTiles);
+  ////console.log(newTiles);
 
-  //console.log(selectedTiles)
+  ////console.log(selectedTiles)
   // Selecciona 7 fitxes
   editRackInput.value = displayWord(selectedTiles.join("")); // Mostra les fitxes seleccionades
 });
@@ -342,7 +350,7 @@ async function openNewRoundWithRandomTiles() { // Made async
     const roundId = roundsList[currentRoundIndex];
     try {
       await roundsCollectionRef.doc(roundId).update({ rack: newRack });
-      //console.log(`Faristol inicial assignat per la ronda ${roundId}: ${newRack}`);
+      ////console.log(`Faristol inicial assignat per la ronda ${roundId}: ${newRack}`);
     } catch (error) {
       console.error("Error updating rack:", error);
     }
@@ -378,11 +386,11 @@ if (updateRackBtn) {
       const roundId = roundsList[currentRoundIndex];
       try {
         await roundsCollectionRef.doc(roundId).update({ rack: newRack });
-        //console.log(`Faristol actualitzat per la ronda ${roundId}`);
+        ////console.log(`Faristol actualitzat per la ronda ${roundId}`);
 
         //eliminar resultats de la ronda actual
         await roundsCollectionRef.doc(roundId).update({ results: {} }); // Set to empty object to remove all results
-        //console.log(`Resultats eliminats per la ronda ${roundId}`);
+        ////console.log(`Resultats eliminats per la ronda ${roundId}`);
 
         //genera Jugador mestre en blanc
         const masterPlay = {
@@ -394,7 +402,7 @@ if (updateRackBtn) {
         await roundsCollectionRef.doc(roundId).update({
           [`results.${actualPlayer}`]: masterPlay, // Use dot notation with backticks for nested update
         });
-        //console.log(`Jugada mestra generada per la ronda ${roundId}`);
+        ////console.log(`Jugada mestra generada per la ronda ${roundId}`);
       } catch (error) {
         console.error("Error updating round data:", error);
         alert("Error actualitzant dades de la ronda. Consulta la consola.");
@@ -519,7 +527,7 @@ function updateUIForCurrentRound(round, isLastRound) {
 
     if (!administrador)
       buttons.forEach((button) => {
-        console.log(button.id);
+        //console.log(button.id);
         if (!excludedButtonIds.includes(button.id)) {
           button.disabled = true;
         }

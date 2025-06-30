@@ -11,7 +11,7 @@ const TEMPS_TOTAL = 300; // segons
 function isAdmin() {
   return storedTable && storedTable.toLowerCase() === 'administrador';
 }
-console.log("isAdmin",isAdmin());
+//console.log("isAdmin",isAdmin());
 // Si no és administrador, afegeix la classe countdownSlave
 if(!isAdmin()) countdownElement.classList.add('countdownSlave');
 // --- FUNCIONS MASTER (ADMIN) ---

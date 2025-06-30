@@ -2,7 +2,7 @@ import {
   roundsCollectionRef
 } from './firebase.js'; // Assuming firebase.js is in the same directory or adjust path
 function displayRanking(numRondesToShow) {
-  console.log("roundid", numRondesToShow);
+  //console.log("roundid", numRondesToShow);
   generateRankingTable(numRondesToShow, (rankingTable) => {
     document.getElementById('rankingContainer').innerHTML = rankingTable; // Replace 'rankingContainer' with the ID of the element where you want to display the table
   });
@@ -15,18 +15,18 @@ async function generateRankingTable(numRondes, callback) {
     historyData[doc.id] = doc.data();
   });
 
-  console.log(historyData);
+  //console.log(historyData);
 
   if (!historyData) {
-    console.log('No ranking data available yet.');
+    //console.log('No ranking data available yet.');
     callback(''); // Provide empty string or handle no data case in displayRanking
     return;
   }
 
   const roundsData = historyData;
-  console.log("rondes", roundsData);
+  //console.log("rondes", roundsData);
   const numRondesAvailable = Object.keys(roundsData).length;
-  console.log("rondes available", numRondesAvailable);
+  //console.log("rondes available", numRondesAvailable);
 
   // Use the minimum of numRondesToShow and numRondesAvailable
   const roundsToProcess = Math.min(numRondes, numRondesAvailable);
@@ -49,7 +49,7 @@ async function generateRankingTable(numRondes, callback) {
   // Find the highest total score
   let highestScore = 0;
   for (const player in playerTotals) {
-    console.log(player);
+    //console.log(player);
     if (playerTotals[player] > highestScore) {
       highestScore = playerTotals[player];
     }

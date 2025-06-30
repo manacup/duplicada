@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const storedName = localStorage.getItem('nomJugador');
   const storedTable = localStorage.getItem('playerTable');
   const storedDesaSessio = localStorage.getItem('desaSessio');
-  console.log(storedName,storedTable,storedDesaSessio);
+  //console.log(storedName,storedTable,storedDesaSessio);
   // Suggested code may be subject to a license. Learn more: ~LicenseLog:3360188146.
   if (storedDesaSessio) {
 
@@ -69,9 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (snapshot.empty) {
      // If the player doesn't exist, add them to the database
      await jugadorsCollectionRef.add({ name: name, table: table });
-     console.log(`Player ${name} added to the database.`);
+     //console.log(`Player ${name} added to the database.`);
     } else {
-     console.log(`Player ${name} already exists in the database.`);
+     //console.log(`Player ${name} already exists in the database.`);
     }
    
 
