@@ -71,14 +71,14 @@ let openRound = false; // Variable per controlar si la ronda està oberta
 
 // Mostra una ronda específica
 function showRound(idx) {
-  if (idx < 0 || idx >= roundsList.length) return;
+  if (idx < 0 || idx >= roundsList.length) return; // Changed from onSnapshot to get()
   currentRoundIndex = idx;
   const roundId = roundsList[idx];
 
-  roundsCollectionRef.doc(roundId).onSnapshot((doc) => {
+  roundsCollectionRef.doc(roundId).get().then((doc) => {
     if (!doc.exists) {
-      //console.log("No such round exists!");
-      return;
+ console.log("No such round exists!");
+ return;
     }
     const round = doc.data();
 
@@ -87,7 +87,7 @@ function showRound(idx) {
 
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
-    renderRackTiles(round?.rack || "");
+ renderRackTiles(round?.rack || "");
     if (round?.board) {
       console.log("recarrega tauler")
       // Assuming round.board is a flattened 1D array, reconstruct the 2D array (15x15)
@@ -105,7 +105,7 @@ function showRound(idx) {
     showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well
     displayRanking(roundId); // Assuming displayRanking uses the new Firestore structure as well
     updateUIForCurrentRound(round, idx === roundsList.length - 1); // Passa si és l'última ronda
-  }, (error) => {
+  }).catch((error) => {
     console.error("Error showing round:", error);
   });
 }
@@ -115,7 +115,6 @@ function reconstructBoard(flattenedBoard, rows, cols) {
   for (let i = 0; i < rows; i++) {
     board.push(flattenedBoard.slice(i * cols, (i + 1) * cols));
   }
-  return board;
     console.error("Error showing round:", error);
   }
 //actualitza informació de fitxes restants
@@ -243,8 +242,7 @@ async function addNewRound() { // Made async to handle promises from Firestore r
     // The onSnapshot listener in loadRoundsHistory will update roundsList and show the new round
     // No need to manually push and call showRound here
     // roundsList.push(newRoundId);
-    // showRound(roundsList.length - 1);
-
+ showRound(roundsList.length - 1); // Show the newly created round
   } catch (error) {
     console.error("Error adding new round:", error);
     alert("Error afegint nova ronda. Consulta la consola per a més detalls.");
@@ -429,6 +427,7 @@ async function closeCurrentRound() { // Made async
       });
 
       await roundsCollectionRef.doc(roundId).update({ closed: true });
+      showRound(currentRoundIndex); // Re-render board after closing
     } catch (error) {
       console.error("Error closing round:", error);
       alert("Error tancant ronda. Consulta la consola.");
