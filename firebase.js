@@ -27,4 +27,47 @@ const formEnabledRef = firestore.collection('appStatus').doc('form'); // Assumin
 const clockRef = firestore.collection('appStatus').doc('clock');
 
 
+async function exportData() {
+ try {
+ const data = {};
+
+ // Fetch gameInfo
+ const gameInfoDoc = await gameInfoRef.get();
+ data.gameInfo = gameInfoDoc.exists ? gameInfoDoc.data() : null;
+
+ // Fetch rounds
+ const roundsSnapshot = await roundsCollectionRef.get();
+ data.rounds = roundsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+ // Fetch jugadors
+ const jugadorsSnapshot = await jugadorsCollectionRef.get();
+ data.jugadors = jugadorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+ // Fetch appStatus
+ const formEnabledDoc = await formEnabledRef.get();
+ const clockDoc = await clockRef.get();
+ data.appStatus = {
+ formEnabled: formEnabledDoc.exists ? formEnabledDoc.data() : null,
+ clock: clockDoc.exists ? clockDoc.data() : null
+ };
+
+      // Convert data to JSON string
+      const jsonData = JSON.stringify(data, null, 2);
+
+      // Create a Blob from the JSON string
+      const blob = new Blob([jsonData], { type: 'application/json' });
+
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'database_export.json';
+      a.click();
+ } catch (error) {
+ console.error("Error exporting data:", error);
+ throw error; // Re-throw the error for handling by the caller
+ }
+}
+
 export { firestore, gameInfoRef, roundsCollectionRef, jugadorsCollectionRef, formEnabledRef, clockRef };
+export { exportData };
