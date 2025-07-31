@@ -1,4 +1,4 @@
-import {
+import {  
   splitWordToTiles,
   displayLetter,
   letterValues,
@@ -143,6 +143,16 @@ const scrapsInput = document.getElementById("scraps");
 // Habilita l'entrada de fitxes del rack
 function enableRackTileInput() {
   rackTilesDiv.addEventListener("click", function (e) {
+    // Comprovem si l'usuari és administrador o si la ronda està oberta
+    const isAdmin = localStorage.getItem('playerTable')?.toLowerCase() === 'administrador';
+    // Comprovem si l'estat de la ronda actual a partir de si el botó de tancar ronda és visible
+    const isRoundOpen = document.getElementById('tancaRondaBtn')?.style.display === 'block';
+
+    if (!isAdmin && !isRoundOpen) {
+      alert("La ronda està tancada. No pots interactuar amb el faristol.");
+      return;
+    }
+
     if(coordsInput.value.trim() === "") {
       alert("Si us plau, omple les coordenades abans de seleccionar una fitxa del faristol.");
       return;
@@ -174,8 +184,6 @@ function enableRackTileInput() {
     renderScrapTileButtons()
 
   });
-
- 
 }
 
 function shuffleRackTiles() {

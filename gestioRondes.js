@@ -1,4 +1,4 @@
-import {
+import {  
   gameInfoRef,
   roundsCollectionRef,
   jugadorsCollectionRef,
@@ -10,6 +10,7 @@ import {
   displayWord,
   tileDistribution,
   displayLetter,
+  reconstructBoard // Import reconstructBoard
 } from "./utilitats.js";
 import { showResultats } from "./resultats.js";
 import { renderBoard } from "./tauler.js";
@@ -98,8 +99,10 @@ function showRound(idx) {
     carregaLlistaJugador();
     //console.log("actualPlayer", actualPlayer);
     
-      fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
-    
+    // Moure la crida fora del listener per evitar actualitzacions en cada canvi
+    // fillFormDataFromRoundAndPlayer(roundId, actualPlayer); // <--- ELIMINAR AQUESTA LÍNIA
+
+
     updateSac();
     updateRemainingTiles();
     showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well
@@ -108,6 +111,10 @@ function showRound(idx) {
   }, (error) => {
     console.error("Error showing round:", error);
   });
+
+  // Afegir la crida aquí, després de la definició del listener,
+  // per a que s'executi només quan showRound és cridada.
+  fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
 }
 // Function to reconstruct a 2D board from a flattened 1D array
 function reconstructBoard(flattenedBoard, rows, cols) {
@@ -155,7 +162,7 @@ if (prevRoundBtn) {
 }
 if (nextRoundBtn) {
   nextRoundBtn.addEventListener("click", () => {
-    if (currentRoundIndex < roundsList.length - 1)
+    if (currentRoundIndex < roundsList.length - 1) IBOutletcollection
       showRound(currentRoundIndex + 1);
   });
 }
@@ -221,7 +228,9 @@ async function addNewRound() { // Made async to handle promises from Firestore r
         score: 0,
         usedtiles: [],
       },
-    },
+    },rondaGuanyadora: {jugador: '', paraula: ''},
+    paraulesValides: { jugadaMestra: { paraula: '', valida: false }, altres: [] },
+    validacions: {}
   };
 
   // Flatten the 2D board array into a 1D array for Firestore
@@ -362,9 +371,6 @@ async function openNewRoundWithRandomTiles() { // Made async
   }
 }
 
-
-// Carrega l'historial de rondes al carregar la pàgina
-//document.addEventListener("DOMContentLoaded", loadRoundsHistory);
 
 // Actualitza el faristol manualment i desa a la base de dades
 // Normalize the rack before saving to the database

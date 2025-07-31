@@ -149,7 +149,6 @@ function renderBoard(board, newTiles = []) {
   boardContainer.appendChild(table);
 }
 
-renderBoard(currentBoard);
 
 // Gestionar la selecció de la direcció
 const horizontalBtn = document.getElementById("horizontalBtn");
@@ -233,16 +232,32 @@ if (coordValue) {
 let lastCoordType = "V"; // Variable global per alternar
 
 boardContainer.addEventListener("click", function (event) {
+  // Comprovem si l'usuari és administrador o si la ronda està oberta
+  const isAdmin = localStorage.getItem('playerTable')?.toLowerCase() === 'administrador';
+  // Una manera de comprovar si la ronda està oberta és mirar si el botó de tancar ronda és visible
+  const tancaRondaBtn = document.getElementById('tancaRondaBtn');
+  const isRoundOpen = tancaRondaBtn && tancaRondaBtn.style.display !== 'none';
+
+  if (!isAdmin && !isRoundOpen) {
+    alert("La ronda està tancada. No pots interactuar amb el tauler.");
+    return;
+  }
+
   const scrapsInput = document.getElementById("scraps")
   const coordsInput = document.getElementById("coords");
   const rackTilesDiv = document.getElementById("rackTiles");
   const rack = normalizeWordInput(document.getElementById("editRackInput").value)
-  renderRackTiles(rack);
+  //renderRackTiles(rack); // Aquesta línia sembla fora de lloc aquí si només es vol netejar. Potser només cal netejar els inputs.
   coordsInput.value = ""
     wordInput.value = "";
+    scrapsInput.value = ""; // Netejar també els scraps
+
 
     wordInput.dispatchEvent(new Event("input"))
     coordsInput.dispatchEvent(new Event("input"))
+    scrapsInput.dispatchEvent(new Event("input")) // Llançar esdeveniment per a scraps
+
+
   const cell = event.target.closest("td.board-cell");
   if (!cell) return;
 
@@ -263,30 +278,37 @@ boardContainer.addEventListener("click", function (event) {
       coordsInput.value = coordH;
       lastCoordType = "H";
     }
-    let tileAt
 
-    if (currentBoard[rowIdx][colIdx] && currentBoard[rowIdx][colIdx] !== "") {
+    // Si la casella té una fitxa, afegir-la a la paraula i comprovar si és escarràs
+    const tileAt = getTileAt(rowIdx, colIdx, currentBoard);
+    if (tileAt) {
+        wordInput.value += displayLetter(tileAt.letter);
+        if (tileAt.isScrap) {
+            // Afegir la posició de la fitxa a l'array de scraps
+            const currentScraps = JSON.parse(scrapsInput.value || "[]");
+            currentScraps.push(normalizeWordInput(wordInput.value).length -1); // La posició és l'última afegida
+            scrapsInput.value = JSON.stringify(currentScraps);
 
-      const tileAt = getTileAt(rowIdx, colIdx,currentBoard)
-      wordInput.value += displayLetter(tileAt.letter)
-      console.log(tileAt)
+            // Afegir una fitxa escarràs oculta al rackTilesDiv per mantenir la coherència visual/de selecció
+            // Tot i que afegim fitxes ocultes, la lògica actual del rackTilesDiv gestiona la visualització
+            // renderRackTiles(normalizeWordInput(document.getElementById("editRackInput").value)); // Tornar a renderitzar el rack per actualitzar la vista prèvia
 
-  if (tileAt.isScrap) {
-    scrapsInput.value = '[0]'
-    const div = rederTile("?", true);
-      //afegir en primera posicio de rackti
-      div.classList.add('d-none')
-      rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
-  }else{
-    const div = rederTile(tileAt.letter, true);
-      //afegir en primera posicio de rackti
-      div.classList.add('d-none')
-      rackTilesDiv.insertBefore(div, rackTilesDiv.firstChild);
-  }
-    }else{
-    scrapsInput.value = ''
-
-  } 
+        } else {
+             // Si és una fitxa normal, afegir una fitxa normal oculta al rackTilesDiv
+             // Tot i que afegim fitxes ocultes, la lògica actual del rackTilesDiv gestiona la visualització
+             // renderRackTiles(normalizeWordInput(document.getElementById("editRackInput").value)); // Tornar a renderitzar el rack per actualitzar la vista prèvia
+        }
+        wordInput.dispatchEvent(new Event("input"));
+        scrapsInput.dispatchEvent(new Event("input"));
+    } else {
+      // Si la casella està buida, netegem els inputs de paraula i scraps
+      wordInput.value = "";
+      scrapsInput.value = "";
+      wordInput.dispatchEvent(new Event("input"));
+      scrapsInput.dispatchEvent(new Event("input"));
+      // També cal assegurar-nos que el rack visual torni al seu estat original si s'havien seleccionat fitxes abans
+      //renderRackTiles(normalizeWordInput(document.getElementById("editRackInput").value));
+    }
 
     coordsInput.dispatchEvent(new Event("input"));
   }
