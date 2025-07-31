@@ -1,4 +1,4 @@
-import firebase from "firebase/app";
+import firebase from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import "firebase/firestore";
 
 const firebaseConfig = {
