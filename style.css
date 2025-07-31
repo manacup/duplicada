@@ -357,7 +357,7 @@ h3 {
 
 .sac-tiles {
   display: grid;
-  grid-template-columns: repeat(18, 1fr);
+  grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap: 4px;
   margin: 10px 0 20px 0;
@@ -463,7 +463,7 @@ th {
   padding: 0% ! important ;
 }
 .seleccionada{
-  opacity: 0.3;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 .board-cell.selected-coord-hor {
