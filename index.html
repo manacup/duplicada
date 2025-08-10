@@ -58,7 +58,7 @@
                 top: 0px;
                 right: 0px;
                 font-size: 1em !important;
-                background: #ffffff;
+                background: #b4e6ae;
                 z-index: 10000;
                 margin: 20px;
                 padding: 10px;
@@ -66,6 +66,11 @@
                 border: 1px solid black;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
                 pointer-events: none;
+                font-weight: bold;
+            }
+            .countdownSlave.paused {
+                background: #ffffff;
+                font-weight: normal;
             }
         }
 
@@ -263,24 +268,25 @@
 
             <!-- Respostes dels jugadors i resultats -->
             <section id="respostes-section" class="master">
-                <h3>Respostes</h3>
-                <div id="responsesAccordion" class="mt-3"></div>
-                <div id="resultats" class="mt-4"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target="#resultats"><i class="bi bi-chevron-down"></i>Respostes</h3>
+                
+                <div id="resultats" class="mt-4 collapse"></div>
             </section>
             <!-- Classificacio -->
             <section id="classificacio-section" class="master">
-                <h3>Classificació</h3>
-                <div id="rankingContainer" class="table-responsive mt-4"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target="#rankingContainer"><i class="bi bi-chevron-down"></i>Classificació</h3>
+                <div id="rankingContainer" class="table-responsive mt-4 collapse"></div>
             </section>
-
+         <!-- Formulari tàctil -->          
             <!-- Tauler -->
-            <section id="tauler-section">
+            <section id="tauler-section" >
+ <h3 data-bs-toggle="collapse" data-bs-target=".multi-collapse"><i class="bi bi-chevron-down"></i>Formulari tàctil</h3>
 
-                <div id="board-container" class="mb-3"></div>
+                <div id="board-container" class="mb-3 collapse show multi-collapse"></div>
             </section>
 
             <!-- Faristol visual -->
-            <section id="faristol-section">
+            <section id="faristol-section" class="collapse show multi-collapse">
                 <h3>Faristol</h3>
                 <div class="d-flex flex-column align-items-center gap-2">
                     <div id="rackTiles" class="rack-tiles"></div>
@@ -315,10 +321,11 @@
 
                 </div>
             </section>
+            
             <!-- sac de fitxes -->
             <section id="sac-section" class="master">
-                <h3>Fitxes restants</h3>
-                <div id="sacTiles" class="sac-tiles"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target="#sacTiles"><i class="bi bi-chevron-down"></i>Fitxes restants</h3>
+                <div id="sacTiles" class="sac-tiles collapse"></div>
             </section>
 
             <!-- Formulari jugada mestra -->
@@ -337,10 +344,13 @@
                                 class="form-control form-control-lg">
 
                             <span class="input-group-text">Taula:</span>
-                            <input type="text" id="taula" value="" class="form-control form-control-lg">
+                            <input type="text" id="taula" value="" class="form-control form-control-lg" list="tauleslistOptions">
 
                         </div>
                         <datalist id="jugadorslistOptions">
+                            <datalist id="tauleslistOptions">
+                                <option value="administrador">
+                            </datalist>
 
                         </datalist>
                     </div>

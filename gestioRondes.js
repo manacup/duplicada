@@ -99,7 +99,7 @@ function showRound(idx) {
     //console.log("actualPlayer", actualPlayer);
     
       fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
-    wordInput.dispatchEvent(new Event("input"))
+   
     updateSac();
     updateRemainingTiles();
     showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well
@@ -108,6 +108,7 @@ function showRound(idx) {
   }, (error) => {
     console.error("Error showing round:", error);
   });
+   wordInput.dispatchEvent(new Event("input"))
 }
 // Function to reconstruct a 2D board from a flattened 1D array
 function reconstructBoard(flattenedBoard, rows, cols) {
@@ -150,12 +151,14 @@ const prevRoundBtn = document.getElementById("prevRoundBtn");
 const nextRoundBtn = document.getElementById("nextRoundBtn");
 if (prevRoundBtn) {
   prevRoundBtn.addEventListener("click", () => {
+    console.log("currentRoundIndex", currentRoundIndex,roundsList);
     if (currentRoundIndex > 0) showRound(currentRoundIndex - 1);
   });
 }
 if (nextRoundBtn) {
   nextRoundBtn.addEventListener("click", () => {
-    if (currentRoundIndex < roundsList.length - 1)
+    console.log("currentRoundIndex", currentRoundIndex,roundsList);
+    if (currentRoundIndex < roundsList.length)
       showRound(currentRoundIndex + 1);
   });
 }
@@ -416,10 +419,17 @@ if (updateRackBtn) {
 // Funció per tancar la ronda actual
 async function closeCurrentRound() { // Made async
   //afegeix validació
-  if (wordInput.value == "" && coordsInput.value == "") {
-    alert("No hi ha cap jugada mestra per tancar la ronda actual.");
+  const roundId = roundsList[currentRoundIndex];
+  const roundDoc = await roundsCollectionRef.doc(roundId).get();
+  const roundData = roundDoc.data();
+  if (!roundData?.results || !roundData.results["Jugada mestra"] || !roundData.results["Jugada mestra"].word) {
+    alert("No hi ha cap resposta de la 'Jugada mestra' per tancar la ronda actual.");
     return;
   }
+  /* if (wordInput.value == "" && coordsInput.value == "") {
+    alert("No hi ha cap jugada mestra per tancar la ronda actual.");
+    return;
+  } */
   if (currentRoundIndex >= 0 && currentRoundIndex < roundsList.length) {
     const roundId = roundsList[currentRoundIndex];
     try {
