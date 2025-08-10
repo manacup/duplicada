@@ -18,10 +18,11 @@ if(!isAdmin()) countdownElement.classList.add('countdownSlave');
 
 async function startTimer() {
   // Si ja estava pausat, calcula la nova startTime segons el temps restant
-  const snap = await clockRef.get();
-  const data = snap.data();
+  const snapStart = await clockRef.get();
+  const data = snapStart.data();
+  console.log(data);
   let duration = TEMPS_TOTAL;
-  if (data && data.timeLeft !== undefined && data.timeLeft !== null) {
+  if (data && data.timeLeft !== undefined && data.timeLeft !== null && data.timeLeft !== 0) {
     duration = data.timeLeft;
   }
   await clockRef.set({
