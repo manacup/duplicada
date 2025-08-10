@@ -1,6 +1,7 @@
 import { clockRef, formEnabledRef } from './firebase.js';
 
 const countdownElement = document.getElementById('countdown');
+const countdownElementBar = document.getElementById('countdownBar');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -92,10 +93,15 @@ clockRef.onSnapshot((snapshot) => {
     const displayMinutes = String(minutes).padStart(2, '0');
     const displaySeconds = String(seconds).padStart(2, '0');
     countdownElement.textContent = `${displayMinutes}:${displaySeconds}`;
+    
+    countdownElementBar.textContent = `${displayMinutes}:${displaySeconds}`;
 
     // Estils i sons
     countdownElement.classList.toggle('paused', !data.running || timeLeft === 0);
     countdownElement.classList.toggle('warning', timeLeft <= 30 && timeLeft > 0);
+    
+    countdownElementBar.classList.toggle('paused', !data.running || timeLeft === 0);
+    countdownElementBar.classList.toggle('warning', timeLeft <= 30 && timeLeft > 0);
 
     if (timeLeft <= 30 && timeLeft > 0 && timeLeft % 10 === 0) {
       pipSound?.play();

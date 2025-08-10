@@ -424,10 +424,10 @@ section{
 }
 
 
-#countdown.warning , .countdownSlave.warning{
+#countdown.warning , .countdownSlave.warning, #countdownBar.warning{
   color: red;
 }
-#countdown.paused{
+#countdown.paused, #countdownBar.paused{
   color: rgb(128, 128, 128);
 }
 

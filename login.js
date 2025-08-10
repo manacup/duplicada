@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(table.toLowerCase() !== 'administrador'){
      document.querySelectorAll('.master').forEach(el => el.style.display = 'none');
      document.getElementById('validateWords').checked = false;
-     document.getElementById('countdown').id = 'countdownSlave';
+     //document.getElementById('countdown').id = 'countdownSlave';
     }
     
     

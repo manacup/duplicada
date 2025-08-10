@@ -27,6 +27,7 @@ const tancaRondaBtn = document.getElementById("tancaRondaBtn");
 const obreRondaBtn = document.getElementById("obreRondaBtn");
 const deleteRondaBtn = document.getElementById("deleteRondaBtn");
 const rondaDisplay = document.getElementById("roundDisplay");
+const rondaDisplayBar = document.getElementById("currentRoundMobile");
 const randomRackBtn = document.getElementById("randomRackBtn");
 const editRackInput = document.getElementById("editRackInput");
 const updateRackBtn = document.getElementById("updateRackBtn");
@@ -60,6 +61,7 @@ function loadRoundsHistory() {
      
       
     }
+    updateRoundsDropdown()
   }, (error) => {
     console.error("Error loading rounds history:", error);
   });
@@ -86,6 +88,7 @@ function showRound(idx) {
     openRound = !round.closed; // Actualitza l'estat de la ronda oberta
 
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
+    if (rondaDisplayBar) rondaDisplayBar.textContent = roundId;
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
     renderRackTiles(round?.rack || "");
     if (round?.board && round?.closed) {
@@ -181,7 +184,7 @@ async function addNewRound() { // Made async to handle promises from Firestore r
   if (!lastClosedRoundSnapshot.empty) {
     lastRoundData = lastClosedRoundSnapshot.docs[0].data();
     if (lastRoundData?.board) {
-      boardToCopy = reconstructBoard(lastRoundData.board,15,15);
+      boardToCopy = reconstructBoard(lastRoundData.board, 15, 15);
     }
   }
 
@@ -257,6 +260,7 @@ async function addNewRound() { // Made async to handle promises from Firestore r
     //console.log("lastWord:", lastWord);
     //console.log("lastCoordinates:", lastCoordinates);
     //console.log("lastDirection:", lastDirection);
+    wordInput.dispatchEvent(new Event("input"))
 }
 
 
@@ -594,4 +598,27 @@ function carregaLlistaJugador() {
     console.error("Error loading players:", error);
   });
 }
+
+// Manté el llistat de rondes al desplegable superior mòbil i permet seleccionar-ne una
+function updateRoundsDropdown() {
+  const dropdownMenu = document.getElementById("roundsDropdownMenu");
+  if (!dropdownMenu || !Array.isArray(roundsList)) return;
+
+  // Neteja el menú
+  dropdownMenu.innerHTML = "";
+
+  roundsList.forEach((roundId, idx) => {
+    const li = document.createElement("li");
+    li.className = "dropdown-item";
+    li.textContent = `Ronda ${roundId}`;
+    li.dataset.roundIdx = idx;
+    li.addEventListener("click", () => {
+      showRound(idx);
+    });
+    dropdownMenu.appendChild(li);
+  });
+}
+
+// Crida aquesta funció cada cop que es modifiqui roundsList (per exemple, al final de loadRoundsHistory)
+
 export { loadRoundsHistory, showRound, addNewRound };

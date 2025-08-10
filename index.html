@@ -10,6 +10,52 @@
     <link href="style.css" rel="stylesheet">
 
     <style>
+        /* Barra superior fixa per a mòbil */
+        #topbar-mobile {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 2000;
+            background: #fff;
+            border-bottom: 1px solid #ccc;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 0.3rem 0.7rem;
+        }
+
+        #topbar-mobile .dropdown-toggle {
+            min-width: 90px;
+        }
+
+        #topbar-mobile .timer-mobile {
+            font-weight: bold;
+            font-size: 1.2em;
+
+            
+
+        }
+        #topbar-mobile .timer-mobile::before {
+                content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 1 .5.5v4.25l3.5 2.1a.5.5 0 0 1-.5.85l-3.75-2.25A.5.5 0 0 1 7.5 8V4a.5.5 0 0 1 .5-.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/></svg>');
+                margin-right: 0.3em;
+            }
+
+        @media (max-width: 991px) {
+            #topbar-mobile {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            body {
+                padding-top: 56px;
+            }
+            #roundControls, #titol {
+                display: none;
+            }
+        }
+
         .main-grid {
             overflow-x: hidden;
             display: grid;
@@ -30,8 +76,8 @@
         .main-grid.mode-pantalla #faristolInput,
         .main-grid.mode-pantalla #clockBtn,
         .main-grid.mode-pantalla #master-section,
-        .main-grid.mode-pantalla #masterForm-section, 
-        .main-grid.mode-pantalla #faristolBtn{
+        .main-grid.mode-pantalla #masterForm-section,
+        .main-grid.mode-pantalla #faristolBtn {
             display: none !important;
             /* Oculta el sac i allibera el seu espai */
         }
@@ -41,7 +87,7 @@
             .main-grid {
                 grid-template-columns: 1fr;
                 grid-template-areas:
-                    "titol"
+                    
                     "gestio"
                     "rellotge"
                     "tauler"
@@ -54,7 +100,8 @@
             }
 
             .countdownSlave {
-                position: fixed;
+                display: none;
+                /* position: fixed;
                 top: 0px;
                 right: 0px;
                 font-size: 1em !important;
@@ -66,8 +113,9 @@
                 border: 1px solid black;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
                 pointer-events: none;
-                font-weight: bold;
+                font-weight: bold; */
             }
+
             .countdownSlave.paused {
                 background: #ffffff;
                 font-weight: normal;
@@ -109,15 +157,16 @@
                 gap: 2rem;
 
                 .rack-tile {
-                 
-                  
+
+
                     max-width: 100px;
                     min-width: 24px;
-                   
-                    font-size: clamp(1.2em, 6vw, 3.5em)!important;
-                  
-                    
+
+                    font-size: clamp(1.2em, 6vw, 3.5em) !important;
+
+
                 }
+
                 #countdown {
                     font-size: 5em !important;
                 }
@@ -168,6 +217,8 @@
 
 <body>
 
+
+
     <!-- Formulari de login: demana nom i taula -->
     <section id="login-section">
 
@@ -212,8 +263,24 @@
 
 
     <!-- Contingut principal -->
-    <div class="container d-none" id="main-content">
 
+    <div class="container d-none" id="main-content">
+        <!-- Barra superior mòbil: ronda i temps -->
+
+        <div id="topbar-mobile">
+            <div class="dropdown">
+                <div class=" dropdown-toggle" id="dropdownRoundBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    Ronda <span id="currentRoundMobile">-</span>
+                </div>
+                <ul class="dropdown-menu" id="roundsDropdownMenu" aria-labelledby="dropdownRoundBtn">
+                    <li class="dropdown-item" id="roundsDropdownItem">
+                        Ronda <span id="roundoption-1">1</span>
+                    </li>
+                    <!-- Aquí es mostraran les rondes -->
+                </ul>
+            </div>
+            <span class="timer-mobile paused me-3" id="countdownBar">--:--</span>
+        </div>
         <div class="main-grid">
 
             <!--Rellotge-->
@@ -221,6 +288,7 @@
                 <div class="d-flex flex-column align-items-center gap-2">
                     <div id="countdown" class="paused"></div>
                     <div class="btn-group btn-group-sm master mb-3" role="group" id="clockBtn">
+                        <button class="btn btn-outline-primary disabled" disabled><i class="bi bi-clock"></i></button>
                         <button class="btn btn-outline-primary" id="startBtn"><i class="bi bi-play-fill"></i></button>
                         <button class="btn btn-outline-primary" id="stopBtn"><i class="bi bi-pause-fill"></i></button>
                         <button class="btn btn-outline-primary" id="resetBtn"><i
@@ -239,7 +307,7 @@
             <section id="gestio-section">
 
                 <div class="d-flex flex-column align-items-center gap-2">
-                    <div class="row w-100">
+                    <div class="row w-100" id="roundControls">
                         <div class=" btn-group  btn-group-lg " role="group">
 
                             <button id="prevRoundBtn" class="btn btn-outline-secondary"
@@ -268,19 +336,22 @@
 
             <!-- Respostes dels jugadors i resultats -->
             <section id="respostes-section" class="master">
-                <h3 data-bs-toggle="collapse" data-bs-target="#resultats"><i class="bi bi-chevron-down"></i>Respostes</h3>
-                
+                <h3 data-bs-toggle="collapse" data-bs-target="#resultats"><i class="bi bi-chevron-down"></i>Respostes
+                </h3>
+
                 <div id="resultats" class="mt-4 collapse"></div>
             </section>
             <!-- Classificacio -->
             <section id="classificacio-section" class="master">
-                <h3 data-bs-toggle="collapse" data-bs-target="#rankingContainer"><i class="bi bi-chevron-down"></i>Classificació</h3>
+                <h3 data-bs-toggle="collapse" data-bs-target="#rankingContainer"><i
+                        class="bi bi-chevron-down"></i>Classificació</h3>
                 <div id="rankingContainer" class="table-responsive mt-4 collapse"></div>
             </section>
-         <!-- Formulari tàctil -->          
+            <!-- Formulari tàctil -->
             <!-- Tauler -->
-            <section id="tauler-section" >
- <h3 data-bs-toggle="collapse" data-bs-target=".multi-collapse"><i class="bi bi-chevron-down"></i>Formulari tàctil</h3>
+            <section id="tauler-section">
+                <h3 data-bs-toggle="collapse" data-bs-target=".multi-collapse"><i
+                        class="bi bi-chevron-down"></i>Formulari tàctil</h3>
 
                 <div id="board-container" class="mb-3 collapse show multi-collapse"></div>
             </section>
@@ -321,84 +392,91 @@
 
                 </div>
             </section>
-            
+
             <!-- sac de fitxes -->
             <section id="sac-section" class="master">
-                <h3 data-bs-toggle="collapse" data-bs-target="#sacTiles"><i class="bi bi-chevron-down"></i>Fitxes restants</h3>
+                <h3 data-bs-toggle="collapse" data-bs-target="#sacTiles"><i class="bi bi-chevron-down"></i>Fitxes
+                    restants</h3>
                 <div id="sacTiles" class="sac-tiles collapse"></div>
             </section>
 
             <!-- Formulari jugada mestra -->
             <section id="masterForm-section">
 
-                <form id="wordForm" >
-                    <h3 data-bs-toggle="collapse" data-bs-target="#collapseFormulari"><i class="bi bi-chevron-down"></i>Formulari manual</h3>
+                <form id="wordForm">
+                    <h3 data-bs-toggle="collapse" data-bs-target="#collapseFormulari"><i
+                            class="bi bi-chevron-down"></i>Formulari manual</h3>
                     <div class="collapse" id="collapseFormulari">
-                        
-                    <div class="form-label master" id="playerLabel">
-                        <label for="player" class="form-label">Jugador:</label>
 
-                        <div class="input-group mb-3 master">
+                        <div class="form-label master" id="playerLabel">
+                            <label for="player" class="form-label">Jugador:</label>
 
-                            <input type="text" list="jugadorslistOptions" id="player" value=""
-                                class="form-control form-control-lg">
+                            <div class="input-group mb-3 master">
 
-                            <span class="input-group-text">Taula:</span>
-                            <input type="text" id="taula" value="" class="form-control form-control-lg" list="tauleslistOptions">
+                                <input type="text" list="jugadorslistOptions" id="player" value=""
+                                    class="form-control form-control-lg">
 
-                        </div>
-                        <datalist id="jugadorslistOptions">
-                            <datalist id="tauleslistOptions">
-                                <option value="administrador">
+                                <span class="input-group-text">Taula:</span>
+                                <input type="text" id="taula" value="" class="form-control form-control-lg"
+                                    list="tauleslistOptions">
+
+                            </div>
+                            <datalist id="jugadorslistOptions">
+                                <datalist id="tauleslistOptions">
+                                    <option value="administrador">
+                                </datalist>
+
                             </datalist>
-
-                        </datalist>
-                    </div>
-                    <div class="form-label">
-                        <div class="d-flex flex-row align-items-center">
-
-                            <label for="coords" class="form-label col-3">Coordenades:</label>
-                            <label for="word" class="form-label col-9 " style="margin-left:50px;">Paraula:</label>
                         </div>
+                        <div class="form-label">
+                            <div class="d-flex flex-row align-items-center">
 
-                        <div class="input-group  input-group-lg mb-3 ">
-                            <input type="text" class="form-control " id="coords" required>
-                            <span class="input-group-text " id="directionLabel">
-                                <div class="btn-group-vertical" role="group">
-                                    <button type="button" class="btn d-none"></button>
-                                    <button type="button" class="btn btn-outline-primary" id="horizontalBtn"><i
-                                            class="bi bi-arrow-right"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary" id="verticalBtn"><i
-                                            class="bi bi-arrow-down"></i>
-                                    </button>
-                                    <button type="button" class="btn d-none"></button>
-                                </div>
-                                <input type="hidden" id="direction" required>
-                            </span>
+                                <label for="coords" class="form-label col-3">Coordenades:</label>
+                                <label for="word" class="form-label col-9 " style="margin-left:50px;">Paraula:</label>
+                            </div>
 
-                            <input type="text" class="form-control " id="word" required placeholder="Paraula jugada">
+                            <div class="input-group  input-group-lg mb-3 ">
+                                <input type="text" class="form-control " id="coords" required>
+                                <span class="input-group-text " id="directionLabel">
+                                    <div class="btn-group-vertical" role="group">
+                                        <button type="button" class="btn d-none"></button>
+                                        <button type="button" class="btn btn-outline-primary" id="horizontalBtn"><i
+                                                class="bi bi-arrow-right"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary" id="verticalBtn"><i
+                                                class="bi bi-arrow-down"></i>
+                                        </button>
+                                        <button type="button" class="btn d-none"></button>
+                                    </div>
+                                    <input type="hidden" id="direction" required>
+                                </span>
+
+                                <input type="text" class="form-control " id="word" required
+                                    placeholder="Paraula jugada">
+                            </div>
+                        </div>
+                        <div class="master">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="validateWords"
+                                    checked>
+                                <label class="form-check-label" for="validateWords">Valida les paraules formades abans
+                                    de
+                                    desar.</label>
+                            </div>
+                        </div>
+                        <span class="border-bottom"></span>
+                        <h3>Jugada a enviar</h3>
+                        <p>S'anirà formant la jugada a mesura que triis fitxes dels faristol o escriguis la paraula al
+                            formulari.</p>
+                        <div class="mb-3">
+
+                            <div id="tileButtons"></div>
+                            <input type="hidden" id="scraps" value="[]">
+                            <label class="form-label">Pitja sobre la fitxa que és un escarràs, si n'has usat
+                                algun.</label>
                         </div>
                     </div>
-                    <div class="master">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="validateWords" checked>
-                            <label class="form-check-label" for="validateWords">Valida les paraules formades abans de
-                                desar.</label>
-                        </div>
-                    </div>
-                    <span class="border-bottom"></span>
-                    <h3>Jugada a enviar</h3>
-                    <p>S'anirà formant la jugada a mesura que triis fitxes dels faristol o escriguis la paraula al
-                        formulari.</p>
-                    <div class="mb-3">
-
-                        <div id="tileButtons"></div>
-                        <input type="hidden" id="scraps" value="[]">
-                        <label class="form-label">Pitja sobre la fitxa que és un escarràs, si n'has usat algun.</label>
-                    </div>
-                    </div>
-                   <!--  ------------------------------------ -->
+                    <!--  ------------------------------------ -->
                     <h4 id="score-master" class="master"></h4>
                     <div class=" mb-3">
                         <button type="submit" class="btn btn-primary w-100 btn-lg" id="submitWordBtn"><i
@@ -454,6 +532,8 @@
 
     <script src="classificacio.js" type="module"></script>
     <script src="login.js" type="module"></script>
+
+
 
 
 
