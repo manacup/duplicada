@@ -16,6 +16,22 @@ const firebaseConfig = {
     appId: "1:835862262761:web:4465dadd41f0f31edd1178"
 
 };
+/*   const firebaseConfig = {
+
+    apiKey: "AIzaSyBbWqeWhQgK5C0Ioj7-uSNx9q0i8VZmIJM",
+
+    authDomain: "duplicadaporreres.firebaseapp.com",
+
+    projectId: "duplicadaporreres",
+
+    storageBucket: "duplicadaporreres.firebasestorage.app",
+
+    messagingSenderId: "835862262761",
+
+    appId: "1:835862262761:web:4465dadd41f0f31edd1178"
+
+  }; */
+
 
 // Inicialitza Firebase només si no està inicialitzat
 if (!window.firebase?.apps?.length) {
@@ -56,6 +72,7 @@ async function exportData() {
         if (formDoc.exists) {
             data.appStatusForm = formDoc.data();
         }
+
 
         // Get appStatus/clock
         const clockDoc = await clockRef.get();
@@ -129,3 +146,5 @@ export {
     clockRef,
     exportData
 };
+
+
