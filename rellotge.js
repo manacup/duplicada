@@ -9,7 +9,7 @@ const storedTable = localStorage.getItem('playerTable');
 const TEMPS_TOTAL = 300; // segons
 
 function isAdmin() {
-  return storedTable && storedTable.toLowerCase() === 'administrador';
+  return window.isAdmin//storedTable && storedTable.toLowerCase() === 'administrador';
 }
 //console.log("isAdmin",isAdmin());
 // Si no és administrador, afegeix la classe countdownSlave
@@ -58,24 +58,28 @@ async function resetTimer() {
   });
 }
 
-if (isAdmin()) {
+/* if (isAdmin()) {
+  console.log("Sóc admin, assignant listeners als botons!");
   if (startBtn) startBtn.addEventListener('click', startTimer);
   if (stopBtn) stopBtn.addEventListener('click', stopTimer);
   if (resetBtn) resetBtn.addEventListener('click', resetTimer);
-}
+} else {
+  console.log("No sóc admin, no assigno listeners.");
+} */
 
 // --- FUNCIONS ESCLAU I MASTER (VISUALITZACIÓ) ---
 
 let interval;
 clockRef.onSnapshot((snapshot) => {
   const data = snapshot.data();
-  if (!data || (!data.startTime && !data.timeLeft)) return;
+  if (!data || (data.startTime === null && (data.timeLeft === undefined || data.timeLeft === null))) return;
 
   clearInterval(interval);
 
   function updateDisplay() {
     let timeLeft;
     if (data.running && data.startTime) {
+      // Calcula el temps restant
       const now = Date.now();
       timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
     } else {
@@ -101,8 +105,8 @@ clockRef.onSnapshot((snapshot) => {
         setTimeout(() => { pipSound?.play(); }, i * 200);
       }
       clearInterval(interval);
-      stopTimer()
-      resetTimer()
+      stopTimer();
+      resetTimer();
     }
   }
 
@@ -111,3 +115,10 @@ clockRef.onSnapshot((snapshot) => {
     interval = setInterval(updateDisplay, 1000);
   }
 });
+
+// rellotge.js
+export function assignClockListeners() {
+  if (startBtn) startBtn.addEventListener('click', startTimer);
+  if (stopBtn) stopBtn.addEventListener('click', stopTimer);
+  if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+}

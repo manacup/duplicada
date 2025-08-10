@@ -88,7 +88,7 @@ function showRound(idx) {
     if (rondaDisplay) rondaDisplay.textContent = `Ronda ${roundId}`;
     if (editRackInput) editRackInput.value = displayWord(round?.rack || ""); // Use displayWord to format the rack
     renderRackTiles(round?.rack || "");
-    if (round?.board) {
+    if (round?.board && round?.closed) {
       console.log("recarrega tauler")
       // Assuming round.board is a flattened 1D array, reconstruct the 2D array (15x15)
       const reconstructedBoard = reconstructBoard(round.board, 15, 15);
@@ -470,8 +470,7 @@ function updateUIForCurrentRound(round, isLastRound) {
   const buttons = mainContent.querySelectorAll("button");
 
   const inputs = mainContent.querySelectorAll("input");
-  let administrador =
-    tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
+  let administrador = tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
 
   formEnabledRef.onSnapshot((doc) => { // Use onSnapshot for formEnabledRef
     const enabled = doc.data()?.enabled; // Assuming 'enabled' field in the document

@@ -1,5 +1,6 @@
 import { jugadorsCollectionRef } from './firebase.js';
 import {loadRoundsHistory} from "./gestioRondes.js"
+import { assignClockListeners } from './rellotge.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
@@ -19,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const storedDesaSessio = localStorage.getItem('desaSessio');
   //console.log(storedName,storedTable,storedDesaSessio);
   // Suggested code may be subject to a license. Learn more: ~LicenseLog:3360188146.
-  if (storedDesaSessio) {
+  if (storedDesaSessio) { 
 
    // Omple el camp player del formulari principal si existeix
    loginName.value = storedName;
@@ -101,4 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRoundsHistory();
    });
   }
+
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const taula = document.getElementById('loginTable').value.trim().toLowerCase();
+    window.isAdmin = (taula === 'administrador');
+    // ...segueix amb el login...
+    if (window.isAdmin) {
+      if (typeof assignClockListeners === "function") assignClockListeners();
+    }
+  });
 });
