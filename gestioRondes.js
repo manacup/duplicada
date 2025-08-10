@@ -522,6 +522,8 @@ function updateUIForCurrentRound(round, isLastRound) {
       "novaRondaBtn",
       "obreRondaBtn",
       "deleteRondaBtn",
+      "deleteFaristolBtn",
+      "shuffleFaristolBtn",
     ];
 
     if (!administrador)
