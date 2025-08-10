@@ -99,7 +99,7 @@ function showRound(idx) {
     //console.log("actualPlayer", actualPlayer);
     
       fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
-    
+    wordInput.dispatchEvent(new Event("input"))
     updateSac();
     updateRemainingTiles();
     showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well

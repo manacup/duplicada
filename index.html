@@ -324,8 +324,10 @@
             <!-- Formulari jugada mestra -->
             <section id="masterForm-section">
 
-                <form id="wordForm">
-                    <h3>Formulari</h3>
+                <form id="wordForm" >
+                    <h3 data-bs-toggle="collapse" data-bs-target="#collapseFormulari">Formulari</h3>
+                    <div class="collapse" id="collapseFormulari">
+                        
                     <div class="form-label master" id="playerLabel">
                         <label for="player" class="form-label">Jugador:</label>
 
@@ -385,6 +387,8 @@
                         <input type="hidden" id="scraps" value="[]">
                         <label class="form-label">Pitja sobre la fitxa que és un escarràs, si n'has usat algun.</label>
                     </div>
+                    </div>
+                   <!--  ------------------------------------ -->
                     <h4 id="score-master" class="master"></h4>
                     <div class=" mb-3">
                         <button type="submit" class="btn btn-outline-primary w-100 btn-lg" id="submitWordBtn"><i

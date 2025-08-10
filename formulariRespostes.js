@@ -26,6 +26,7 @@ const coordsInput = document.getElementById("coords");
 const directionInput = document.getElementById("direction");
 const deleteFaristolBtn = document.getElementById("deleteFaristolBtn");
 const respostaMessage = document.getElementById("respostaMessage");
+const submitWordBtn = document.getElementById("submitWordBtn");
 let ENABLE_WORD_VALIDATION = document.getElementById("validateWords");
 
 //console.log("ENABLE_WORD_VALIDATION", ENABLE_WORD_VALIDATION.checked);
@@ -271,7 +272,8 @@ async function fillFormDataFromRoundAndPlayer2(roundId, player) {
 }
 
 // Envia la resposta
-wordForm.addEventListener("submit", async (e) => {
+//wordForm.addEventListener("submit", async (e) => {
+  submitWordBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   respostaMessage.textContent = "";
 
