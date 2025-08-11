@@ -109,12 +109,14 @@ function showRound(idx) {
       const reconstructedBoard = reconstructBoard(round.board, 15, 15);
       renderBoard(reconstructedBoard);
     }
+      
+    
 
     carregaLlistaJugador();
     //console.log("actualPlayer", actualPlayer);
     
       fillFormDataFromRoundAndPlayer(roundId, actualPlayer);
-   
+   escampaClick()
     updateSac();
     updateRemainingTiles();
     showResultats(roundId); // Assuming showResultats uses the new Firestore structure as well

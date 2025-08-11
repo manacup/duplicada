@@ -181,6 +181,7 @@ async function fillFormDataFromRoundAndPlayer(roundNumber, playerId) {
     }
   } catch (error) {
     console.error("No hi ha dades desades:", error);
+    escampaClick()
     /* respostaMessage.textContent = "Error carregant les dades de la jugada!";
     respostaMessage.className = "alert alert-danger";
     setTimeout(() => {
