@@ -574,3 +574,218 @@ body {
   box-sizing: border-box;
   padding: 0;
 }
+   /* Barra superior fixa per a mòbil */
+        #topbar-mobile {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 2000;
+            background: #fff;
+            border-bottom: 1px solid #ccc;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 0.3rem 0.7rem;
+        }
+
+        #topbar-mobile .dropdown-toggle {
+            min-width: 90px;
+        }
+
+        #topbar-mobile .timer-mobile {
+            font-weight: bold;
+            font-size: 1.2em;
+
+            
+
+        }
+        #topbar-mobile .timer-mobile::before {
+                content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 1 .5.5v4.25l3.5 2.1a.5.5 0 0 1-.5.85l-3.75-2.25A.5.5 0 0 1 7.5 8V4a.5.5 0 0 1 .5-.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/></svg>');
+                margin-right: 0.3em;
+            }
+
+        @media (max-width: 991px) {
+            #topbar-mobile {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            body {
+                padding-top: 56px;
+                 padding-bottom: 56px;
+            }
+            #roundControls, #titol {
+                display: none;
+            }
+            #submitWordBtn {
+                    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+                    
+                    border: none;
+                    border-radius: 0;
+                   
+    
+    z-index: 1030;
+            }
+        }
+
+        .main-grid {
+            overflow-x: hidden;
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            grid-template-areas:
+                "titol titol"
+                "gestio rellotge"
+                "tauler rellotge"
+                "tauler faristol"
+                "tauler master"
+                "respostes respostes"
+                "classificacio classificacio"
+                "sac sac";
+            gap: 2rem;
+        }
+
+        .main-grid.mode-pantalla #gestio-section,
+        .main-grid.mode-pantalla #faristolInput,
+        .main-grid.mode-pantalla #clockBtn,
+        .main-grid.mode-pantalla #master-section,
+        .main-grid.mode-pantalla #masterForm-section,
+        .main-grid.mode-pantalla #faristolBtn {
+            display: none !important;
+            /* Oculta el sac i allibera el seu espai */
+        }
+
+
+        @media (max-width: 991px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    
+                    "gestio"
+                    "rellotge"
+                    "tauler"
+                    "faristol"
+                    "master"
+                    "respostes"
+                    "classificacio"
+                    "sac";
+                gap: 0rem;
+            }
+
+            .countdownSlave {
+                display: none;
+                /* position: fixed;
+                top: 0px;
+                right: 0px;
+                font-size: 1em !important;
+                background: #b4e6ae;
+                z-index: 10000;
+                margin: 20px;
+                padding: 10px;
+                border-radius: 5px;
+                border: 1px solid black;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                pointer-events: none;
+                font-weight: bold; */
+            }
+
+            .countdownSlave.paused {
+                background: #ffffff;
+                font-weight: normal;
+            }
+        }
+
+        @media (min-width: 1400px) {
+
+            .main-grid {
+                display: grid;
+                grid-template-columns: 2fr 3fr 2fr;
+
+                grid-template-areas:
+                    "titol titol titol"
+                    "faristol gestio rellotge"
+                    "faristol tauler rellotge"
+                    "faristol tauler respostes"
+                    "master tauler respostes"
+                    "master tauler respostes"
+                    "classificacio classificacio classificacio"
+                    "sac  sac sac"
+                ;
+                gap: 2rem;
+            }
+
+            .main-grid.mode-pantalla {
+                display: grid;
+                grid-template-columns: 2fr 2.5fr;
+                grid-template-areas:
+                    "titol titol"
+                    "tauler rellotge"
+                    "tauler faristol"
+                    "tauler faristol"
+                    "tauler faristol"
+                    "respostes respostes"
+                    "classificacio classificacio"
+                    "sac sac";
+                ;
+                gap: 2rem;
+
+                .rack-tile {
+
+
+                    max-width: 100px;
+                    min-width: 24px;
+
+                    font-size: clamp(1.2em, 6vw, 3.5em) !important;
+
+
+                }
+
+                #countdown {
+                    font-size: 5em !important;
+                }
+            }
+
+        }
+
+        #titol {
+            grid-area: titol;
+        }
+
+        #tauler-section {
+            grid-area: tauler;
+        }
+
+        #gestio-section {
+            grid-area: gestio;
+        }
+
+        #respostes-section {
+            grid-area: respostes;
+        }
+
+        #masterForm-section {
+            grid-area: master;
+        }
+
+        #faristol-section {
+            grid-area: faristol;
+        }
+
+        #rellotge-section {
+            grid-area: rellotge;
+        }
+
+        #classificacio-section {
+            grid-area: classificacio;
+            max-width: 100%;
+            /* o el valor que vulguis */
+            overflow-x: auto;
+        }
+
+        #sac-section {
+            grid-area: sac;
+        }
