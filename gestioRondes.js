@@ -512,9 +512,10 @@ function updateUIForCurrentRound(round, isLastRound) {
       if (obreRondaBtn) obreRondaBtn.style.display = "none";
       if (deleteRondaBtn) deleteRondaBtn.style.display = "block";
 
-      // AMAGA seccions de resultats i classificació quan la ronda està oberta
-      if (resultatsSection) resultatsSection.style.display = "none";
-      if (classificacioSection) classificacioSection.style.display = "none";
+      // AMAGA seccions de resultats i classificació quan la ronda està oberta,
+      // EXCEPTE si és administrador
+      if (resultatsSection) resultatsSection.style.display = administrador ? "block" : "none";
+      if (classificacioSection) classificacioSection.style.display = administrador ? "block" : "none";
 
       // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
       const buttons = document.querySelectorAll("button");
