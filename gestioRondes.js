@@ -46,7 +46,7 @@ let currentRoundIndex = -1;
 // Carrega l'historial de rondes
 function loadRoundsHistory() {
   // Order by 'roundNumber' assuming you will add this field when creating a round
-  roundsCollectionRef.orderBy('roundNumber').onSnapshot((snapshot) => { // Changed from onSnapshot to get()
+  roundsCollectionRef.orderBy('roundNumber').onSnapshot((snapshot) => { 
     roundsList = [];
     snapshot.docs.forEach(doc => {
       roundsList.push(doc.id); // Use document ID as round ID
@@ -62,6 +62,7 @@ function loadRoundsHistory() {
       
     }
     updateRoundsDropdown()
+    escampaClick()
   }, (error) => {
     console.error("Error loading rounds history:", error);
   });
@@ -69,7 +70,18 @@ function loadRoundsHistory() {
 
 
 let openRound = false; // Variable per controlar si la ronda està oberta
-
+function escampaClick(){
+  console.log("click al tauler")
+      // Simula un toc al tauler: busca la primera cel·la buida i dispara un esdeveniment de clic
+      const boardElement = document.getElementById("tauler");
+      if (boardElement) {
+        const emptyCell = boardElement.querySelector(".board-cell");
+        if (emptyCell) {
+          emptyCell.dispatchEvent(new Event("click", { bubbles: true }));
+        }
+      }
+      wordInput.dispatchEvent(new Event("input"))
+}
 
 // Mostra una ronda específica
 function showRound(idx) {
@@ -111,7 +123,7 @@ function showRound(idx) {
   }, (error) => {
     console.error("Error showing round:", error);
   });
-   wordInput.dispatchEvent(new Event("input"))
+  
 }
 // Function to reconstruct a 2D board from a flattened 1D array
 function reconstructBoard(flattenedBoard, rows, cols) {
@@ -260,7 +272,7 @@ async function addNewRound() { // Made async to handle promises from Firestore r
     //console.log("lastWord:", lastWord);
     //console.log("lastCoordinates:", lastCoordinates);
     //console.log("lastDirection:", lastDirection);
-    wordInput.dispatchEvent(new Event("input"))
+    
 }
 
 

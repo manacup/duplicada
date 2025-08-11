@@ -33,7 +33,7 @@
                     <div class="mb-3">
                         <label for="loginName" class="form-label">Nom</label>
                         <input type="text" class="form-control" id="loginName" name="loginName" required
-                            autocomplete="username">
+                            autocomplete="username" list="jugadorslistOptions">
                     </div>
                     <div class="mb-3">
                         <label for="loginTable" class="form-label">Taula</label>
@@ -274,7 +274,7 @@
                         </div>
                     </div>
                     <!--  ------------------------------------ -->
-                    <h4 id="score-master" class="master"></h4>
+                    
                     <div class=" mb-3">
                         <button type="submit" class="btn btn-primary w-100 btn-lg" id="submitWordBtn"><i
                                 class="bi bi-send-check me-2"></i>Envia la resposta</button>
@@ -283,6 +283,11 @@
                 </form>
                 <div id="respostaMessage" class="mb-3"></div>
             </section>
+            <!-- secció punts    -->
+            <section id="score-section" class="master">
+                <h1 id="score-master" ></h1>
+                </section>
+               
         </div>
     </div>
     <!-- modal per triar escarràs   -->

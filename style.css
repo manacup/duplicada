@@ -648,6 +648,7 @@ body {
     "tauler rellotge"
     "tauler faristol"
     "tauler master"
+    "tauler punts"
     "respostes respostes"
     "classificacio classificacio"
     "sac sac";
@@ -673,6 +674,7 @@ body {
       "tauler"
       "faristol"
       "master"
+      "punts"
       "respostes"
       "classificacio"
       "sac";
@@ -714,6 +716,7 @@ body {
       "faristol tauler respostes"
       "master tauler respostes"
       "master tauler respostes"
+      "punts tauler respostes"
       "classificacio classificacio classificacio"
       "sac  sac sac";
     gap: 2rem;
@@ -727,7 +730,7 @@ body {
       "tauler rellotge"
       "tauler faristol"
       "tauler faristol"
-      "tauler faristol"
+      "tauler punts"
       "respostes respostes"
       "classificacio classificacio"
       "sac sac";
@@ -787,14 +790,11 @@ body {
 #sac-section {
   grid-area: sac;
 }
-/* .responsive-scroll-x {
-  width: 100%;
+#score-section {
+  grid-area: punts;
+  max-width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
-.responsive-scroll-x table {
-  min-width: 600px;
-} */
  
 .responsive-scroll-x {
   border: 2px solid red;
