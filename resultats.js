@@ -68,8 +68,8 @@ function renderResultats(round) {
 
         const table = document.createElement('table');
         table.className = 'table';            
-        table.classList.add('table-hover');
-        table.innerHTML = '<thead><tr><th>Taula</th><th>Jugador</th><th>Coord.</th><th>Paraula</th><th>Punts</th></tr></thead>';
+        table.classList.add('table-hover');        
+        table.innerHTML = '<thead><tr><th>Taula</th><th class="sticky-col">Jugador</th><th>Coord.</th><th>Paraula</th><th>Punts</th><th></th></tr></thead>';
 
         
 
@@ -83,7 +83,7 @@ sortedResults.forEach(([player, data]) => {
     table.innerHTML += `
       <tr data-coords="${coordinatesDisplay}" data-word="${data.word}" data-scraps="${data.scraps}" data-player="${player}">
         <td>${tableDisplay}</td>
-        <td>${player}</td>
+        <td class="sticky-col">${player}</td>
         <td>${coordinatesDisplay}</td>
         <td>${wordDisplay}</td>
         <td>${scoreDisplay}</td>
@@ -93,9 +93,13 @@ sortedResults.forEach(([player, data]) => {
           </button>
         </td>
       </tr>`;
+     
 });
 
-        resultatsDiv.appendChild(table);
+        const responsiveDiv = document.createElement('div');
+        responsiveDiv.className = 'table-responsive';
+        responsiveDiv.appendChild(table);
+        resultatsDiv.appendChild(responsiveDiv);
         // Afegir event listener per a cada fila
         const rows = table.querySelectorAll('tr');
         rows.forEach((row) => {

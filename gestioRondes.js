@@ -482,29 +482,39 @@ if (obreRondaBtn) {
 function updateUIForCurrentRound(round, isLastRound) {
   const mainContent = document.getElementById("main-content");
   const buttons = mainContent.querySelectorAll("button");
-
   const inputs = mainContent.querySelectorAll("input");
   let administrador = tableInput.value.trim().toLowerCase() == "administrador" ? true : false;
 
-  formEnabledRef.onSnapshot((doc) => { // Use onSnapshot for formEnabledRef
-    const enabled = doc.data()?.enabled; // Assuming 'enabled' field in the document
+  formEnabledRef.onSnapshot((doc) => {
+    const enabled = doc.data()?.enabled;
+
+    const resultatsSection = document.getElementById("respostes-section");
+    const classificacioSection = document.getElementById("classificacio-section");
 
     if (round.closed) {
       blocaFormulari();
       if (tancaRondaBtn) tancaRondaBtn.style.display = "none";
 
       if (novaRondaBtn)
-        novaRondaBtn.style.display = isLastRound ? "block" : "none"; // Mostra Nova Ronda només si és l'última ronda
+        novaRondaBtn.style.display = isLastRound ? "block" : "none";
       if (obreRondaBtn)
         obreRondaBtn.style.display = isLastRound ? "block" : "none";
       if (deleteRondaBtn)
         deleteRondaBtn.style.display = isLastRound ? "block" : "none";
+
+      // MOSTRA seccions de resultats i classificació per a tothom si la ronda està tancada
+      if (resultatsSection) resultatsSection.style.display = "block";
+      if (classificacioSection) classificacioSection.style.display = "block";
     } else {
       // Si la ronda està oberta
       if (tancaRondaBtn) tancaRondaBtn.style.display = "block";
       if (novaRondaBtn) novaRondaBtn.style.display = "none";
       if (obreRondaBtn) obreRondaBtn.style.display = "none";
       if (deleteRondaBtn) deleteRondaBtn.style.display = "block";
+
+      // AMAGA seccions de resultats i classificació quan la ronda està oberta
+      if (resultatsSection) resultatsSection.style.display = "none";
+      if (classificacioSection) classificacioSection.style.display = "none";
 
       // Activa tots els botons i inputs (excepte els de navegació que sempre estan actius si cal)
       const buttons = document.querySelectorAll("button");
@@ -516,13 +526,12 @@ function updateUIForCurrentRound(round, isLastRound) {
         input.disabled = false;
       });
     }
-     if (!enabled) { // Check the 'enabled' field
+    if (!enabled) {
       blocaFormulari();
-     }
+    }
   }, (error) => {
     console.error("Error listening to formEnabled:", error);
   });
-
 
   function blocaFormulari() {
 

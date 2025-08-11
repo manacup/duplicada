@@ -4,7 +4,12 @@ import {
 function displayRanking(numRondesToShow) {
   //console.log("roundid", numRondesToShow);
   generateRankingTable(numRondesToShow, (rankingTable) => {
-    document.getElementById('rankingContainer').innerHTML = rankingTable; // Replace 'rankingContainer' with the ID of the element where you want to display the table
+    const container = document.getElementById('rankingContainer');
+    container.innerHTML = '';
+    const responsiveDiv = document.createElement('div');
+    responsiveDiv.className = 'table-responsive ';
+    responsiveDiv.innerHTML = rankingTable;
+    container.appendChild(responsiveDiv);
   });
 }
 
@@ -57,8 +62,7 @@ async function generateRankingTable(numRondes, callback) {
 
   // Generate the table HTML
   let tableHtml = '<table class="table">';
-  tableHtml += '<thead><tr><th class="sticky-col">Jugador</th>';
-    
+  tableHtml += '<thead><tr><th class="sticky-col sticky-col-1">#</th><th class="sticky-col sticky-col-2">Jugador</th>';
 
   // Add headers for each round
   for (let i = 1; i <= roundsToProcess; i++) {
@@ -78,22 +82,34 @@ async function generateRankingTable(numRondes, callback) {
     }
     
   // Add rows for each player
-  for (const player of sortedPlayers) {
+  for (let idx = 0; idx < sortedPlayers.length; idx++) {
+    const player = sortedPlayers[idx];
     tableHtml += '<tr>';
-    tableHtml += `<td class="sticky-col">${player}</td>`;
+    tableHtml += `<td class="sticky-col sticky-col-1">${masterPlay && player === masterPlay ? '-' : idx + 1}</td>`;
+    tableHtml += `<td class="sticky-col sticky-col-2">${player}</td>`;
 
-    // Add scores for each round
+    // Add scores for each round, marcant en negreta si iguals al masterPlay
     let playerTotalForDisplay = 0;
     for (let i = 0; i < roundsToProcess; i++) {
-      const score = playerRoundScores[player] && playerRoundScores[player][i] !== undefined ? playerRoundScores[player][i] : 0; // Handle cases where a player didn't play a round
-      tableHtml += `<td>${score}</td>`;
+      const score = playerRoundScores[player] && playerRoundScores[player][i] !== undefined ? playerRoundScores[player][i] : 0;
+      let cellContent = score;
+      if (
+        masterPlay &&
+        player !== masterPlay &&
+        playerRoundScores[masterPlay] &&
+        playerRoundScores[masterPlay][i] !== undefined &&
+        score === playerRoundScores[masterPlay][i]
+      ) {
+        cellContent = `<strong>${score}</strong>`;
+      }
+      tableHtml += `<td>${cellContent}</td>`;
       playerTotalForDisplay += score;
     }
 
     tableHtml += `<td>${playerTotalForDisplay}</td>`;
 
     // Calculate and add percentage of highest score
-    const percentage = (highestScore > 0) ? (playerTotalForDisplay / highestScore) * 100 : 0; // Handle division by zero
+    const percentage = (highestScore > 0) ? (playerTotalForDisplay / highestScore) * 100 : 0;
     tableHtml += `<td>${percentage.toFixed(2)}%</td>`;
 
     tableHtml += '</tr>';
