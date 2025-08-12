@@ -182,11 +182,30 @@ function reconstructBoard(flattenedBoard, rows, cols) {
     return board;
   }
 
-// Exemple d'ús:
-// const {row: nextRow, col: nextCol} = getNextCell(7, 7, "horizontal", "CASA");
+/**
+ * Converteix una paraula amb caràcters ficticis (Ł, Ý, Û, etc.) a dígrafs humans (L·L, NY, QU)
+ * Manté la minúscula si la lletra fictícia és minúscula.
+ * Ex: "ŁA" => "L·LA", "łA" => "l·la", "ÝA" => "NYA", "ýA" => "nya"
+ */
+function toHumanDigraphs(word) {
+    if (!word) return '';
+    let result = '';
+    for (let i = 0; i < word.length; i++) {
+        const c = word[i];
+        switch (c) {
+            case 'Ł': result += 'L·L'; break;
+            case 'ł': result += 'l·l'; break;
+            case 'Ý': result += 'NY'; break;
+            case 'ý': result += 'ny'; break;
+            case 'Û': result += 'QU'; break;
+            case 'û': result += 'qu'; break;
+            default: result += c;
+        }
+    }
+    return result;
+}
 
-// Centralitza funcions compartides
-export { reconstructBoard,splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord,getNextCell };
+export { reconstructBoard,splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord,getNextCell , toHumanDigraphs};
 
 export {
     DIGRAPH_MAP,

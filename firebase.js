@@ -138,13 +138,154 @@ async function initializeDatabase() {
 // Call the initialization function when the script loads
 initializeDatabase();
 
+document.getElementById('exportDataBtn').addEventListener('click', exportEliotGameXML);
+
+
+import { toHumanDigraphs } from './utilitats.js';
+
+async function exportEliotGameXML() {
+    const roundsSnapshot = await roundsCollectionRef.orderBy('roundNumber').get();
+    const jugadorsSnapshot = await jugadorsCollectionRef.get();
+
+    // Prepara dades de jugadors
+    let jugadors = jugadorsSnapshot.docs.map((doc, idx) => ({
+        id: idx,
+        name: doc.data().name || doc.id,
+        table: doc.data().table || '',
+    }));
+
+    // Troba i tracta "Jugada mestra" com a "Eliot"
+    let eliotIdx = jugadors.findIndex(j => j.name.trim().toLowerCase() === "jugada mestra");
+    if (eliotIdx !== -1) {
+        jugadors[eliotIdx].name = "Eliot";
+        jugadors[eliotIdx].type = "computer";
+        jugadors[eliotIdx].level = 100;
+    }
+
+    const rounds = roundsSnapshot.docs.map(doc => doc.data());
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<EliotGame format="2">\n`;
+
+    // Diccionari
+    xml += `    <Dictionary>\n`;
+    xml += `        <Name>DISC 2.17.24</Name>\n`;
+    xml += `        <Type>dawg</Type>\n`;
+    xml += `        <Letters>A B C Ç D E F G H I J L L·L M N NY O P QU R S T U V X Z ?</Letters>\n`;
+    xml += `        <WordNb>583405</WordNb>\n`;
+    xml += `    </Dictionary>\n`;
+
+    // Jugadors
+    xml += `    <Game>\n`;
+    xml += `        <Mode>arbitration</Mode>\n`;
+    jugadors.forEach((jug, idx) => {
+        xml += `        <Player id="${idx}">\n`;
+        xml += `            <Name>${jug.name}</Name>\n`;
+        if (jug.name === "Eliot") {
+            xml += `            <Type>computer</Type>\n`;
+            xml += `            <Level>100</Level>\n`;
+        } else {
+            xml += `            <Type>human</Type>\n`;
+        }
+        xml += `            <TableNb>${jug.table}</TableNb>\n`;
+        xml += `        </Player>\n`;
+    });
+    xml += `        <Turns>${rounds.length}</Turns>\n`;
+    xml += `    </Game>\n`;
+
+    // Historial de jugades
+    xml += `    <History>\n`;
+    rounds.forEach((round, roundIdx) => {
+        xml += `        <Turn>\n`;
+
+        // Troba la jugada mestra (Eliot)
+        let masterResult = null;
+        if (round.results) {
+            masterResult = Object.entries(round.results).find(
+                ([playerName]) => playerName.trim().toLowerCase() === "jugada mestra"
+            );
+        }
+
+          xml += `            <MasterMove points="0" type="none" />\n`;
+       
+        // GameRack
+        if (round.rack) {
+            xml += `            <GameRack>${toHumanDigraphs(round.rack)}</GameRack>\n`;
+        }
+         
+        // PlayerRack per a cada jugador
+        jugadors.forEach((jug, idx) => {
+            let playerRack = '';
+            if (round.playerRacks && round.playerRacks[jug.name]) {
+                playerRack = toHumanDigraphs(round.playerRacks[jug.name]);
+            } else if (round.rack) {
+                playerRack = toHumanDigraphs(round.rack);
+            }
+            xml += `            <PlayerRack playerId="${idx}">${playerRack}</PlayerRack>\n`;
+        });
+
+         
+
+
+        // PlayerMove per a cada jugador (encara que no hagi jugat)
+        jugadors.forEach((jug, idx) => {
+            let data = null;
+            if (round.results && round.results[jug.name]) {
+                data = round.results[jug.name];
+            } else if (jug.name === "Eliot" && round.results) {
+                // Si el jugador és Eliot, busca per "Jugada mestra"
+                const master = Object.entries(round.results).find(
+                    ([playerName]) => playerName.trim().toLowerCase() === "jugada mestra"
+                );
+                if (master) data = master[1];
+            }
+            if (data) {
+                xml += `            <PlayerMove playerId="${idx}" points="${data.score || 0}" type="${data.score === 0 ? 'none' : 'valid'}"${data.word ? ` word="${toHumanDigraphs(data.word)}"` : ''}${data.coordinates ? ` coord="${data.coordinates}"` : ''} />\n`;
+            } else {
+                xml += `            <PlayerMove playerId="${idx}" points="0" type="none" />\n`;
+            }
+        });
+
+   
+
+        // Només afegeix MasterMove i GameMove finals si la ronda està tancada
+        if (round.closed) {
+            if (masterResult) {
+                const data = masterResult[1];
+                xml += `            <MasterMove points="${data.score || 0}" type="${data.score === 0 ? 'none' : 'valid'}"${data.word ? ` word="${toHumanDigraphs(data.word)}"` : ''}${data.coordinates ? ` coord="${data.coordinates}"` : ''} />\n`;
+                xml += `            <GameMove points="${data.score || 0}" type="${data.score === 0 ? 'none' : 'valid'}"${data.word ? ` word="${toHumanDigraphs(data.word)}"` : ''}${data.coordinates ? ` coord="${data.coordinates}"` : ''} />\n`;
+            } else {
+                xml += `            <MasterMove points="0" type="none" />\n`;
+                xml += `            <GameMove points="0" type="none" />\n`;
+            }
+        }
+
+        xml += `        </Turn>\n`;
+    });
+    xml += `    </History>\n`;
+
+    xml += `</EliotGame>\n`;
+
+    // Descarrega el fitxer
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'resultats_eliot.xml';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+
 export {
     gameInfoRef,
     roundsCollectionRef,
     jugadorsCollectionRef,
     formEnabledRef,
     clockRef,
-    exportData
+    exportData,
+    exportEliotGameXML
 };
 
 
