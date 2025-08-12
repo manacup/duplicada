@@ -20,7 +20,8 @@ import {
   calculateFullPlayScore,
 } from "./calcul.js";
 import { updateRackTilesPreview, renderRackTiles } from "./rackTile.js";
-import { findBestPlays, loadWordList } from "./millorJugada.js";
+import { findBestPlays, loadWordList, } from "./millorJugada.js";
+import { findBestPlaysTrie, loadTrie } from "./millorJugadaTrie.js";
 
 const wordForm = document.getElementById("wordForm");
 const playerInput = document.getElementById("player");
@@ -877,15 +878,16 @@ async function mostraMillorsJugades(numResultats = 10) {
     return;
   }
   // Carrega el diccionari si cal
-  await loadWordList("dicc/DISC2-Eliot.txt");
+  //await loadWordList("dicc/DISC2-Eliot.txt");
+  loadTrie("dicc/DISC2-Eliot.trie.json");
   // Troba les millors jugades
  
-  const jugades = await findBestPlays(
+  const jugades = await findBestPlaysTrie(//findBestPlays(
     boardBeforeMasterPlay,
     currentRack,
     letterValues,
     multiplierBoard,
-    "dicc/DISC2-Eliot.txt",
+    "dicc/DISC2-Eliot.trie.json",
     numResultats
   );
   // Mostra-les per consola o a la UI
@@ -909,6 +911,8 @@ async function mostraMillorsJugades(numResultats = 10) {
 document
   .getElementById("btnMillorsJugades")
   ?.addEventListener("click", () => mostraMillorsJugades(100));
+
+
 
 export {
   fillFormDataFromRoundAndPlayer,
