@@ -3,6 +3,7 @@ import { displayWord } from './utilitats.js'; // Assegura't que toInternalWord e
 import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
 const resultatsDiv = document.getElementById('resultats');
 const rondaDisplay = document.getElementById('roundDisplay');
+const tableInput = document.getElementById("taula");
 
 
 let currentRoundId = null;
@@ -80,6 +81,7 @@ sortedResults.forEach(([player, data]) => {
     const coordinatesDisplay = data.coordinates || '';
     const wordDisplay = data.word ? displayWord(data.word,data.scraps) : '';
     const scoreDisplay = data.score !== undefined ? data.score : '';
+    
     table.innerHTML += `
       <tr data-coords="${coordinatesDisplay}" data-word="${data.word}" data-scraps="${data.scraps}" data-player="${player}">
         <td>${tableDisplay}</td>
@@ -88,9 +90,11 @@ sortedResults.forEach(([player, data]) => {
         <td>${wordDisplay}</td>
         <td>${scoreDisplay}</td>
         <td>
-          <button type="button" class="btn btn-link btn-sm p-0 edit-result-btn" title="Edita" data-player="${player}">
-            <i class="bi bi-pencil"></i>
-          </button>
+          ${tableInput.value.trim().toLowerCase() == "administrador" ? `
+            <button type="button" class="btn btn-link btn-sm p-0 edit-result-btn" title="Edita" data-player="${player}">
+              <i class="bi bi-pencil"></i>
+            </button>
+          ` : ''}
         </td>
       </tr>`;
      

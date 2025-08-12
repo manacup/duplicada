@@ -85,7 +85,7 @@ async function generateRankingTable(numRondes, callback) {
   for (let idx = 0; idx < sortedPlayers.length; idx++) {
     const player = sortedPlayers[idx];
     tableHtml += '<tr>';
-    tableHtml += `<td class="sticky-col sticky-col-1">${masterPlay && player === masterPlay ? '-' : idx + 1}</td>`;
+    tableHtml += `<td class="sticky-col sticky-col-1">${masterPlay && player === masterPlay ? '-' : idx}</td>`;
     tableHtml += `<td class="sticky-col sticky-col-2">${player}</td>`;
 
     // Add scores for each round, marcant en negreta si iguals al masterPlay
