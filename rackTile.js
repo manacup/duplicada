@@ -1,4 +1,3 @@
-import { gameInfoRef, historyRef } from "./firebase.js";
 import {
   splitWordToTiles,
   displayLetter,
@@ -27,7 +26,7 @@ function renderRackTiles(rackString) {
     // i que Bootstrap està carregat correctament
 
     if (letter === "?") {
-      //console.log("es una fitxa escarràs", div);
+      ////console.log("es una fitxa escarràs", div);
       div.dataset.bsToggle = "modal";
       div.dataset.bsTarget = "#lettersModal"; // Assegura't que el modal té aquest ID
     }
@@ -149,7 +148,7 @@ function enableRackTileInput() {
       return;
     }
     const tile = e.target.closest(".rack-tile");
-    console.log("tile", tile);
+    //console.log("tile", tile);
     if (!tile) return;
     if (tile.classList.contains("scrap")) {
       // Marca/desmarca la fitxa escarràs
@@ -208,11 +207,11 @@ function escriuSeguentFitxa(){
         }
       }
       const nextCell = getNextCell(selectedRow, selectedCol, directionInput.value, normalizeWordInput(wordInput.value));
-      console.log("nextCell", nextCell)
+      //console.log("nextCell", nextCell)
       if (nextCell) {
         const tileAt = getTileAt(nextCell.row, nextCell.col, boardBeforeMasterPlay);
         if (tileAt) {
-          console.log( "tileAt", tileAt);
+          //console.log( "tileAt", tileAt);
           wordInput.value += displayLetter(tileAt.letter); // Afegeix la lletra de la cel·la al camp de coordenades
           //afegeix una fitxa al rack-tile amb lletra i valor de tileAt
           const div = rederTile(tileAt.letter, true);
@@ -261,7 +260,7 @@ function ompleModalWithLetters() {
       
 
       currentScraps.push(normalizeWordInput(wordInput.value).length-1); // Afegeix la posició de la fitxa escarràs
-      console.log("currentScraps", currentScraps,normalizeWordInput(wordInput.value).length);
+      //console.log("currentScraps", currentScraps,normalizeWordInput(wordInput.value).length);
       scrapsInput.value = JSON.stringify(currentScraps);
       wordInput.dispatchEvent(new Event("input"));
 

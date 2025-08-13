@@ -1,13 +1,10 @@
 /* Estils generals */
 body {
-  
   font-family: "Arial", sans-serif;
   background-color: #ffffff0c; /* Un fons gris clar */
   color: #333;
   line-height: 1.6;
 }
-
-
 
 .container {
   margin-bottom: 20px;
@@ -55,8 +52,8 @@ h3 {
 }
 
 /* Fitxa quadrada, petita, estil uniforme */
-.tile-button, .rack-tile{
-  
+.tile-button,
+.rack-tile {
   flex: 1 1 0;
   aspect-ratio: 1 / 1;
   max-width: 60px; /* límit superior per a pantalles grans */
@@ -68,7 +65,7 @@ h3 {
   border: 2px solid #ffedbe;
   background-color: #fff6e0;
   color: #222;
-  font-size:  clamp(0.9em, 6vw, 2em);
+  font-size: clamp(0.9em, 6vw, 2em);
   font-weight: bold;
   border-radius: 6px;
   position: relative;
@@ -82,16 +79,18 @@ h3 {
 }
 
 /* Fitxa seleccionada com escarràs: groc i punt a la cantonada */
-.tile-button.scrap, .rack-tile.scrap {
+.tile-button.scrap,
+.rack-tile.scrap {
   /* background-color: #ffe082;
   border-color: #d39e00;
   color: #222; */
   text-transform: lowercase;
-      font-style: italic;
+  font-style: italic;
 }
 
 /* Opcional: efecte hover */
-.tile-button:hover, .rack-tile:hover {
+.tile-button:hover,
+.rack-tile:hover {
   background-color: #fffaee;
   border-color: #ffeec3;
 }
@@ -135,7 +134,7 @@ h3 {
   z-index: 9999;
   /* min-width: 300px; */
   width: 95vw;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   opacity: 1;
   transition: opacity 0.4s;
   pointer-events: auto;
@@ -236,34 +235,34 @@ h3 {
   box-sizing: border-box;
 }
 
- @media (max-width: 575px) {
+@media (max-width: 575px) {
   .board-table {
     /* width: 100vw;
     max-width: 100vw;
     aspect-ratio: 1 / 1; */
-    font-size: 2.5vw; 
-  } 
-}  
+    font-size: 2.5vw;
+  }
+}
 
 /* Colors per a multiplicadors */
 .board-cell.tw {
   background-color: #e74c3c !important;
-  
+
   font-weight: bold;
 }
 .board-cell.dw {
   background-color: #f8bbd0 !important;
-  
+
   font-weight: bold;
 }
 .board-cell.tl {
   background-color: #1976d2 !important;
- 
+
   font-weight: bold;
 }
 .board-cell.dl {
   background-color: #b3e5fc !important;
-  
+
   font-weight: bold;
 }
 
@@ -277,7 +276,7 @@ h3 {
 /* Escarrassos */
 .blank-tile {
   background-color: #ffe4b5 !important;
-  
+
   font-style: italic;
 }
 
@@ -328,22 +327,20 @@ h3 {
 }
 
 .board-cell.new {
-    background-color: #ffe082 !important; /* groc suau */
-    color: #222;
-    font-weight: bold;
+  background-color: #ffe082 !important; /* groc suau */
+  color: #222;
+  font-weight: bold;
 }
 
-
-
 .tile-value {
-    position: absolute;
-    right: 2px;
-    bottom: 0px;
-    font-size: 0.5em;
-    color: #444;
-    opacity: 0.85;
-    font-weight: bold;
-    pointer-events: none;
+  position: absolute;
+  right: 2px;
+  bottom: 0px;
+  font-size: 0.5em;
+  color: #444;
+  opacity: 0.85;
+  font-weight: bold;
+  pointer-events: none;
 }
 
 .rack-tiles {
@@ -361,20 +358,20 @@ h3 {
   grid-template-rows: repeat(10, 1fr);
   gap: 4px;
   margin: 10px 0 20px 0;
-  width: 100%;  
+  width: 100%;
   justify-content: center; /* o space-between si vols repartir */
-  box-sizing: border-box;  
+  box-sizing: border-box;
 }
 
 #scrapButtons {
-   display: grid;
+  display: grid;
   grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(6, 1fr);
   gap: 4px;
   margin: 10px 0 20px 0;
-  width: 100%;  
+  width: 100%;
   justify-content: center; /* o space-between si vols repartir */
-  box-sizing: border-box;  
+  box-sizing: border-box;
 }
 
 /* .rack-tile.scrap {
@@ -402,7 +399,6 @@ h3 {
 
 .timer-container {
   text-align: center;
-  
 }
 #countdown {
   font-size: 4em;
@@ -410,41 +406,51 @@ h3 {
   color: #333;
 }
 
-
-section{
-  
+section {
   background-color: #ffffff; /* Fons gris clar */
   padding: 10px 0 10px 0; /* Espaiat superior i inferior */
   border-color: #ffffff;
- border-bottom: #e4e4e4;
+  border-bottom: #e4e4e4;
   border-style: solid;
-  border-width: 0 0  2px 0 ; /* Només la part superior */
-  
-
+  border-width: 0 0 2px 0; /* Només la part superior */
 }
 
-
-#countdown.warning {
+#countdown.warning,
+.countdownSlave.warning,
+#countdownBar.warning {
   color: red;
 }
-#countdown.paused {
+#countdown.paused,
+#countdownBar.paused {
   color: rgb(128, 128, 128);
 }
 
 .sticky-col {
   position: sticky;
+  background: #fff;
+  z-index: 2;
+}
+.sticky-col-1 {
   left: 0;
-  background: white; /* Recomanat per evitar que es solapi el contingut */
-  z-index: 2;        /* Opcional, per sobreposar la columna sticky */
+  z-index: 3;
+}
+.sticky-col-2 {
+  left: 36px; /* ajusta segons l'amplada real de la primera columna */
+  z-index: 2;
+}
+.table th.sticky-col-1, .table td.sticky-col-1 {
+  min-width: 36px;
+}
+.table th.sticky-col-2, .table td.sticky-col-2 {
+  min-width: 100px;
 }
 
 th {
   background-color: #1d81a8;
   color: #ffffff;
   font-weight: bold;
-  
 }
-.arrow-indicator{
+.arrow-indicator {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -453,56 +459,58 @@ th {
   color: #000000;
   pointer-events: none; /* Evita que l'usuari pugui interactuar amb l'índex */
   z-index: 10000; /* Assegura que l'índex estigui per sobre de la cel·la */
-  
 }
 /* Estils per a l'input group */
-#coords,#taula{
+#coords,
+#taula {
   max-width: 25%;
 }
-#directionLabel{
-  padding: 0% ! important ;
+#directionLabel {
+  padding: 0% !important ;
 }
-.seleccionada{
+.seleccionada {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .board-cell.selected-coord-hor {
   outline: 3px solid #ffb300 !important; /* contorn taronja */
   z-index: 2;
-  
 }
 .board-cell.selected-coord-hor::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50% !important;
   left: -30% !important;
-  transform: translate(calc(-50% + 5px), -50%); /* Ajustar la posició per centrar la fletxa */
+  transform: translate(
+    calc(-50% + 5px),
+    -50%
+  ); /* Ajustar la posició per centrar la fletxa */
   width: 0; /* L'amplada és zero per a una fletxa triangular */
   height: 0; /* L'alçada és zero per a una fletxa triangular */
   border-top: 8px solid transparent; /* Més alt per a una fletxa més gran */
   border-bottom: 8px solid transparent; /* Més alt per a una fletxa més gran */
   border-left: 15px solid rgb(0, 0, 0); /* Més ample per a una fletxa més gran */
   z-index: 3; /* Assegura que la fletxa estigui per sobre del contorn */
-
 }
 .board-cell.selected-coord-ver {
   outline: 3px solid #ffb300 !important; /* contorn taronja */
   z-index: 2;
-  
 }
 .board-cell.selected-coord-ver::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -30% !important; /* Posicionar per sobre de la cel·la */
   left: 50% !important;
-  transform: translate(-50%, calc(-50% + 5px)); /* Centrar horitzontalment i girar per apuntar avall */
+  transform: translate(
+    -50%,
+    calc(-50% + 5px)
+  ); /* Centrar horitzontalment i girar per apuntar avall */
   width: 0; /* L'amplada és zero per a una fletxa triangular */
   height: 0; /* L'alçada és zero per a una fletxa triangular */
-  border-top: 15px solid rgb(0, 0, 0); 
-  border-right: 8px solid transparent; 
-  border-left: 8px solid transparent; 
+  border-top: 15px solid rgb(0, 0, 0);
+  border-right: 8px solid transparent;
+  border-left: 8px solid transparent;
   z-index: 3; /* Assegura que la fletxa estigui per sobre del contorn */
-
 }
 /* Paraula x3 */
 .board-cell.tw:not(.filled)::after {
@@ -573,4 +581,225 @@ body {
   margin: 0 auto;
   box-sizing: border-box;
   padding: 0;
+}
+/* Barra superior fixa per a mòbil */
+#topbar-mobile {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  z-index: 2000;
+  background: #fff;
+  border-bottom: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 0.3rem 0.7rem;
+}
+
+#topbar-mobile .dropdown-toggle {
+  min-width: 90px;
+}
+
+#topbar-mobile .timer-mobile {
+  font-weight: bold;
+  font-size: 1.2em;
+}
+#topbar-mobile .timer-mobile::before {
+  content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 1 .5.5v4.25l3.5 2.1a.5.5 0 0 1-.5.85l-3.75-2.25A.5.5 0 0 1 7.5 8V4a.5.5 0 0 1 .5-.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/></svg>');
+  margin-right: 0.3em;
+}
+
+@media (max-width: 991px) {
+  #topbar-mobile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  body {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+  #roundControls,
+  #titol {
+    display: none;
+  }
+  #submitWordBtn {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    border: none;
+    border-radius: 0;
+
+    z-index: 1030;
+  }
+}
+
+.main-grid {
+  overflow-x: hidden;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-areas:
+    "titol titol"
+    "gestio rellotge"
+    "tauler rellotge"
+    "tauler faristol"
+    "tauler master"
+    "tauler punts"
+    "respostes respostes"
+    "classificacio classificacio"
+    "sac sac";
+  gap: 2rem;
+}
+
+.main-grid.mode-pantalla #gestio-section,
+.main-grid.mode-pantalla #faristolInput,
+.main-grid.mode-pantalla #clockBtn,
+.main-grid.mode-pantalla #master-section,
+.main-grid.mode-pantalla #masterForm-section,
+.main-grid.mode-pantalla #faristolBtn {
+  display: none !important;
+  /* Oculta el sac i allibera el seu espai */
+}
+
+@media (max-width: 991px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "gestio"
+      "rellotge"
+      "tauler"
+      "faristol"
+      "master"
+      "punts"
+      "respostes"
+      "classificacio"
+      "sac";
+    gap: 0rem;
+  }
+
+  .countdownSlave {
+    display: none;
+    /* position: fixed;
+                top: 0px;
+                right: 0px;
+                font-size: 1em !important;
+                background: #b4e6ae;
+                z-index: 10000;
+                margin: 20px;
+                padding: 10px;
+                border-radius: 5px;
+                border: 1px solid black;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                pointer-events: none;
+                font-weight: bold; */
+  }
+
+  .countdownSlave.paused {
+    background: #ffffff;
+    font-weight: normal;
+  }
+}
+
+@media (min-width: 1400px) {
+  .main-grid {
+    display: grid;
+    grid-template-columns: 2fr 3fr 2fr;
+
+    grid-template-areas:
+      "titol titol titol"
+      "rellotge gestio punts"
+      "faristol tauler master"
+      "faristol tauler respostes"
+      "faristol tauler respostes"
+      "faristol tauler respostes"
+      
+      "classificacio classificacio classificacio"
+      "sac  sac sac";
+    gap: 2rem;
+  }
+
+  .main-grid.mode-pantalla {
+    display: grid;
+    grid-template-columns: 2fr 2.5fr;
+    grid-template-areas:
+      "titol titol"
+      "tauler rellotge"
+      "tauler faristol"
+      "tauler faristol"
+      "tauler punts"
+      "respostes respostes"
+      "classificacio classificacio"
+      "sac sac";
+    gap: 2rem;
+
+    .rack-tile {
+      max-width: 100px;
+      min-width: 24px;
+
+      font-size: clamp(1.2em, 6vw, 3.5em) !important;
+    }
+
+    #countdown {
+      font-size: 5em !important;
+    }
+  }
+}
+
+#titol {
+  grid-area: titol;
+}
+
+#tauler-section {
+  grid-area: tauler;
+}
+
+#gestio-section {
+  grid-area: gestio;
+}
+
+
+#masterForm-section {
+  grid-area: master;
+}
+
+#faristol-section {
+  grid-area: faristol;
+}
+
+#rellotge-section {
+  grid-area: rellotge;
+}
+
+#classificacio-section {
+  grid-area: classificacio;
+  max-width: 100%;
+  /* o el valor que vulguis */
+  overflow-x: auto;
+}
+
+#respostes-section {
+    grid-area: respostes;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+#sac-section {
+  grid-area: sac;
+}
+#score-section {
+  grid-area: punts;
+  max-width: 100%;
+  overflow-x: auto;
+}
+ 
+.responsive-scroll-x {
+  border: 2px solid red;
+  background: #eee;
+}
+.responsive-scroll-x table {
+  min-width: 900px;
 }

@@ -1,6 +1,7 @@
-import { clockRef,db } from './firebase.js';
+import { clockRef, formEnabledRef } from './firebase.js';
 
 const countdownElement = document.getElementById('countdown');
+const countdownElementBar = document.getElementById('countdownBar');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -9,49 +10,48 @@ const storedTable = localStorage.getItem('playerTable');
 const TEMPS_TOTAL = 300; // segons
 
 function isAdmin() {
-  return storedTable && storedTable.toLowerCase() === 'administrador';
+  return window.isAdmin//storedTable && storedTable.toLowerCase() === 'administrador';
 }
-console.log("isAdmin",isAdmin());
+//console.log("isAdmin",isAdmin());
 // Si no és administrador, afegeix la classe countdownSlave
 if(!isAdmin()) countdownElement.classList.add('countdownSlave');
 // --- FUNCIONS MASTER (ADMIN) ---
 
-function startTimer() {
+async function startTimer() {
   // Si ja estava pausat, calcula la nova startTime segons el temps restant
-  clockRef.once('value', snap => {
-    const data = snap.val();
-    let duration = TEMPS_TOTAL;
-    if (data && data.timeLeft !== undefined && data.timeLeft !== null) {
-      duration = data.timeLeft;
-    }
-    clockRef.set({
-      running: true,
-      startTime: Date.now(),
-      duration: duration,
-      timeLeft: duration
-    });
-    db.ref('formEnabled').set(true); // Activa el formulari
-    //if (pipSound) pipSound.play();
+  const snapStart = await clockRef.get();
+  const data = snapStart.data();
+  console.log(data);
+  let duration = TEMPS_TOTAL;
+  if (data && data.timeLeft !== undefined && data.timeLeft !== null && data.timeLeft !== 0) {
+    duration = data.timeLeft;
+  }
+  await clockRef.set({
+    running: true,
+    startTime: Date.now(),
+    duration: duration,
+    timeLeft: duration
   });
+  await formEnabledRef.set({ enabled: true }); // Activa el formulari
+  //if (pipSound) pipSound.play();
 }
 
-function stopTimer() {
+async function stopTimer() {
   // Desa el temps restant i posa running a false
-  clockRef.once('value', snap => {
-    const data = snap.val();
-    if (!data || !data.running) return;
-    const now = Date.now();
-    const timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
-    clockRef.update({
-      running: false,
-      timeLeft: timeLeft
-    });
-    db.ref('formEnabled').set(false); // Activa el formulari
+  const snap = await clockRef.get();
+  const data = snap.data();
+  if (!data || !data.running) return;
+  const now = Date.now();
+  const timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
+  await clockRef.update({
+    running: false,
+    timeLeft: timeLeft
   });
+  await formEnabledRef.set({ enabled: false }); // Activa el formulari
 }
 
-function resetTimer() {
-  clockRef.set({
+async function resetTimer() {
+  await clockRef.set({
     running: false,
     startTime: null,
     duration: TEMPS_TOTAL,
@@ -59,24 +59,28 @@ function resetTimer() {
   });
 }
 
-if (isAdmin()) {
+/* if (isAdmin()) {
+  console.log("Sóc admin, assignant listeners als botons!");
   if (startBtn) startBtn.addEventListener('click', startTimer);
   if (stopBtn) stopBtn.addEventListener('click', stopTimer);
   if (resetBtn) resetBtn.addEventListener('click', resetTimer);
-}
+} else {
+  console.log("No sóc admin, no assigno listeners.");
+} */
 
 // --- FUNCIONS ESCLAU I MASTER (VISUALITZACIÓ) ---
 
 let interval;
-clockRef.on('value', (snapshot) => {
-  const data = snapshot.val();
-  if (!data || (!data.startTime && !data.timeLeft)) return;
+clockRef.onSnapshot((snapshot) => {
+  const data = snapshot.data();
+  if (!data || (data.startTime === null && (data.timeLeft === undefined || data.timeLeft === null))) return;
 
   clearInterval(interval);
 
   function updateDisplay() {
     let timeLeft;
     if (data.running && data.startTime) {
+      // Calcula el temps restant
       const now = Date.now();
       timeLeft = Math.max(0, data.duration - Math.floor((now - data.startTime) / 1000));
     } else {
@@ -89,10 +93,15 @@ clockRef.on('value', (snapshot) => {
     const displayMinutes = String(minutes).padStart(2, '0');
     const displaySeconds = String(seconds).padStart(2, '0');
     countdownElement.textContent = `${displayMinutes}:${displaySeconds}`;
+    
+    countdownElementBar.textContent = `${displayMinutes}:${displaySeconds}`;
 
     // Estils i sons
     countdownElement.classList.toggle('paused', !data.running || timeLeft === 0);
     countdownElement.classList.toggle('warning', timeLeft <= 30 && timeLeft > 0);
+    
+    countdownElementBar.classList.toggle('paused', !data.running || timeLeft === 0);
+    countdownElementBar.classList.toggle('warning', timeLeft <= 30 && timeLeft > 0);
 
     if (timeLeft <= 30 && timeLeft > 0 && timeLeft % 10 === 0) {
       pipSound?.play();
@@ -102,7 +111,8 @@ clockRef.on('value', (snapshot) => {
         setTimeout(() => { pipSound?.play(); }, i * 200);
       }
       clearInterval(interval);
-      stopTimer()
+      stopTimer();
+      resetTimer();
     }
   }
 
@@ -111,3 +121,10 @@ clockRef.on('value', (snapshot) => {
     interval = setInterval(updateDisplay, 1000);
   }
 });
+
+// rellotge.js
+export function assignClockListeners() {
+  if (startBtn) startBtn.addEventListener('click', startTimer);
+  if (stopBtn) stopBtn.addEventListener('click', stopTimer);
+  if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+}

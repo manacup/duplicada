@@ -159,11 +159,53 @@ function getNextCell(row, col, direction, word) {
   }
 }
 
-// Exemple d'ús:
-// const {row: nextRow, col: nextCol} = getNextCell(7, 7, "horizontal", "CASA");
+/**
+ * Reconstrueix una matriu 2D a partir d'un array 1D aplanat.
+ * @param {Array<string>} flattenedBoard - L'array aplanat que representa el tauler.
+ * @param {number} rows - El nombre de files del tauler (per exemple, 15).
+ * @param {number} cols - El nombre de columnes del tauler (per exemple, 15).
+ * @returns {Array<Array<string>>} La matriu 2D reconstruïda.
+ */
+function reconstructBoard(flattenedBoard, rows, cols) {
+    // Validar que l'array aplanat tingui la mida esperada
+    if (!Array.isArray(flattenedBoard) || flattenedBoard.length !== rows * cols) {
+      console.error("Error: L'array aplanat no té la mida esperada per a la reconstrucció.");
+      // Retornar un tauler buit o llançar un error segons convingui
+      return createEmptyBoard(cols); // Utilitzem cols perquè createEmptyBoard pren la mida
+    }
+  
+    const board = [];
+    for (let i = 0; i < rows; i++) {
+      // Utilitzem slice per obtenir la part de l'array aplanat que correspon a cada fila
+      board.push(flattenedBoard.slice(i * cols, (i + 1) * cols));
+    }
+    return board;
+  }
 
-// Centralitza funcions compartides
-export { splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord,getNextCell };
+/**
+ * Converteix una paraula amb caràcters ficticis (Ł, Ý, Û, etc.) a dígrafs humans (L·L, NY, QU)
+ * Manté la minúscula si la lletra fictícia és minúscula.
+ * Ex: "ŁA" => "L·LA", "łA" => "l·la", "ÝA" => "NYA", "ýA" => "nya"
+ */
+function toHumanDigraphs(word) {
+    if (!word) return '';
+    let result = '';
+    for (let i = 0; i < word.length; i++) {
+        const c = word[i];
+        switch (c) {
+            case 'Ł': result += 'L·L'; break;
+            case 'ł': result += 'l·l'; break;
+            case 'Ý': result += 'NY'; break;
+            case 'ý': result += 'ny'; break;
+            case 'Û': result += 'QU'; break;
+            case 'û': result += 'qu'; break;
+            default: result += c;
+        }
+    }
+    return result;
+}
+
+export { reconstructBoard,splitWordToTiles, normalizeWordInput, displayLetter, createEmptyBoard, displayWord,getNextCell , toHumanDigraphs};
 
 export {
     DIGRAPH_MAP,

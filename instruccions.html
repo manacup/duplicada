@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instruccions - Partida Duplicada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            background: #fafafa;
+        }
+
+        .master {
+            background: #e3f2fd;
+        }
+
+        .jugador {
+            background: #fffde7;
+        }
+
+        .section-card {
+            max-width: 700px;
+            margin: 2em auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container section-card">
+        <h1 class="mb-4 text-primary">Instruccions d'ús de l'aplicació Manacup Duplicada</h1>
+
+        <h2 class="mt-4">Per a jugadors</h2>
+        <div class="jugador card mb-4 shadow-sm">
+            <div class="card-body">
+                <ul class="list-group list-group-flush mb-0">
+                    <li class="list-group-item bg-transparent">
+                        Accedeix a l'aplicació i identifica't amb el teu nom i taula. <strong>Recorda que si ja havies
+                            entrat abans, has de posar exactament el mateix nom.</strong>
+                        <br>
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        Quan el master obri una nova ronda, veuràs el teu faristol amb les fitxes disponibles.
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <strong>Pots introduir la teva jugada de dues maneres:</strong>
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">
+                                <h3>Formulari tàctil: Interactiu amb el tauler i el faristol</h3>
+                                <ul class="list-group list-group-flush ms-3">
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Prem sobre la casella d'inici de paraula al tauler. Aquesta acció omplirà
+                                        automàticament el camp de coordenades.
+                                    </li>
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Si tornes a pitjar la mateixa casella, canviaràs la direcció
+                                        (horitzontal/vertical).
+                                    </li>
+                                    <li class="list-group-item bg-transparent p-0">
+                                        A continuació, ves pitjant les fitxes del teu faristol per col·locar-les al
+                                        tauler. El sistema avançarà automàticament a la següent casella buida i, si hi
+                                        ha lletres ja col·locades al tauler, aquestes s'afegiran automàticament a la
+                                        paraula.
+                                    </li>
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Si utilitzes una fitxa escarràs, després de pitjar-la al faristol, se't demanarà
+                                        quina lletra vols assignar-li.
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="list-group-item bg-transparent p-0">
+                                <h3>Formulari manual: Manual amb els camps del formulari</h3>
+                                <ul class="list-group list-group-flush ms-3">
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Escriu manualment les coordenades d'inici (ex: A1) al camp corresponent.
+                                    </li>
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Defineix la direcció de la paraula utilitzant els botons <div
+                                            class="btn-group-vertical" role="group">
+                                            <button type="button" class="btn d-none" disabled=""></button>
+                                            <button type="button" class="btn btn-outline-primary" id="horizontalBtn"
+                                                disabled=""><i class="bi bi-arrow-right"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary" id="verticalBtn"
+                                                disabled=""><i class="bi bi-arrow-down"></i>
+                                            </button>
+                                            <button type="button" class="btn d-none" disabled=""></button>
+                                        </div>.
+                                    </li>
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Escriu la paraula <strong>completa</strong> al camp de paraula.
+                                    </li>
+                                    <li class="list-group-item bg-transparent p-0">
+                                        Si utilitzes escarrassos, marca'ls pitjant sobre les fitxes corresponents de la
+                                        jugada a enviar: aquestes quedaran ressaltades i el sistema les identificarà com
+                                        a comodins.
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        Pots previsualitzar la teva jugada abans d'enviar-la: veuràs la paraula col·locada al tauler.
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        Prem <button type="submit" class="btn btn-primary " id="submitWordBtn"><i
+                                class="bi bi-send-check me-2"></i>Envia la resposta</button> per registrar la teva
+                        jugada abans que s'acabi el temps.
+                    </li>
+                </ul>
+                <div class="bd-callout bd-callout-info">
+                    <p>Pots enviar més d'una resposta dins el temps, però només valdrà la darrera enviada.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="mt-4">Per al master (administrador)</h2>
+        <div class="master card mb-4 shadow-sm">
+            <div class="card-body">
+                <ul class="list-group list-group-flush mb-0">
+                    <li class="list-group-item bg-transparent">
+                        <strong>Accedeix a l'aplicació i identifica't com a <u>Jugada mestra</u> i <u>administrador</u>
+                            a la taula.</strong>
+                        <br>
+                        <span class="text-muted">Introdueix "Jugada mestra" com a nom i "administrador" com a taula al
+                            formulari d'accés per obtenir permisos de master.</span>
+                    </li>
+                    <li class="list-group-item bg-transparent mt-2">
+                        <strong>Pots crear, obrir i tancar rondes noves des del panell de control.</strong>
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">Fes clic a <span
+                                    class="badge bg-secondary">Nova ronda</span> per començar una nova ronda.</li>
+                            <li class="list-group-item bg-transparent p-0">Utilitza <span
+                                    class="badge bg-info text-dark">Obre ronda</span> per permetre als jugadors enviar
+                                les seves jugades.</li>
+                            <li class="list-group-item bg-transparent p-0">Quan el temps s'acaba o vols tancar la ronda,
+                                prem <span class="badge bg-danger">Tanca ronda</span> per bloquejar l'enviament de
+                                respostes.</li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item bg-transparent mt-2">
+                        <strong>Gestiona el faristol i el sac de fitxes per a cada ronda.</strong>
+
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">Pots completar el faristol manualment o bé
+                                amb el botó <button id="randomRackBtn" class="btn btn-outline-secondary btn-sm"><i
+                                        class="bi bi-shuffle"></i></button> per generar un faristol aleatori.</li>
+                            <li class="list-group-item bg-transparent p-0">Pots modificar manualment el faristol abans
+                                d'obrir la ronda. Si pitges sobre <button class="btn btn-outline-secondary"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseFitxes"
+                                    aria-expanded="false" aria-controls="collapseExample">
+                                    <i class="bi bi-caret-down"></i>
+                                </button> es desplegarà el sac amb les fitxes restants.</li>
+                            <li class="list-group-item bg-transparent p-0">Desa el faristol per a mostrar-lo als
+                                jugadors.</li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item bg-transparent mt-2">
+                        <strong>Controla el rellotge de la ronda: inicia, pausa o reinicia el temps segons
+                            calgui.</strong>
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">Fes servir els botons <div
+                                    class="btn-group btn-group-sm master mb-3" role="group" id="clockBtn">
+                                    <button class="btn btn-outline-primary" id="startBtn"><i
+                                            class="bi bi-play-fill"></i></button>
+                                    <button class="btn btn-outline-primary" id="stopBtn"><i
+                                            class="bi bi-pause-fill"></i></button>
+                                    <button class="btn btn-outline-primary" id="resetBtn"><i
+                                            class="bi bi-arrow-clockwise"></i></button>
+                                </div> per gestionar el temps de cada ronda.</li>
+                            <li class="list-group-item bg-transparent p-0">El rellotge es sincronitza automàticament amb
+                                tots els dispositius.</li>
+                            <li class="list-group-item bg-transparent p-0">El formulari dels jugadors només està actiu
+                                si el compte enrere avança.</li>
+                            <li class="list-group-item bg-transparent p-0">Quan el temps arriba a zero, el formulari
+                                d'enviament de resultats es bloqueja per als jugadors.</li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item bg-transparent mt-2">
+                        <strong>Per a poder tancar la ronda, revisa les jugades dels jugadors i valida la jugada
+                            mestra.</strong>
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">Consulta totes les respostes rebudes a la
+                                ronda.</li>
+                            <li class="list-group-item bg-transparent p-0">Introdueix la jugada mestra (la millor
+                                possible) per comparar-la amb les dels jugadors.</li>
+                            <li class="list-group-item bg-transparent p-0">Si pitges sobre una resposta enviada per un
+                                jugador, la veuràs al tauler i al formulari. Si l'envies com a resposta, passarà a ser
+                                la jugada mestra.</li>
+                            <li class="list-group-item bg-transparent p-0">Per a poder tancar la ronda hi ha d'haver una
+                                "jugada mestra" desada, és a dir el jugador "Jugada mestra" ha d'haver enviat una
+                                resposta.</li>
+                            <li class="list-group-item bg-transparent p-0">El sistema calcula automàticament la
+                                puntuació i mostra les diferències.</li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item bg-transparent mt-2">
+                        <strong>Pots consultar la classificació i l'historial de jugades.</strong>
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">Accedeix a la classificació general i a
+                                l'historial de cada ronda.</li>
+                            <li class="list-group-item bg-transparent p-0">Pots navegar entre les rondes per veure les
+                                jugades i puntuacions anteriors.</li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item bg-transparent mt-2">
+                        <strong>Per projectar la partida a la pantalla gran:</strong>
+                        <ul class="list-group list-group-flush ms-3">
+                            <li class="list-group-item bg-transparent p-0">Accedeix a l'aplicació des d'un altre
+                                dispositiu o pestanya.</li>
+                            <li class="list-group-item bg-transparent p-0">Introdueix <span
+                                    class="badge bg-dark">pantalla</span> al camp "taula" del formulari d'accés.</li>
+                            <li class="list-group-item bg-transparent p-0">Aquesta sessió mostrarà només la informació
+                                rellevant per a la projecció pública.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="mt-4">Consells generals</h2>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body bg-info bg-opacity-10">
+                <ul class="list-group list-group-flush mb-0">
+                    <li class="list-group-item bg-transparent">Assegura't de tenir una connexió a internet estable
+                        durant la partida.</li>
+                    <li class="list-group-item bg-transparent">Actualitza la pàgina només si tens problemes de
+                        sincronització.</li>
+                    <li class="list-group-item bg-transparent">En cas de dubte, consulta el master o revisa aquestes
+                        instruccions.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

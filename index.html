@@ -4,149 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestió Partida Duplicada Scrabble</title>
+    <title>Partida Duplicada Scrabble</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="style.css" rel="stylesheet">
 
-    <style>
-        .main-grid {
-            overflow-x: hidden;
-            display: grid;
-            grid-template-columns: 3fr 2fr;
-            grid-template-areas:
-                "titol titol"
-                "gestio rellotge"
-                "tauler rellotge"
-                "tauler faristol"
-                "tauler master"
-                "respostes respostes"
-                "classificacio classificacio"
-                "sac sac";
-            gap: 2rem;
-        }
-
-        .main-grid.mode-pantalla #gestio-section,
-        .main-grid.mode-pantalla #faristolInput,
-        .main-grid.mode-pantalla #clockBtn,
-        .main-grid.mode-pantalla #master-section,
-        .main-grid.mode-pantalla #masterForm-section {
-            display: none;
-            /* Oculta el sac i allibera el seu espai */
-        }
-
-
-        @media (max-width: 991px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-                grid-template-areas:
-                    "titol"
-                    "gestio"
-                    "rellotge"
-                    "tauler"
-                    "faristol"
-                    "master"
-                    "respostes"
-                    "classificacio"
-                    "sac";
-                gap: 0rem;
-            }
-
-            .countdownSlave {
-                position: fixed;
-                top: 0px;
-                right: 0px;
-                font-size: 1em !important;
-                background: #ffffff;
-                z-index: 10000;
-                margin: 20px;
-                padding: 10px;
-                border-radius: 5px;
-                border: 1px solid black;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                pointer-events: none;
-            }
-        }
-
-        @media (min-width: 1400px) {
-
-            .main-grid {
-                display: grid;
-                grid-template-columns: 2fr 3fr 2fr;
-
-                grid-template-areas:
-                    "titol titol titol"
-                    "faristol gestio rellotge"
-                    "faristol tauler rellotge"
-                    "faristol tauler respostes"
-                    "master tauler respostes"
-                    "master tauler respostes"
-                    "classificacio classificacio classificacio"
-                    "sac  sac sac"
-                ;
-                gap: 2rem;
-            }
-
-            .main-grid.mode-pantalla {
-                display: grid;
-                grid-template-columns: 2fr 2fr;
-                grid-template-areas:
-                    "titol titol"
-                    "tauler rellotge"
-                    "tauler faristol"
-                    "tauler faristol"
-                    "tauler faristol"
-                    "respostes respostes"
-                    "classificacio classificacio"
-                    "sac sac";
-                ;
-                gap: 2rem;
-            }
-
-        }
-
-        #titol {
-            grid-area: titol;
-        }
-
-        #tauler-section {
-            grid-area: tauler;
-        }
-
-        #gestio-section {
-            grid-area: gestio;
-        }
-
-        #respostes-section {
-            grid-area: respostes;
-        }
-
-        #masterForm-section {
-            grid-area: master;
-        }
-
-        #faristol-section {
-            grid-area: faristol;
-        }
-
-        #rellotge-section {
-            grid-area: rellotge;
-        }
-
-        #classificacio-section {
-            grid-area: classificacio;
-            max-width: 100%;
-            /* o el valor que vulguis */
-            overflow-x: auto;
-        }
-
-        #sac-section {
-            grid-area: sac;
-        }
-    </style>
 </head>
 
 <body>
+
+
 
     <!-- Formulari de login: demana nom i taula -->
     <section id="login-section">
@@ -155,17 +22,18 @@
             <div class="col-md-6 col-lg-4">
                 <form id="loginForm" class="card p-3 shadow-sm">
                     <h3 class="mb-3 text-center">Partida Duplicada</h3>
+                    <h4 class="mb-3 text-center">II Memorial Magdalena Morell a Porreres</h4>
                     <div class="d-flex justify-content-around mb-3">
                         <img src="imatges/logo AJUSC-vertical.png" alt="Logo Associació jugadors Scrabble en català"
                             class="" height="80px">
-                        <img src="imatges/logoManacor.png" alt="Logo Club Scrabble Manacor" class="" height="80px">
-                        <img src="imatges/logoPorreres.png" alt="Logo Club Scrabble Porreres" class="" height="80px">
+                        <img src="imatges/logoPorreres.png" alt="Logo Club Scrabble Manacor" class="" height="80px">
+                        <img src="imatges/logoManacor.png" alt="Logo Club Scrabble Porreres" class="" height="80px">
                     </div>
 
                     <div class="mb-3">
                         <label for="loginName" class="form-label">Nom</label>
                         <input type="text" class="form-control" id="loginName" name="loginName" required
-                            autocomplete="username">
+                            autocomplete="username" list="jugadorslistOptions">
                     </div>
                     <div class="mb-3">
                         <label for="loginTable" class="form-label">Taula</label>
@@ -173,7 +41,7 @@
                             autocomplete="off">
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="desaSessio">
+                        <input class="form-check-input" type="checkbox" value="" id="desaSessio" checked>
                         <label class="form-check-label" for="desaSessio">
                             Recorda'm en aquest dispositiu
                         </label>
@@ -192,8 +60,24 @@
 
 
     <!-- Contingut principal -->
-    <div class="container d-none" id="main-content">
 
+    <div class="container d-none" id="main-content">
+        <!-- Barra superior mòbil: ronda i temps -->
+
+        <div id="topbar-mobile">
+            <div class="dropdown">
+                <div class=" dropdown-toggle" id="dropdownRoundBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    Ronda <span id="currentRoundMobile">-</span>
+                </div>
+                <ul class="dropdown-menu" id="roundsDropdownMenu" aria-labelledby="dropdownRoundBtn">
+                    <li class="dropdown-item" id="roundsDropdownItem">
+                        Ronda <span id="roundoption-1">1</span>
+                    </li>
+                    <!-- Aquí es mostraran les rondes -->
+                </ul>
+            </div>
+            <span class="timer-mobile paused me-3" id="countdownBar">--:--</span>
+        </div>
         <div class="main-grid">
 
             <!--Rellotge-->
@@ -201,6 +85,7 @@
                 <div class="d-flex flex-column align-items-center gap-2">
                     <div id="countdown" class="paused"></div>
                     <div class="btn-group btn-group-sm master mb-3" role="group" id="clockBtn">
+                        <button class="btn btn-outline-primary disabled" disabled><i class="bi bi-clock"></i></button>
                         <button class="btn btn-outline-primary" id="startBtn"><i class="bi bi-play-fill"></i></button>
                         <button class="btn btn-outline-primary" id="stopBtn"><i class="bi bi-pause-fill"></i></button>
                         <button class="btn btn-outline-primary" id="resetBtn"><i
@@ -211,7 +96,7 @@
 
 
             <!-- Títol -->
-            <div id="titol" class="text-center">
+            <div id="titol" class="text-center mt-3">
                 <h3>Partida Duplicada de Scrabble</h3>
             </div>
 
@@ -219,12 +104,12 @@
             <section id="gestio-section">
 
                 <div class="d-flex flex-column align-items-center gap-2">
-                    <div class="row w-100">
+                    <div class="row w-100" id="roundControls">
                         <div class=" btn-group  btn-group-lg " role="group">
 
                             <button id="prevRoundBtn" class="btn btn-outline-secondary"
                                 title="Ronda anterior">&lt;</button>
-                            <span id="roundDisplay" class=" btn btn-outline-secondary  disabled"></span>
+                            <span id="roundDisplay" class=" btn btn-outline-secondary w-75 disabled"></span>
                             <button id="nextRoundBtn" class="btn btn-outline-secondary"
                                 title="Ronda següent">&gt;</button>
                         </div>
@@ -248,24 +133,28 @@
 
             <!-- Respostes dels jugadors i resultats -->
             <section id="respostes-section" class="master">
-                <h3>Respostes</h3>
-                <div id="responsesAccordion" class="mt-3"></div>
-                <div id="resultats" class="mt-4"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target="#resultats"><i class="bi bi-chevron-down"></i>Respostes
+                </h3>
+
+                <div id="resultats" class="mt-4 collapse"></div>
             </section>
             <!-- Classificacio -->
             <section id="classificacio-section" class="master">
-                <h3>Classificació</h3>
-                <div id="rankingContainer" class="table-responsive mt-4"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target="#rankingContainer"><i
+                        class="bi bi-chevron-down"></i>Classificació</h3>
+                <div id="rankingContainer" class="mt-4 collapse"></div>
             </section>
-
+            <!-- Formulari tàctil -->
             <!-- Tauler -->
             <section id="tauler-section">
-                
-                <div id="board-container" class="mb-3"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target=".multi-collapse"><i
+                        class="bi bi-chevron-down"></i>Formulari tàctil</h3>
+
+                <div id="board-container" class="mb-3 collapse show multi-collapse"></div>
             </section>
 
             <!-- Faristol visual -->
-            <section id="faristol-section">
+            <section id="faristol-section" class="collapse show multi-collapse">
                 <h3>Faristol</h3>
                 <div class="d-flex flex-column align-items-center gap-2">
                     <div id="rackTiles" class="rack-tiles"></div>
@@ -287,8 +176,9 @@
                         <button id="randomRackBtn" class="btn btn-outline-secondary"><i
                                 class="bi bi-shuffle"></i></button>
                         <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-target="#collapseMillorsJugades" data-bs-toggle="collapse"> <i class="bi bi-search"></i></button>
                         <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseFitxes" aria-expanded="false" aria-controls="collapseExample">
+                            data-bs-target="#collapseFitxes" aria-expanded="false" aria-controls="collapseFitxes">
                             <i class="bi bi-caret-down"></i>
                         </button>
                     </div>
@@ -297,86 +187,115 @@
                             <p id="fitxesRestants" class="d-flex flex-wrap fw-medium"></p>
                         </div>
                     </div>
-
+                    <div class="collapse" id="collapseMillorsJugades">
+                        <h4 id="btnMillorsJugades"> <i 
+                                class="bi bi-arrow-clockwise"></i>Millors jugades</h4>
+                        <div id="millorsJugadesContainer"></div>
+                    </div>
                 </div>
             </section>
+
             <!-- sac de fitxes -->
             <section id="sac-section" class="master">
-                <div id="sacTiles" class="sac-tiles"></div>
+                <h3 data-bs-toggle="collapse" data-bs-target="#sacTiles"><i class="bi bi-chevron-down"></i>Fitxes
+                    restants</h3>
+                <div id="sacTiles" class="sac-tiles collapse"></div>
             </section>
 
             <!-- Formulari jugada mestra -->
             <section id="masterForm-section">
 
                 <form id="wordForm">
-                    <h3>Formulari</h3>
-                    <div class="form-label master" id="playerLabel">
-                        <label for="player" class="form-label">Jugador:</label>
+                    <h3 data-bs-toggle="collapse" data-bs-target="#collapseFormulari"><i
+                            class="bi bi-chevron-down"></i>Formulari manual</h3>
+                    <div class="collapse" id="collapseFormulari">
 
-                        <div class="input-group mb-3 master">
+                        <div class="form-label master" id="playerLabel">
+                            <label for="player" class="form-label">Jugador:</label>
 
-                            <input type="text" list="jugadorslistOptions" id="player" value=""
-                                class="form-control form-control-lg">
+                            <div class="input-group mb-3 master">
 
-                            <span class="input-group-text">Taula:</span>
-                            <input type="text" id="taula" value="" class="form-control form-control-lg">
+                                <input type="text" list="jugadorslistOptions" id="player" value=""
+                                    class="form-control form-control-lg">
 
+                                <span class="input-group-text">Taula:</span>
+                                <input type="text" id="taula" value="" class="form-control form-control-lg"
+                                    list="tauleslistOptions">
+
+                            </div>
+                            <datalist id="jugadorslistOptions">
+                                <datalist id="tauleslistOptions">
+                                    <option value="administrador">
+                                </datalist>
+
+                            </datalist>
                         </div>
-                        <datalist id="jugadorslistOptions">
+                        <div class="form-label">
+                            <div class="d-flex flex-row align-items-center">
 
-                        </datalist>
-                    </div>
-                    <div class="form-label">
-                        <div class="d-flex flex-row align-items-center">
+                                <label for="coords" class="form-label col-3">Coordenades:</label>
+                                <label for="word" class="form-label col-9 " style="margin-left:50px;">Paraula:</label>
+                            </div>
 
-                            <label for="coords" class="form-label col-3">Coordenades:</label>
-                            <label for="word" class="form-label col-9 " style="margin-left:50px;">Paraula:</label>
+                            <div class="input-group  input-group-lg mb-3 ">
+                                <input type="text" class="form-control " id="coords" required>
+                                <span class="input-group-text " id="directionLabel">
+                                    <div class="btn-group-vertical" role="group">
+                                        <button type="button" class="btn d-none"></button>
+                                        <button type="button" class="btn btn-outline-primary" id="horizontalBtn"><i
+                                                class="bi bi-arrow-right"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary" id="verticalBtn"><i
+                                                class="bi bi-arrow-down"></i>
+                                        </button>
+                                        <button type="button" class="btn d-none"></button>
+                                    </div>
+                                    <input type="hidden" id="direction" required>
+                                </span>
+
+                                <input type="text" class="form-control " id="word" required
+                                    placeholder="Paraula jugada">
+                            </div>
                         </div>
+                        <div class="master">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="validateWords"
+                                    checked>
+                                <label class="form-check-label" for="validateWords">Valida les paraules formades abans
+                                    de
+                                    desar.</label>
+                            </div>
+                        </div>
+                        <span class="border-bottom"></span>
+                        <h3>Jugada a enviar</h3>
+                        <p>S'anirà formant la jugada a mesura que triis fitxes dels faristol o escriguis la paraula al
+                            formulari.</p>
+                        <div class="mb-3">
 
-                        <div class="input-group  input-group-lg mb-3 ">
-                            <input type="text" class="form-control " id="coords" required >
-                            <span class="input-group-text " id="directionLabel">
-                                <div class="btn-group-vertical" role="group">
-                                    <button type="button" class="btn d-none"></button>
-                                    <button type="button" class="btn btn-outline-primary" id="horizontalBtn"><i
-                                            class="bi bi-arrow-right"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary" id="verticalBtn"><i
-                                            class="bi bi-arrow-down"></i>
-                                    </button>
-                                    <button type="button" class="btn d-none"></button>
-                                </div>
-                                <input type="hidden" id="direction" required>
-                            </span>
-
-                            <input type="text" class="form-control " id="word" required placeholder="Paraula jugada">
+                            <div id="tileButtons"></div>
+                            <input type="hidden" id="scraps" value="[]">
+                            <label class="form-label">Pitja sobre la fitxa que és un escarràs, si n'has usat
+                                algun.</label>
                         </div>
                     </div>
-                    <div class="master">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="validateWords" checked>
-                            <label class="form-check-label" for="validateWords">Valida les paraules formades abans de
-                                desar.</label>
-                        </div>
-                    </div>
-                    <span class="border-bottom"></span>
-                    <h3>Jugada a enviar</h3>
-                    <p>S'anirà formant la jugada a mesura que triis fitxes dels faristol o escriguis la paraula al formulari.</p>
-                    <div class="mb-3">
-                        
-                        <div id="tileButtons"></div>
-                        <input type="hidden" id="scraps" value="[]">
-                        <label class="form-label">Pitja sobre la fitxa que és un escarràs, si n'has usat algun.</label>
-                    </div>
-                    <h4 id="score-master" class="master"></h4>
+                    <!--  ------------------------------------ -->
+
                     <div class=" mb-3">
-                        <button type="submit" class="btn btn-outline-primary w-100 btn-lg" id="submitWordBtn"><i
+                        <button type="submit" class="btn btn-primary w-100 btn-lg" id="submitWordBtn"><i
                                 class="bi bi-send-check me-2"></i>Envia la resposta</button>
                     </div>
 
                 </form>
                 <div id="respostaMessage" class="mb-3"></div>
             </section>
+            <!-- secció punts    -->
+            <section id="score-section" class="master">
+                <h1 id="score-master"></h1>
+            </section>
+
+            <button id="exportDataBtn" class="master btn btn-outline-secondary btn-sm ms-2"
+                style="position: fixed; bottom: 1rem; right: 1rem; z-index: 1000;"><i class="bi bi-download"></i>
+                Exporta la partida a Eliot</button>
         </div>
     </div>
     <!-- modal per triar escarràs   -->
@@ -401,11 +320,14 @@
         </div>
     </div>
 
+
     <audio id="pipSound" src="pip.wav" preload="auto"></audio>
     <!-- JS dependències i scripts propis -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Added Firestore compat library -->
     <script type="text/javascript" src="wdtjs/jquery.js"></script>
     <script type="text/javascript" src="wdtjs/general.js"></script>
     <script type="text/javascript" src="wdtjs/bits.js"></script>
@@ -421,8 +343,6 @@
 
     <script src="classificacio.js" type="module"></script>
     <script src="login.js" type="module"></script>
-
-
 
 
 </body>
