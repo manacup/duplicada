@@ -711,12 +711,12 @@ body {
 
     grid-template-areas:
       "titol titol titol"
-      "faristol gestio rellotge"
-      "faristol tauler rellotge"
+      "rellotge gestio punts"
+      "faristol tauler master"
       "faristol tauler respostes"
-      "master tauler respostes"
-      "master tauler respostes"
-      "punts tauler respostes"
+      "faristol tauler respostes"
+      "faristol tauler respostes"
+      
       "classificacio classificacio classificacio"
       "sac  sac sac";
     gap: 2rem;

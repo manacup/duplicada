@@ -9,11 +9,20 @@ async function loadTrie(url) {
 }
 
 // Cerca recursiva de paraules vàlides al trie, encaixant amb el tauler i rack
-function searchWithAnchor(board, rack, trieNode, row, col, direction, prefix, usedRack, results, minRow, minCol, offset, maxLen, depth = 0) {
+function searchWithAnchor(
+    board, rack, trieNode, row, col, direction, prefix, usedRack, results,
+    minRow, minCol, offset, maxLen, depth = 0, scraps = []
+) {
     const size = board.length;
     if (prefix.length === maxLen) {
         if (trieNode._end && isValidPlacement(board, prefix, minRow, minCol, direction, trie)) {
-            results.push({ word: prefix, startRow: minRow, startCol: minCol, direction, usedRack: [...usedRack] });
+            results.push({
+                word: prefix,
+                startRow: minRow,
+                startCol: minCol,
+                direction,
+                scraps: [...scraps]
+            });
         }
         return;
     }
@@ -33,13 +42,14 @@ function searchWithAnchor(board, rack, trieNode, row, col, direction, prefix, us
                 nextCol,
                 direction,
                 prefix + boardLetter.toUpperCase(),
-                usedRack,
+                usedRack.concat([boardLetter.toUpperCase()]),
                 results,
                 minRow,
                 minCol,
                 offset,
                 maxLen,
-                depth + 1
+                depth + 1,
+                scraps
             );
         }
         return;
@@ -58,13 +68,14 @@ function searchWithAnchor(board, rack, trieNode, row, col, direction, prefix, us
                 nextCol,
                 direction,
                 prefix + boardLetter.toUpperCase(),
-                usedRack,
+                usedRack.concat([boardLetter.toUpperCase()]),
                 results,
                 minRow,
                 minCol,
                 offset,
                 maxLen,
-                depth + 1
+                depth + 1,
+                scraps
             );
         }
         return;
@@ -91,11 +102,12 @@ function searchWithAnchor(board, rack, trieNode, row, col, direction, prefix, us
                 minCol,
                 offset,
                 maxLen,
-                depth + 1
+                depth + 1,
+                scraps
             );
         }
     }
-    // També pots provar amb escarràs '?'
+    // Prova amb escarràs '?'
     if (rack.includes('?')) {
         for (const l in trieNode) {
             if (l !== '_end') {
@@ -103,6 +115,7 @@ function searchWithAnchor(board, rack, trieNode, row, col, direction, prefix, us
                 const newRack = rack.slice(0, idx).concat(rack.slice(idx + 1));
                 const nextRow = direction === 'horizontal' ? row : row + 1;
                 const nextCol = direction === 'horizontal' ? col + 1 : col;
+                // Marca l'ús de l'escarràs: afegeix l'índex a scraps
                 searchWithAnchor(
                     board,
                     newRack,
@@ -110,14 +123,15 @@ function searchWithAnchor(board, rack, trieNode, row, col, direction, prefix, us
                     nextRow,
                     nextCol,
                     direction,
-                    prefix + l,
-                    usedRack.concat(['?']),
+                    prefix + l.toLowerCase(), // <-- minúscula!
+                    usedRack.concat(['?' + l]),
                     results,
                     minRow,
                     minCol,
                     offset,
                     maxLen,
-                    depth + 1
+                    depth + 1,
+                    scraps.concat([prefix.length])
                 );
             }
         }
@@ -191,7 +205,9 @@ async function findBestPlaysTrie(board, rack, letterValues, multiplierBoard, tri
                         startRow,
                         startCol,
                         offset,
-                        maxLen
+                        maxLen,
+                        0,
+                        []
                     );
                 }
             }
@@ -211,6 +227,14 @@ async function findBestPlaysTrie(board, rack, letterValues, multiplierBoard, tri
 
     // Calcula la puntuació real de la jugada
     for (const play of uniquePlays) {
+        // Si hi ha escarrassos, posa la lletra corresponent en minúscula
+        if (play.scraps && play.scraps.length > 0) {
+            let wordArr = play.word.split('');
+            for (const idx of play.scraps) {
+                wordArr[idx] = wordArr[idx].toLowerCase();
+            }
+            play.word = wordArr.join('');
+        }
         const placement = {
             word: play.word,
             startRow: play.startRow,
@@ -231,11 +255,112 @@ async function findBestPlaysTrie(board, rack, letterValues, multiplierBoard, tri
                 w.newTiles
             );
         });
+        // BONUS: Si s'han utilitzat 7 fitxes del rack (no del tauler), suma 50 punts
+        let rackTilesUsed = 0;
+        for (let idx = 0; idx < play.word.length; idx++) {
+            const r = play.direction === 'horizontal' ? play.startRow : play.startRow + idx;
+            const c = play.direction === 'horizontal' ? play.startCol + idx : play.startCol;
+            if (board[r][c] === '') rackTilesUsed++;
+        }
+        if (rackTilesUsed === 7) score += 50;
         play.score = score;
     }
 
     uniquePlays.sort((a, b) => b.score - a.score);
-    return uniquePlays.slice(0, maxResults);
+    // Retorna també l'array scraps per a cada jugada
+    return uniquePlays.slice(0, maxResults).map(play => ({
+        word: play.word,
+        startRow: play.startRow,
+        startCol: play.startCol,
+        direction: play.direction,
+        score: play.score,
+        scraps: play.scraps // array d'índexs de lletres que són escarrassos
+    }));
+}
+
+// Cerca una paraula al trie
+function trieHas(trie, word) {
+    let node = trie;
+    for (const char of word) {
+        if (!node[char]) return false;
+        node = node[char];
+    }
+    return !!node._end;
+}
+
+// Cerca jugades possibles tenint en compte els escarrassos (?)
+async function findBestPlaysWithBlanks(board, rack, letterValues, multiplierBoard, trieUrl, maxResults = 10) {
+    const blankCount = (rack.match(/\?/g) || []).length;
+    if (blankCount === 0) {
+        // Cerca normal
+        return await findBestPlaysTrie(board, rack, letterValues, multiplierBoard, trieUrl, maxResults);
+    }
+
+    const alphabet = 'abcçdefghijlłmnopûrstuvýxz';
+    let results = [];
+    if (blankCount === 1) {
+        for (const l of alphabet) {
+            // Substitueix el primer escarràs per la lletra l
+            const rackSub = rack.replace('?', l);
+            const jugades = await findBestPlaysTrie(board, rackSub, letterValues, multiplierBoard, trieUrl, maxResults * 2);
+            // Marca a scraps la posició de la lletra substituïda
+            jugades.forEach(j => {
+                // Busca la lletra l a la paraula, a una casella buida
+                let scraps = [];
+                for (let idx = 0; idx < j.word.length; idx++) {
+                    const r = j.direction === 'horizontal' ? j.startRow : j.startRow + idx;
+                    const c = j.direction === 'horizontal' ? j.startCol + idx : j.startCol;
+                    if (board[r][c] === '' && j.word[idx].toUpperCase() === l) {
+                        scraps.push(idx);
+                        // Posa la lletra en minúscula a la paraula
+                        j.word = j.word.substring(0, idx) + j.word[idx].toLowerCase() + j.word.substring(idx + 1);
+                        break; // Només una lletra per escarràs
+                    }
+                }
+                j.scraps = scraps;
+            });
+            results = results.concat(jugades);
+        }
+    } else if (blankCount === 2) {
+        for (const l1 of alphabet) {
+            for (const l2 of alphabet) {
+                const rackSub = rack.replace('?', l1).replace('?', l2);
+                const jugades = await findBestPlaysTrie(board, rackSub, letterValues, multiplierBoard, trieUrl, maxResults * 2);
+                jugades.forEach(j => {
+                    let scraps = [];
+                    let found1 = false, found2 = false;
+                    for (let idx = 0; idx < j.word.length; idx++) {
+                        const r = j.direction === 'horizontal' ? j.startRow : j.startRow + idx;
+                        const c = j.direction === 'horizontal' ? j.startCol + idx : j.startCol;
+                        if (board[r][c] === '' && !found1 && j.word[idx].toUpperCase() === l1) {
+                            scraps.push(idx);
+                            j.word = j.word.substring(0, idx) + j.word[idx].toLowerCase() + j.word.substring(idx + 1);
+                            found1 = true;
+                        } else if (board[r][c] === '' && !found2 && j.word[idx].toUpperCase() === l2) {
+                            scraps.push(idx);
+                            j.word = j.word.substring(0, idx) + j.word[idx].toLowerCase() + j.word.substring(idx + 1);
+                            found2 = true;
+                        }
+                        if (found1 && found2) break;
+                    }
+                    j.scraps = scraps;
+                });
+                results = results.concat(jugades);
+            }
+        }
+    }
+    // Elimina duplicats (mateixa paraula, posició i direcció)
+    const seen = new Set();
+    const unique = [];
+    for (const j of results) {
+        const key = `${j.word}|${j.startRow}|${j.startCol}|${j.direction}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(j);
+        }
+    }
+    unique.sort((a, b) => b.score - a.score);
+    return unique.slice(0, maxResults);
 }
 
 function isValidPlacement(board, word, startRow, startCol, direction, trie) {
@@ -322,14 +447,4 @@ function isValidPlacement(board, word, startRow, startCol, direction, trie) {
     return true;
 }
 
-// Cerca una paraula al trie
-function trieHas(trie, word) {
-    let node = trie;
-    for (const char of word) {
-        if (!node[char]) return false;
-        node = node[char];
-    }
-    return !!node._end;
-}
-
-export { findBestPlaysTrie, loadTrie };
+export { findBestPlaysTrie, loadTrie, findBestPlaysWithBlanks };

@@ -20,8 +20,8 @@ import {
   calculateFullPlayScore,
 } from "./calcul.js";
 import { updateRackTilesPreview, renderRackTiles } from "./rackTile.js";
-import { findBestPlays, loadWordList, } from "./millorJugada.js";
-import { findBestPlaysTrie, loadTrie } from "./millorJugadaTrie.js";
+import { findBestPlays, loadWordList } from "./millorJugada.js";
+import { findBestPlaysTrie, loadTrie,findBestPlaysWithBlanks } from "./millorJugadaTrie.js";
 
 const wordForm = document.getElementById("wordForm");
 const playerInput = document.getElementById("player");
@@ -881,8 +881,11 @@ async function mostraMillorsJugades(numResultats = 10) {
   //await loadWordList("dicc/DISC2-Eliot.txt");
   loadTrie("dicc/DISC2-Eliot.trie.json");
   // Troba les millors jugades
- 
-  const jugades = await findBestPlaysTrie(//findBestPlays(
+
+  const jugades = await 
+  //findBestPlaysWithBlanks(
+  findBestPlaysTrie(
+    //findBestPlays(
     boardBeforeMasterPlay,
     currentRack,
     letterValues,
@@ -894,7 +897,65 @@ async function mostraMillorsJugades(numResultats = 10) {
   if (jugades.length === 0) {
     alert("No s'ha trobat cap jugada possible!");
   } else {
-    let missatge = "Millors jugades:\n";
+    // afegeix una taula com la de resultats.js que en pitjar sobre una fila posi les coordenades i paraula al formulari de resposta
+    const taula = document.createElement("table");
+    taula.className = "table table-hover";
+    const capcalera = document.createElement("thead");
+    capcalera.innerHTML = `
+      <tr>
+        <th>Paraula</th>
+        <th>Posició</th>
+       
+        <th>Punts</th>
+      </tr>
+    `;
+    taula.appendChild(capcalera);
+    const cos = document.createElement("tbody");
+    jugades.forEach((j) => {
+      console.log("Millor jugada:", j);
+      const fila = document.createElement("tr");
+      // Calcula la posició segons la direcció
+      let posicio = "";
+      if (j.direction === "vertical") {
+        posicio = `${j.startCol + 1}${String.fromCharCode(65 + j.startRow)}`;
+      } else {
+        posicio = `${String.fromCharCode(65 + j.startRow)}${j.startCol + 1}`;
+      }
+      fila.innerHTML = `
+        <td>${displayWord(j.word)}</td>
+        <td>${posicio}</td>
+       
+        <td>${j.score}</td>
+      `;
+      fila.addEventListener("click", () => {
+        // Actualitza els camps del formulari amb les dades de la jugada seleccionada
+        const coords = posicio;
+        const word = displayWord(j.word);
+        let scraps = j.scraps;
+        
+
+        //setCoordinatesAndWord(coords, displayWord(word,scraps),scraps);
+        document.getElementById("coords").value = coords;
+        document.getElementById("coords").dispatchEvent(new Event("input")); // Trigger input event to update display
+        document.getElementById("word").value = displayWord(word, scraps);
+        document.getElementById("scraps").value =  `[${scraps}]` || "[]";
+        document.getElementById("word").dispatchEvent(new Event("input")); // Trigger input event to update display
+        // Omple el formulari amb les dades de la ronda i el jugador
+        //fillFormDataFromRoundAndPlayer(currentRoundId, player);
+        //deixar la fila seleccionada activa fins que es faci clic a una altra
+        // Esborra 'table-active' de totes les files de la taula abans de marcar la seleccionada
+        const files = taula.querySelectorAll("tr");
+        files.forEach((r) => r.classList.remove("table-active"));
+        fila.classList.add("table-active");
+      });
+      cos.appendChild(fila);
+    });
+    taula.appendChild(cos);
+    document.getElementById("millorsJugadesContainer").innerHTML = ""; // Neteja el contingut anterior
+
+    document.getElementById("millorsJugadesContainer").appendChild(taula);
+
+    /* let missatge = "Millors jugades:\n";
     jugades.forEach((j) => {
       let posicio = "";
       if (j.direction === "vertical") {
@@ -905,14 +966,12 @@ async function mostraMillorsJugades(numResultats = 10) {
 
       missatge += `Paraula: ${j.word} | Posició: ${posicio} | Direcció: ${j.direction} | Punts: ${j.score}\n`;
     });
-    alert(missatge);
+    alert(missatge); */
   }
 }
 document
   .getElementById("btnMillorsJugades")
-  ?.addEventListener("click", () => mostraMillorsJugades(100));
-
-
+  ?.addEventListener("click", () => mostraMillorsJugades(10));
 
 export {
   fillFormDataFromRoundAndPlayer,
@@ -926,4 +985,5 @@ export {
   generateTileButtons,
   currentWordTiles,
   updateScrapsInputValue,
+  mostraMillorsJugades
 };

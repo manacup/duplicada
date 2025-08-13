@@ -14,7 +14,7 @@ import {
 import { showResultats } from "./resultats.js";
 import { renderBoard } from "./tauler.js";
 import { renderRackTiles, renderSacTiles } from "./rackTile.js";
-import { fillFormDataFromRoundAndPlayer } from "./formulariRespostes.js";
+import { fillFormDataFromRoundAndPlayer,mostraMillorsJugades } from "./formulariRespostes.js";
 //import {copyTaulerRonda,setCurrentRack,setCurrentRoundId} from './formulariRespostes.js';
 import { saveWordsToBoard, findWordInfo } from "./calcul.js";
 import { generateRankingTable, displayRanking } from "./classificacio.js";
@@ -399,6 +399,8 @@ if (updateRackBtn) {
     ) {
       return;
     }
+
+
 
     const newRack = normalizeWordInput(
       editRackInput.value.trim().toUpperCase()

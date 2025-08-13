@@ -176,8 +176,9 @@
                         <button id="randomRackBtn" class="btn btn-outline-secondary"><i
                                 class="bi bi-shuffle"></i></button>
                         <button id="updateRackBtn" class="btn btn-outline-secondary">Desa</button>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-target="#collapseMillorsJugades" data-bs-toggle="collapse"> <i class="bi bi-search"></i></button>
                         <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseFitxes" aria-expanded="false" aria-controls="collapseExample">
+                            data-bs-target="#collapseFitxes" aria-expanded="false" aria-controls="collapseFitxes">
                             <i class="bi bi-caret-down"></i>
                         </button>
                     </div>
@@ -186,7 +187,11 @@
                             <p id="fitxesRestants" class="d-flex flex-wrap fw-medium"></p>
                         </div>
                     </div>
-<button id="btnMillorsJugades" type="button">Millors jugades</button>
+                    <div class="collapse" id="collapseMillorsJugades">
+                        <h4 id="btnMillorsJugades"> <i 
+                                class="bi bi-arrow-clockwise"></i>Millors jugades</h4>
+                        <div id="millorsJugadesContainer"></div>
+                    </div>
                 </div>
             </section>
 
